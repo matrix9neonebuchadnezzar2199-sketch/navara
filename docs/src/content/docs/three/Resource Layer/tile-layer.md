@@ -18,9 +18,9 @@ The Tile layer is a layer for displaying XYZ raster tiles (aerial photos, satell
 
 | Material                                                                                    | Config key         | Description                            |
 | ------------------------------------------------------------------------------------------- | ------------------ | -------------------------------------- |
-| [RasterTileMaterial](../../../three/resource-layer-reference/raster-tile-material/)         | `rasterTile`       | Configures tile appearance             |
-| [ElevationHeatmapMaterial](../../../three/resource-layer-reference/elevation-heatmap-material/) | `elevationHeatmap` | Displays elevation data as a heatmap   |
-
+| [RasterTileMaterial](../../../three/resource-layer/raster-tile-material/)         | `rasterTile`       | Configures tile appearance             |
+| [ElevationHeatmapMaterial](../../../three/resource-layer/elevation-heatmap-material/) | `elevationHeatmap` | Displays elevation data as a heatmap   |
+resource-layer
 ## Usage Examples
 
 ### OpenStreetMap Tiles
@@ -76,5 +76,6 @@ const heatmapLayer = view.addLayer({
 ## Related Resources
 
 - [Terrain Layer](../../../three/resource-layer-reference/terrain-layer/) - Display 3D terrain
-- [RasterTileMaterial](../../../three/resource-layer-reference/raster-tile-material/) - Detailed tile material settings
+- [RasterTileMaterial](../../../three/resource-layer-reference/raster-tile-material/) - Detailed tile material settingsresource-layer
 - [ElevationHeatmapMaterial](../../../three/resource-layer-reference/elevation-heatmap-material/) - Detailed heatmap material settings
+resource-layerresource-layerresource-layerresource-layer

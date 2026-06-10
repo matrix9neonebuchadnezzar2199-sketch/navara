@@ -18,7 +18,7 @@ The Terrain layer is a layer for displaying 3D terrain using elevation data. It 
 
 | Material                                                                              | Config key      | Description                              |
 | ------------------------------------------------------------------------------------- | --------------- | ---------------------------------------- |
-| [RasterTerrainMaterial](../../../three/resource-layer-reference/raster-terrain-material/) | `rasterTerrain` | Configures terrain appearance and elevation decoder |
+| [RasterTerrainMaterial](../../../three/resource-layer/raster-terrain-material/) | `rasterTerrain` | Configures terrain appearance and elevation decoder |
 
 ## Usage Examples
 
@@ -92,10 +92,10 @@ const terrainLayer = view.addLayer({
 ```
 
 :::note
-For details on pre-defined decoder constants, see [RasterTerrainMaterial](../../../three/resource-layer-reference/raster-terrain-material/#pre-defined-constants).
+For details on pre-defined decoder constants, see [RasterTerrainMaterial](../../../three/resource-layer/raster-terrain-material/#pre-defined-constants).
 :::
 
 ## Related Resources
 
-- [Tile Layer](../../../three/resource-layer-reference/tile-layer/) - Display raster tiles
-- [RasterTerrainMaterial](../../../three/resource-layer-reference/raster-terrain-material/) - Detailed terrain material settings
+- [Tile Layer](../../../three/resource-layer/tile-layer/) - Display raster tiles
+- [RasterTerrainMaterial](../../../three/resource-layer/raster-terrain-material/) - Detailed terrain material settings
