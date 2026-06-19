@@ -13,8 +13,9 @@ use navara_mesh::CachedMeshHandle;
 use navara_quadtree::Coords;
 
 use crate::{
-    TerrainTileQuadtree, Tile, TileHandle, raster_tile_texture_fragment::TileTextureFragmentQuery,
-    terrain::TerrainData, terrain_data_requester::TileTerrainDataRequesterQuery,
+    HillshadeCancelRequested, TerrainTileQuadtree, Tile, TileHandle,
+    raster_tile_texture_fragment::TileTextureFragmentQuery, terrain::TerrainData,
+    terrain_data_requester::TileTerrainDataRequesterQuery,
 };
 
 use navara_layer::{TerrainLayer, TilesLayer};
@@ -450,7 +451,9 @@ impl TerrainTile {
 
         if let Some(hillshade_entities) = self.hillshade_entity_ids.take() {
             for hillshade_entity in hillshade_entities.into_iter().flatten() {
-                commands.entity(hillshade_entity).insert(Deleted);
+                commands
+                    .entity(hillshade_entity)
+                    .insert((Deleted, HillshadeCancelRequested));
             }
         }
 
