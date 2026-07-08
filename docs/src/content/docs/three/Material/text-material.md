@@ -272,6 +272,24 @@ view.addFontFamily({
 }
 ```
 
+### opacity
+
+**Type:** `number | undefined`
+
+**Description:** Specifies the opacity of the text. The range is 0.0 (fully transparent) to 1.0 (fully opaque).
+
+**Default:** `1.0`
+
+**Example:**
+
+```typescript
+{
+  text: {
+    opacity: 0.5
+  }
+}
+```
+
 ### outlineColor
 
 **Type:** `Color | undefined`
@@ -432,6 +450,25 @@ import { Color } from "@navara/three";
 {
   text: {
     textAlign: "left"
+  }
+}
+```
+
+### transparent
+
+**Type:** `boolean | undefined`
+
+**Description:** Enables transparency and alpha blending. When enabled, the `opacity` property can be used to control transparency.
+
+**Default:** `true`
+
+**Example:**
+
+```typescript
+{
+  text: {
+    transparent: true,
+    opacity: 0.5
   }
 }
 ```

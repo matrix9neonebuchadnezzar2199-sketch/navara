@@ -272,6 +272,24 @@ view.addFontFamily({
 }
 ```
 
+### opacity
+
+**Type:** `number | undefined`
+
+**Description:** テキストの不透明度を指定します。範囲は 0.0（完全に透明）から 1.0（完全に不透明）です。
+
+**Default:** `1.0`
+
+**Example:**
+
+```typescript
+{
+  text: {
+    opacity: 0.5
+  }
+}
+```
+
 ### outlineColor
 
 **Type:** `Color | undefined`
@@ -432,6 +450,25 @@ import { Color } from "@navara/three";
 {
   text: {
     textAlign: "left"
+  }
+}
+```
+
+### transparent
+
+**Type:** `boolean | undefined`
+
+**Description:** 透明度とアルファブレンディングを有効にします。有効にすると、`opacity` プロパティを使用して透明度を制御できます。
+
+**Default:** `true`
+
+**Example:**
+
+```typescript
+{
+  text: {
+    transparent: true,
+    opacity: 0.5
   }
 }
 ```
