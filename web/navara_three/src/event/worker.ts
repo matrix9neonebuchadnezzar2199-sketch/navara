@@ -19,6 +19,8 @@ import {
   DelegatedWorkerTasksResult,
   EntityEvent,
   ExtentRadianF32,
+  ParseMvtTileParameters,
+  ParseMvtTileResult,
   ReconstructableEntity,
   TransferableFloatAttribute,
   TransferableGeometry,
@@ -36,6 +38,7 @@ import { constructPolygonBatchedFeature } from "../tasks/constructPolygonBatched
 import { constructPolylineBatchedFeature } from "../tasks/constructPolylineBatchedFeature";
 import { constructQuantizedMeshTerrainMesh } from "../tasks/constructQuantizedMeshTerrainMesh";
 import { constructTerrainMesh } from "../tasks/constructTerrainMesh";
+import { parseMvtTile } from "../tasks/parseMvtTile";
 import { upsampleQuantizedMeshTerrainMesh } from "../tasks/upsampleQuantizedMeshTerrainMesh";
 import { upsampleTerrainMesh } from "../tasks/upsampleTerrainMesh";
 
@@ -79,6 +82,15 @@ export async function processWorkerTaskDelegatedEvent(
       id,
       event.bits,
       event.task.construct_polyline_batched_feature,
+      event.task.delegator_id,
+    );
+  }
+  if (event.task.parse_mvt_tile) {
+    return await processParseMvtTile(
+      ctx,
+      id,
+      event.bits,
+      event.task.parse_mvt_tile,
       event.task.delegator_id,
     );
   }
@@ -722,6 +734,131 @@ async function processConstructPolylineBatchedFeature(
       delegator_id,
       constructPolylineBatchedFeatureResult,
     );
+
+  workerTaskHandler.triggerWorkerTaskCompleted(bits, delegatedTaskResult);
+}
+
+async function processParseMvtTile(
+  ctx: EventContext,
+  id: string,
+  bits: bigint,
+  params: ParseMvtTileParameters,
+  delegator_id: ReconstructableEntity,
+) {
+  const { buf: bufHandler, workerTaskHandler, workerPoolPromises } = ctx;
+
+  // A parse that fails after dispatch must still complete the task: a
+  // delegator that never completes stays Requested forever and permanently
+  // occupies one of the engine's pending parse slots. Completing with an
+  // empty result finalizes the tile with zero features, matching the
+  // synchronous path's behavior for an unparseable tile.
+  const completeWithEmptyResult = () => {
+    workerTaskHandler.triggerWorkerTaskCompleted(
+      bits,
+      DelegatedWorkerTasksResult.withParseMvtTile(
+        delegator_id,
+        ParseMvtTileResult.empty(),
+      ),
+    );
+  };
+
+  // Move the pbf out of the BufferStore as we hand a copy to the worker: the
+  // main thread never reuses it (geometry comes back from the worker), so this
+  // avoids keeping the tile's bytes resident on the main thread for the whole
+  // parse. (finalize/cancel still call `buf.remove` as a no-op safety net for
+  // tasks that were cancelled before ever being dispatched here.)
+  const bytes = bufHandler.removeU8(params.pbf_handle);
+  if (!bytes) {
+    params.free();
+    completeWithEmptyResult();
+    return;
+  }
+
+  const promise = parseMvtTile(
+    bytes,
+    params.x,
+    params.y,
+    params.z,
+    params.tile_extent
+      ? new ExtentRadianF32Like(params.tile_extent)
+      : undefined,
+    params.compression,
+    params.configs_json,
+  );
+  workerPoolPromises.set(id, promise);
+  let result: Awaited<typeof promise>;
+  try {
+    result = await promise;
+  } catch (err) {
+    // The pool rejects the promise when the task is cancelled (tile evicted
+    // while parsing); there is nothing to deliver then — the engine already
+    // marked the task Deleted. Any other worker failure still completes the
+    // task, with zero features.
+    if (err instanceof Error && err.name === "CancellationError") return;
+    console.error("Failed to parse MVT tile in worker:", err);
+    completeWithEmptyResult();
+    return;
+  } finally {
+    // Run on every path (resolve, cancel, worker error) so the boundary
+    // params object is never leaked.
+    workerPoolPromises.delete(id);
+    params.free();
+  }
+
+  // Nothing is registered in the BufferStore before this check, so a vanished
+  // task leaks nothing.
+  if (!workerTaskHandler.hasWorkerTask(delegator_id[0])) return;
+
+  // Store the four packed streams in the BufferStore (writing straight into
+  // WASM memory) and hand the engine only their handles; the delegated-task
+  // system frees them on every path, including a deleted delegator.
+  const f64Handle = bufHandler.newF64(result.f64_stream);
+  const f32Handle = bufHandler.newF32(result.f32_stream);
+  const u32Handle = bufHandler.newU32(result.u32_stream);
+  const u8Handle = bufHandler.newU8(result.u8_stream);
+  if (
+    f64Handle == null ||
+    f32Handle == null ||
+    u32Handle == null ||
+    u8Handle == null
+  ) {
+    // Handles are never reused, so any stream registered before the failure
+    // must be freed here or it stays in the BufferStore forever.
+    for (const handle of [f64Handle, f32Handle, u32Handle, u8Handle]) {
+      if (handle != null) {
+        bufHandler.remove(handle);
+      }
+    }
+    completeWithEmptyResult();
+    return;
+  }
+
+  // The wasm-bindgen constructor deserializes `meta` and can throw (it returns
+  // Result on the Rust side). The four handles registered above are owned by
+  // nobody until the result reaches the engine, so free them on failure or
+  // they stay in the BufferStore forever.
+  let parseResult: ParseMvtTileResult;
+  try {
+    parseResult = new ParseMvtTileResult(
+      f64Handle,
+      f32Handle,
+      u32Handle,
+      u8Handle,
+      result.meta,
+    );
+  } catch (err) {
+    for (const handle of [f64Handle, f32Handle, u32Handle, u8Handle]) {
+      bufHandler.remove(handle);
+    }
+    console.error("Failed to deserialize MVT tile meta:", err);
+    completeWithEmptyResult();
+    return;
+  }
+
+  const delegatedTaskResult = DelegatedWorkerTasksResult.withParseMvtTile(
+    delegator_id,
+    parseResult,
+  );
 
   workerTaskHandler.triggerWorkerTaskCompleted(bits, delegatedTaskResult);
 }

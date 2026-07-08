@@ -50,9 +50,12 @@ pub fn handle_completed_event(
                 value,
             }) => {
                 if !constructors.contains(*delegator_id) {
-                    // Task was deleted before completion - clean up geometry handles to prevent memory leak
-                    let geometry = value.geometry.clone();
-                    geometry.remove_from_buf(&mut buf);
+                    // Task was deleted before completion - clean up buffer handles to prevent memory leak
+                    value.geometry.remove_from_buf(&mut buf);
+                    buf.remove(&value.heights);
+                    if let Some(watermask) = &value.watermask {
+                        buf.remove(watermask);
+                    }
                     continue;
                 }
                 commands
@@ -64,9 +67,9 @@ pub fn handle_completed_event(
                 value,
             }) => {
                 if !constructors.contains(*delegator_id) {
-                    // Task was deleted before completion - clean up geometry handles to prevent memory leak
-                    let geometry = value.geometry.clone();
-                    geometry.remove_from_buf(&mut buf);
+                    // Task was deleted before completion - clean up buffer handles to prevent memory leak
+                    value.geometry.remove_from_buf(&mut buf);
+                    buf.remove(&value.heights);
                     continue;
                 }
                 commands
@@ -81,6 +84,9 @@ pub fn handle_completed_event(
                     // Task was deleted before completion - clean up geometry handles to prevent memory leak
                     let mut geometry = value.geometry.clone();
                     geometry.remove_from_buf(&mut buf, &mut batch_table);
+                    if let Some(mut outline) = value.outline_geometry.clone() {
+                        outline.remove_from_buf(&mut buf);
+                    }
                     continue;
                 }
                 commands
@@ -95,6 +101,20 @@ pub fn handle_completed_event(
                     // Task was deleted before completion - clean up geometry handles to prevent memory leak
                     let mut geometry = value.geometry.clone();
                     geometry.remove_from_buf(&mut buf, &mut batch_table);
+                    continue;
+                }
+                commands
+                    .entity(*delegator_id)
+                    .insert((value.clone(), WorkerTaskCompleted));
+            }
+            DelegatedWorkerTasksResult::ParseMvtTile(DelegatedWorkerTask {
+                delegator_id,
+                value,
+            }) => {
+                if !constructors.contains(*delegator_id) {
+                    // Task was deleted before completion - free the packed stream
+                    // handles to prevent a BufferStore leak
+                    value.remove_from_buf(&mut buf);
                     continue;
                 }
                 commands
@@ -118,6 +138,9 @@ pub fn remove_relation(
     }
 }
 
+/// Despawn deleted worker-task entities. Any unconsumed BufferStore handles
+/// held by their result components are freed by the components' `on_remove`
+/// hooks (see each task's `component.rs`), so this stays task-agnostic.
 #[allow(clippy::type_complexity)]
 pub fn remove(
     mut commands: Commands,
