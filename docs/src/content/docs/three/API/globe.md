@@ -128,13 +128,13 @@ view.globe.hideUnderground = true;
 
 ---
 
-### shouldComputeNormalFromVertex
+### useNormal
 
 **Type:** `boolean`
 
-**Description:** Whether to compute normals from vertex positions. Affects lighting calculations.
+**Description:** Whether to use normals. Affects lighting calculations.
 
-**Default:** `true`
+**Default:** `false`
 
 :::warning
 This property is only effective at initialization time. Set it in the ThreeView constructor.
@@ -145,7 +145,7 @@ This property is only effective at initialization time. Set it in the ThreeView 
 ```typescript
 // Set in the constructor
 const view = new ThreeView({
-  shouldComputeNormalFromVertex: true,
+  useNormal: true,
 });
 ```
 
@@ -336,7 +336,7 @@ const view = new ThreeView({
   // Properties that can only be set at initialization
   maxSse: 2,
   segments: 64,
-  shouldComputeNormalFromVertex: true,
+  useNormal: true,
   // Properties that can be changed at runtime
   color: new Color().setHex(0x1a1a2e),
   hideUnderground: true,
