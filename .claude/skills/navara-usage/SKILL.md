@@ -55,7 +55,7 @@ For "make it look good" goals, use the proven compositions in [references/recipe
 ## Critical gotchas (apply everywhere)
 
 - **`addPlugin()` after `init()` throws.** All plugin `init()`s run in parallel during `view.init()`.
-- **Update semantics differ:** `Layer.update()` replaces the *whole* config; `Source.update()` and mesh/effect/light handle `.update()` are *partial merges* (omitted fields preserved).
+- **Updates are partial merges:** `Layer.update()`, `Source.update()` and mesh/effect/light handle `.update()` all merge into the current config — omitted materials and omitted fields within a material are preserved (verified: `layer.update({ point: { color } })` keeps `size`/`clampToGround`). Note: `Layer.update()`'s JSDoc says "the entire configuration is replaced" — that text is outdated; trust the merge behavior shown in its own `@example`.
 - **Sources are reference-counted:** `source.delete()` returns `false` while any layer still references it. Updating a source resets and reloads every referencing layer.
 - **Layer render order = add order** (e.g. add terrain before the raster basemap draped on it).
 - **Never write to `view.camera.raw` frustum fields** (`fov` etc.) — the engine overwrites them and Rust-side culling desyncs. Use the `view.camera.fov/near/far` setters.
