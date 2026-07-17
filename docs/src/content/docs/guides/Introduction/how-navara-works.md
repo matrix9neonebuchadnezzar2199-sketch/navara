@@ -29,7 +29,7 @@ Navara uses a plugin system to register descriptor types. Before calling `init()
 
 [`DefaultPlugin`](../../../three_default_plugin/about/) (from `@navara/three_default_plugin`) registers built-in mesh, light, and effect descriptors. For most applications, adding `DefaultPlugin` is all you need to get started.
 
-You can also create your own mesh descriptors, effect descriptors, and light descriptors with full access to the Three.js scene graph. This is the same mechanism that powers Navara's built-in descriptors. For details, see the [Custom Descriptor](../../../three/core/custom-desc/) documentation.
+You can also create your own mesh descriptors, effect descriptors, and light descriptors with full access to the rendering engine's scene graph. This is the same mechanism that powers Navara's built-in descriptors. For details, see the [Custom Descriptor](../../../three/core/custom-desc/) documentation.
 
 In addition to these, Navara provides [**layers**](../../../three/layer/about/) for loading and displaying geographic data such as GeoJSON, MVT, and 3D Tiles. Layers handle the complexity of features and their attributes — parsing, spatial indexing, and attribute-based styling through [`FeatureEvaluator`](../../../three/api/feature-evaluator/). Mesh descriptors, on the other hand, deal only with geometry and rendering, which allows them to be optimized purely for draw performance and is suited for rendering large numbers of objects efficiently. This separation lets you choose the right tool for each use case. For more on descriptor types, see [Layer Types](../../../three/layer/about/).
 

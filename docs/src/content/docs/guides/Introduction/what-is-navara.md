@@ -7,7 +7,7 @@ sidebar:
 
 ## What is Navara?
 
-Navara is a highly extensible, general-purpose 3D globe map engine. It streams real-world geospatial data — satellite imagery, terrain, 3D city models, and vector data — onto an interactive globe, and lets you present it the way your application needs: as a clean basemap for data visualization, styled per feature by attributes, or as a photorealistic scene with atmosphere, sunlight, and shadows.
+Web map engines have long forced a choice: engines with polished declarative APIs are easy to adopt but hard to extend beyond their built-in features, while engines that expose deep low-level control are powerful but demand steep expertise — and fully 3D globe applications usually leave no option but the latter. Navara is a highly extensible, general-purpose 3D globe map engine built to remove that trade-off. It streams real-world geospatial data — satellite imagery, terrain, 3D city models, and vector data — onto an interactive globe, and lets you present it the way your application needs: as a clean basemap for data visualization, styled per feature by attributes, or as a photorealistic scene with atmosphere, sunlight, and shadows.
 
 You use Navara through a library that wraps a rendering engine such as Three.js (e.g. `@navara/three`). All geospatial computation runs in a Rust/WASM GIS engine spread across Web Workers, so the map stays responsive even with large datasets. If you are curious how the pieces fit together, see [How Navara Works](../how-navara-works/).
 
@@ -74,7 +74,7 @@ When config objects and ready-made plugins are not enough, drop down one tier: s
 
 ### Custom Descriptors
 
-When the built-ins are not enough, write your own mesh, effect, and light [Descriptors](../../../three/core/custom-desc/) with full access to the Three.js scene graph and the render pipeline — including the depth buffer and the normal/G-buffer (MRT). This is the same foundation that powers Navara's built-in Descriptors, not a limited escape hatch.
+When the built-ins are not enough, write your own mesh, effect, and light [Descriptors](../../../three/core/custom-desc/) with full access to the rendering engine's scene graph and the render pipeline — including the depth buffer and the normal/G-buffer (MRT). This is the same foundation that powers Navara's built-in Descriptors, not a limited escape hatch.
 
 ## How Navara Compares to Other Map Engines
 
