@@ -9,7 +9,7 @@ description: >
 
 # Using Navara (@navara/three)
 
-Navara is a 3D globe map engine: a Rust/WASM GIS core driven from TypeScript, rendered with Three.js. The public API is `ThreeView` plus a declarative Source/Layer/Descriptor model.
+Navara is a 3D globe map engine: reusable GIS logic lives in a Rust/WASM core, and drawing is delegated to a swappable CG-rendering library. `@navara/three` is the Three.js-based binding (currently the only one; more rendering engines are planned — avoid wording that fixes Navara to Three.js in prose). Its public API is `ThreeView` plus a declarative Source/Layer/Descriptor model.
 
 ## Packages
 
