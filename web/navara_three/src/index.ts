@@ -70,6 +70,7 @@ import {
   type AnyMeshDesc,
 } from "./core/BaseHandle";
 import { Registries } from "./core/Registries";
+import { DeclutterManager, wasmDeclutterKernel } from "./declutter";
 import {
   getCompositeAtlasSize,
   getDefaultDynamicSse,
@@ -450,6 +451,14 @@ export default class ThreeView<
     forceUpdate: false,
     animation: false,
   };
+  /** Shared screen-space label declutterer for text/sprite features. */
+  private _declutter = new DeclutterManager(wasmDeclutterKernel);
+  /** Reusable Vector2 for the declutter pass's per-frame viewport query. */
+  private _declutterSize = new Vector2();
+  /** Pending follow-up frame for a throttled declutter pass or an active
+   *  fade, with the delay it was scheduled at (so a shorter need preempts). */
+  private _declutterRetry: ReturnType<typeof setTimeout> | undefined;
+  private _declutterRetryDelay = 0;
   private _isIdle = false;
   private _uniforms: CommonUniforms;
 
@@ -1433,6 +1442,7 @@ export default class ThreeView<
       textureFragmentIndex: this._textureFragmentIndex,
       tileMeshToFragmentIds: this._tileMeshToFragmentIds,
       hillshadeContext: this._hillshadeContext,
+      declutter: this._declutter,
     });
 
     // Register built-in descriptors
@@ -1537,6 +1547,10 @@ export default class ThreeView<
   dispose() {
     this._disposed = true;
     this._initialized = false;
+    if (this._declutterRetry !== undefined) {
+      clearTimeout(this._declutterRetry);
+      this._declutterRetry = undefined;
+    }
     // Dispose the view-owned attribution plugin (other plugins are the caller's).
     this._attribution?.dispose();
     this._attribution = undefined;
@@ -1585,6 +1599,10 @@ export default class ThreeView<
 
     // Cleanup hillshade context (temp DEMs, generator, etc.)
     this._hillshadeContext.dispose();
+
+    // Drop declutter participants so the manager doesn't retain removed
+    // meshes' GPU/font resources past this view's lifetime.
+    this._declutter.dispose();
 
     // Clear caches and maps
     this._meshes.clear();
@@ -1768,6 +1786,25 @@ export default class ThreeView<
     }
   }
 
+  /**
+   * Ask for a future frame on behalf of the declutter pass. Runs through a
+   * timer because the main loop clears `forceUpdate` right after `_render` —
+   * a flag set synchronously here would be wiped before the next tick reads
+   * it. A pending longer timer is preempted when a shorter delay is needed
+   * (a fade must not wait out a throttle window).
+   */
+  private _scheduleDeclutterFrame(delayMs: number) {
+    if (this._declutterRetry !== undefined) {
+      if (delayMs >= this._declutterRetryDelay) return;
+      clearTimeout(this._declutterRetry);
+    }
+    this._declutterRetryDelay = delayMs;
+    this._declutterRetry = setTimeout(() => {
+      this._declutterRetry = undefined;
+      this._renderFlag.forceUpdate = true;
+    }, delayMs);
+  }
+
   private _render(updatedAt: number) {
     // Read the vector/raster resolution revisions once per frame so each terrain
     // tile's `onBeforeRender` can gate its slot re-fetch against them without its
@@ -1778,6 +1815,29 @@ export default class ThreeView<
     this._uniforms.time.value = updatedAt;
 
     this._atmosphere._update();
+
+    // Screen-space label decluttering runs before the render passes so
+    // placement changes land in this frame. Throttled passes and active
+    // fades both need future frames, requested via _scheduleDeclutterFrame.
+    {
+      const size = this._renderer.getDrawingBufferSize(this._declutterSize);
+      const pixelRatio = this._renderer.getPixelRatio();
+      const result = this._declutter.update(
+        this._camera.raw,
+        size.x / pixelRatio,
+        size.y / pixelRatio,
+        updatedAt,
+      );
+      if (result === "throttled") {
+        this._scheduleDeclutterFrame(
+          this._declutter.remainingThrottleMs(updatedAt),
+        );
+      } else if (result === "animating") {
+        // Keep frames coming at fade cadence until every label reaches its
+        // placement target.
+        this._scheduleDeclutterFrame(16);
+      }
+    }
 
     this.emit("preRender", updatedAt);
 

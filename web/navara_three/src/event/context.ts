@@ -22,6 +22,7 @@ import type { Texture } from "three";
 import type { ViewEvents } from "..";
 import type { ThreeViewCamera } from "../camera";
 import type { ViewContext } from "../core";
+import type { DeclutterManager } from "../declutter";
 import type { LayersManager } from "../layersManager";
 import type { TileMesh } from "../mesh/tile";
 import type { Scenes, TexturizedSceneByTileCoordinates } from "../scene";
@@ -220,6 +221,7 @@ type EventContextArgs = {
   textureFragmentIndex?: Map<string, Set<TextureSlot>>;
   tileMeshToFragmentIds?: Map<TileMesh, Set<string>>;
   hillshadeContext?: HillshadeContext;
+  declutter?: DeclutterManager;
 };
 
 /**
@@ -254,6 +256,9 @@ export class EventContext {
   readonly textureFragmentIndex?: Map<string, Set<TextureSlot>>;
   readonly tileMeshToFragmentIds?: Map<TileMesh, Set<string>>;
   readonly hillshadeContext?: HillshadeContext;
+  /** Shared screen-space label declutterer; text/sprite meshes register as
+   *  participants on creation. Optional so headless contexts can skip it. */
+  readonly declutter?: DeclutterManager;
 
   updatedAt = 0;
 
@@ -286,5 +291,6 @@ export class EventContext {
     this.textureFragmentIndex = args.textureFragmentIndex;
     this.tileMeshToFragmentIds = args.tileMeshToFragmentIds;
     this.hillshadeContext = args.hillshadeContext;
+    this.declutter = args.declutter;
   }
 }
