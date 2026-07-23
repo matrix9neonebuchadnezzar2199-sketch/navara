@@ -119,6 +119,18 @@ const PAGE_CONFIGS: Record<string, PageConfig> = {
   "use-cases-interior-explore": {
     waitTime: 60000,
   },
+  "mesh/arcline": {
+    waitTime: 12000,
+  },
+  "mesh/gltf-animation": {
+    waitTime: 15000,
+  },
+  "mesh/instanced": {
+    waitTime: 15000,
+  },
+  "mesh/smoothline": {
+    waitTime: 15000,
+  },
 };
 
 class ScreenshotGenerator {
