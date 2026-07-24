@@ -24,8 +24,6 @@ const STAGE = { lng: 137.6495, lat: 36.2445 };
 
 const view = new ThreeView<DefaultDescriptions>();
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 const tilejson = new TileJsonPlugin();
@@ -135,3 +133,5 @@ styleButton.onclick = () => {
   meshes.cylinder.update({ cylinder: { color: accent } });
   meshes.tube.update({ tube: { color: accent } });
 };
+
+initializeExample(view);

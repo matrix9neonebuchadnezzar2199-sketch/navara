@@ -16,8 +16,6 @@ const AIRPORTS = [
 
 const view = new ThreeView();
 
-initializeExample(view);
-
 const tilejson = new TileJsonPlugin();
 view.addPlugin(tilejson);
 
@@ -51,3 +49,5 @@ for (const { label, lng, lat } of AIRPORTS) {
     );
   });
 }
+
+initializeExample(view);

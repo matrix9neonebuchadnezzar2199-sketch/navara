@@ -13,8 +13,6 @@ import { flightArcs } from "./data";
 
 const view = new ThreeView<DefaultDescriptions>();
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 const tilejson = new TileJsonPlugin();
@@ -71,3 +69,5 @@ const animate = () => {
   requestAnimationFrame(animate);
 };
 animate();
+
+initializeExample(view);

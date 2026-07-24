@@ -10,8 +10,6 @@ import { GOOGLE_MAPS_API_KEY } from "../../../../helpers/keys";
 
 const view = new ThreeView<DefaultDescriptions>({ animation: true });
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 
@@ -73,3 +71,5 @@ view.attribution?.add([
     creditLayerId: tiles.id,
   },
 ]);
+
+initializeExample(view);

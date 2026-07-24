@@ -5,8 +5,6 @@ import { initializeExample } from "../../../../helpers/initialize";
 
 const view = new ThreeView();
 
-initializeExample(view);
-
 const tilejson = new TileJsonPlugin();
 view.addPlugin(tilejson);
 
@@ -52,3 +50,5 @@ view.attribution?.add([
     attributionUrl: "https://www.openstreetmap.org/copyright",
   },
 ]);
+
+initializeExample(view);

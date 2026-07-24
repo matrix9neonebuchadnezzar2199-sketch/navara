@@ -6,8 +6,6 @@ import { initializeExample } from "../../../../helpers/initialize";
 
 const view = new ThreeView({ useNormal: true });
 
-initializeExample(view);
-
 // Plugin settings
 
 const tilejson = new TileJsonPlugin();
@@ -45,3 +43,5 @@ const imagery = await tilejson.addSource({
   url: "https://papers.reearth.land/bluemarble/tilejson.json",
 });
 view.addLayer({ type: "raster", source: imagery });
+
+initializeExample(view);

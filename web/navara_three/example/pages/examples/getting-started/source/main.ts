@@ -10,8 +10,6 @@ const NIGHT_URL = "https://papers.reearth.land/blackmarble/{z}/{x}/{y}.webp";
 
 const view = new ThreeView();
 
-initializeExample(view);
-
 await view.init();
 
 // Close enough that the globe nearly fills the frame, centered on Asia's
@@ -59,3 +57,5 @@ button.onclick = () => {
   imagery.update({ type: "raster-tile", url: night ? NIGHT_URL : DAY_URL });
   button.textContent = night ? "Switch to day" : "Switch to night";
 };
+
+initializeExample(view);

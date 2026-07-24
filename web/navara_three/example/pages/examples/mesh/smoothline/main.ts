@@ -13,8 +13,6 @@ import { CENTER, MID_HEIGHT, loopTrajectory } from "./data";
 
 const view = new ThreeView<DefaultDescriptions>();
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 const tilejson = new TileJsonPlugin();
@@ -84,3 +82,5 @@ const replay = () => {
 
 addButton("Replay").onclick = replay;
 rafId = requestAnimationFrame(step);
+
+initializeExample(view);

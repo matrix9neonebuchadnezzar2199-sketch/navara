@@ -12,8 +12,6 @@ import { features } from "./data";
 
 const view = new ThreeView<DefaultDescriptions>();
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 const tilejson = new TileJsonPlugin();
@@ -101,3 +99,5 @@ styleButton.onclick = () => {
     polygon: { color: new Color().setStyle(color) },
   });
 };
+
+initializeExample(view);

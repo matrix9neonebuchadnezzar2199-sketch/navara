@@ -10,8 +10,6 @@ import { initializeExample } from "../../../../helpers/initialize";
 
 const view = new ThreeView<DefaultDescriptions>();
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 const tilejson = new TileJsonPlugin();
@@ -45,3 +43,5 @@ view.addMesh<GlowGlobeMeshDesc>({
     opacity: 0.9,
   },
 });
+
+initializeExample(view);

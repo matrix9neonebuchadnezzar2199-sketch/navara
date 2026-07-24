@@ -19,8 +19,6 @@ const FOX_HEADING = 100;
 
 const view = new ThreeView<DefaultDescriptions>();
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 const tilejson = new TileJsonPlugin();
@@ -107,3 +105,5 @@ view.attribution?.add([
       "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Fox",
   },
 ]);
+
+initializeExample(view, [fox]);

@@ -24,8 +24,6 @@ const DENSITIES = [3_000, 5_000, 10_000];
 
 const view = new ThreeView<DefaultDescriptions>();
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 const tilejson = new TileJsonPlugin();
@@ -107,3 +105,5 @@ view.attribution?.add([
       "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Lantern",
   },
 ]);
+
+initializeExample(view, [lanterns]);

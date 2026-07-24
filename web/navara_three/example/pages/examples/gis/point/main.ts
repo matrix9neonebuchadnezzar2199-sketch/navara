@@ -7,8 +7,6 @@ import { peaks } from "./data";
 
 const view = new ThreeView();
 
-initializeExample(view);
-
 const tilejson = new TileJsonPlugin();
 view.addPlugin(tilejson);
 
@@ -44,3 +42,5 @@ view.addLayer({
     clampToGround: true,
   },
 });
+
+initializeExample(view);

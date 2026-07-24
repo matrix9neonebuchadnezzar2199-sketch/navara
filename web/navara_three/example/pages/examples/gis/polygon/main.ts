@@ -4,8 +4,6 @@ import { initializeExample } from "../../../../helpers/initialize";
 
 const view = new ThreeView();
 
-initializeExample(view);
-
 await view.init();
 
 // Close enough that the globe slightly overflows the frame, so the draped
@@ -42,3 +40,5 @@ view.attribution?.add([
     attributionUrl: "https://www.naturalearthdata.com/",
   },
 ]);
+
+initializeExample(view);

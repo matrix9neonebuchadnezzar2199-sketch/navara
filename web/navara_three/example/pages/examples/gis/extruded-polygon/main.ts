@@ -11,8 +11,6 @@ import { huts } from "./data";
 
 const view = new ThreeView<DefaultDescriptions>();
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 const tilejson = new TileJsonPlugin();
@@ -60,3 +58,5 @@ view.attribution?.add([
     attributionUrl: "https://www.openstreetmap.org/copyright",
   },
 ]);
+
+initializeExample(view);

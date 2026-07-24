@@ -134,8 +134,10 @@ const PAGE_CONFIGS: Record<string, PageConfig> = {
   "mesh/glow-globe": {
     waitTime: 10000,
   },
+  // The scene-loaded signal already waits for the splat to finish loading;
+  // the extra wait only covers post-load sort refinement.
   "mesh/splat": {
-    waitTime: 22000,
+    waitTime: 5000,
   },
 };
 

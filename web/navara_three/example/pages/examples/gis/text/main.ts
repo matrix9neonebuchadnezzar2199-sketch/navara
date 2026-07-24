@@ -8,8 +8,6 @@ const EVEREST = { lng: 86.925, lat: 27.9881 };
 
 const view = new ThreeView();
 
-initializeExample(view);
-
 const tilejson = new TileJsonPlugin();
 view.addPlugin(tilejson);
 
@@ -65,3 +63,5 @@ view.addLayer({
     outlineWidth: 4,
   },
 });
+
+initializeExample(view);

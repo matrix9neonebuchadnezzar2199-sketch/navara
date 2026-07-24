@@ -32,8 +32,6 @@ const view = new ThreeView<DefaultDescriptions>({
   shadow: true,
 });
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 
@@ -115,3 +113,5 @@ view.attribution?.add([
     attributionUrl: "https://maps.gsi.go.jp/development/ichiran.html",
   },
 ]);
+
+initializeExample(view);

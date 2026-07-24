@@ -21,8 +21,6 @@ const ROAD_BEARING = 321;
 
 const view = new ThreeView<DefaultDescriptions>();
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 const tilejson = new TileJsonPlugin();
@@ -81,7 +79,7 @@ const rotation = new Euler().setFromQuaternion(
     ),
 );
 
-view.addMesh<GLTFModelDesc>({
+const car = view.addMesh<GLTFModelDesc>({
   gltfModel: { url: "/glTF/car/scene.gltf" },
   position: { x: position.x, y: position.y, z: position.z },
   rotation: { x: rotation.x, y: rotation.y, z: rotation.z },
@@ -95,3 +93,5 @@ view.attribution?.add([
       "https://sketchfab.com/3d-models/classic-muscle-car-641efc889e5f4543bae51d0922e6f4b3",
   },
 ]);
+
+initializeExample(view, [car]);

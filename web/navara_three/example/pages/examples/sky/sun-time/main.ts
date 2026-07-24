@@ -21,8 +21,6 @@ const DAY_PLAY_MS = 22_500;
 
 const view = new ThreeView<DefaultDescriptions>({ animation: true });
 
-initializeExample(view);
-
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
 
@@ -117,3 +115,5 @@ view.attribution?.add([
     creditLayerId: tiles.id,
   },
 ]);
+
+initializeExample(view);

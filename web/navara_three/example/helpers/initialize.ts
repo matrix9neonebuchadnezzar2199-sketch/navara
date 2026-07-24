@@ -7,9 +7,10 @@
  *
  * Currently that plumbing is scene-loaded signalling: the detail page
  * (`pages/detail/DetailApp.tsx`) renders the loading overlay over the demo
- * iframe, and on the view's first `idle` event (the engine settling once no
- * Rust-side events — tile fetches, geometry builds — have arrived for the
- * idle threshold) a message is posted to the embedding window to dismiss it.
+ * iframe and dismisses it when the demo posts SCENE_LOADED_MESSAGE. The page
+ * counts as settled once the engine has applied no new work (`postUpdate`)
+ * for a quiet window and every passed async-loading mesh has finished
+ * loading.
  */
 
 import type ThreeView from "@navaramap/three";
@@ -18,16 +19,60 @@ import type ThreeView from "@navaramap/three";
 export const SCENE_LOADED_MESSAGE = "navara-example:scene-loaded";
 
 /**
- * Hooks the demo page up to the example harness. Call right after
- * constructing the view, before `view.init()`. Standalone `/demo/...` visits
- * post the scene-loaded message to the page's own window, which tooling
- * (e.g. the screenshot script) can observe.
+ * Quiet time without engine updates before the page counts as settled. Long
+ * enough to bridge the gaps inside the page's own setup (awaited fetches
+ * between `add*` calls) and a loaded splat's first sorted render.
  */
-export const initializeExample = (view: ThreeView): void => {
-  let signalled = false;
-  view.on("idle", () => {
-    if (signalled) return;
-    signalled = true;
+const SETTLE_QUIET_MS = 1500;
+
+/** How often the settle conditions are re-checked. */
+const POLL_INTERVAL_MS = 250;
+
+/**
+ * A mesh handle whose data loads asynchronously outside the engine's event
+ * stream: its desc emits `load` / `error` events (GLTFModelDesc,
+ * SplatMeshDesc).
+ */
+type AsyncLoadedMeshHandle = {
+  ref: {
+    on(event: "load" | "error", callback: () => void): unknown;
+  };
+};
+
+/**
+ * Hooks the demo page up to the example harness. Call at the end of the
+ * page's setup, passing the handles of any async-loading meshes (GLTF
+ * models, 3D Gaussian Splats) so the loading overlay waits for their data.
+ * Standalone `/demo/...` visits post the scene-loaded message to the page's
+ * own window, which tooling (e.g. the screenshot script) can observe.
+ */
+export const initializeExample = (
+  view: ThreeView,
+  loadingMeshes: AsyncLoadedMeshHandle[] = [],
+): void => {
+  // `postUpdate` fires whenever the engine applied new work (tiles,
+  // geometry) in a frame, so a long enough gap means the engine is idle.
+  let lastActivityAt = performance.now();
+  view.on("postUpdate", () => (lastActivityAt = performance.now()));
+
+  let pendingLoads = loadingMeshes.length;
+  for (const mesh of loadingMeshes) {
+    // A failed load also finishes the wait, so the overlay never hangs.
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      pendingLoads--;
+      lastActivityAt = performance.now();
+    };
+    mesh.ref.on("load", finish);
+    mesh.ref.on("error", finish);
+  }
+
+  const timer = window.setInterval(() => {
+    if (pendingLoads > 0) return;
+    if (performance.now() - lastActivityAt < SETTLE_QUIET_MS) return;
+    window.clearInterval(timer);
     window.parent.postMessage({ type: SCENE_LOADED_MESSAGE }, "*");
-  });
+  }, POLL_INTERVAL_MS);
 };

@@ -7,8 +7,6 @@ import { oceans } from "./data";
 
 const view = new ThreeView();
 
-initializeExample(view);
-
 const tilejson = new TileJsonPlugin();
 view.addPlugin(tilejson);
 
@@ -68,3 +66,5 @@ layer.on("featureUpdated", ({ evaluator }) => {
     { filters: ["name"] },
   );
 });
+
+initializeExample(view);
