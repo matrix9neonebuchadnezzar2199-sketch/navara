@@ -131,6 +131,12 @@ const PAGE_CONFIGS: Record<string, PageConfig> = {
   "mesh/smoothline": {
     waitTime: 15000,
   },
+  "mesh/glow-globe": {
+    waitTime: 10000,
+  },
+  "mesh/splat": {
+    waitTime: 22000,
+  },
 };
 
 class ScreenshotGenerator {
