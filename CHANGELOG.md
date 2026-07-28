@@ -1,3 +1,9 @@
+## v0.0.4 - 2026-07-28
+
+### 🚀 Features
+
+- Rename snake-case to kebab-case to follow NPM convention (#740)
+
 ## v0.0.3 - 2026-07-28
 
 ### 🚀 Features
