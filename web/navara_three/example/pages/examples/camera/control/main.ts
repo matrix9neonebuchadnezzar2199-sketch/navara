@@ -23,7 +23,7 @@ await view.init();
 
 const basemap = await tilejson.addSource({
   type: "raster-tile",
-  url: "https://papers.reearth.land/styles/dark/tilejson.json",
+  url: "https://papers.reearth.land/styles/papers-dark/tilejson.json",
 });
 view.addLayer({ type: "raster", source: basemap });
 

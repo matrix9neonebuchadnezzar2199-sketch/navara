@@ -24,7 +24,7 @@ view.setCamera({
 
 const basemap = await tilejson.addSource({
   type: "raster-tile",
-  url: "https://papers.reearth.land/styles/white/tilejson.json",
+  url: "https://papers.reearth.land/styles/papers-light/tilejson.json",
 });
 view.addLayer({ type: "raster", source: basemap });
 
