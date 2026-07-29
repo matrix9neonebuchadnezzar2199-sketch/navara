@@ -351,34 +351,34 @@ export const GEOJSON_DATASETS = {
  */
 export const LOCAL_DATASETS = {
   blueMarbleClouds: {
-    url: "/data/blue-marble-clouds/{z}/{x}/{y}.webp",
+    url: "https://assets.cms.reearth.io/assets/c5/2b6941-2544-4cbd-9fcc-b245373269f9/blue-marble-clouds/{z}/{x}/{y}.webp",
     attribution: "NASA Blue Marble Clouds(Converted as raster tiles)",
   },
   blueMarbleNight: {
-    url: "/data/blue-marble-night/{z}/{x}/{y}.webp",
+    url: "https://assets.cms.reearth.io/assets/5e/869e3a-8b89-401a-8bb3-580df6bfd0dc/blue-marble-night/{z}/{x}/{y}.webp",
     attribution: "NASA Earth at Night imagery(Converted as raster tiles)",
   },
   airportTrafficVolume: {
-    url: "/data/airport-traffic-volume.geojson",
+    url: "https://assets.cms.reearth.io/assets/f9/0243d6-d330-43ca-9f42-2e91c181b5d1/airport-traffic-volume.geojson",
     attribution:
       "Processed and created from the National Land Numerical Information (inter-airport flow volume data) - MLIT",
     attributionUrl:
       "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S10b-2014.html",
   },
   tokyoFlood: {
-    url: "/data/tokyo-flood.geojson",
+    url: "https://assets.cms.reearth.io/assets/a8/1628e4-7a65-4737-b513-0d6fa20802f5/tokyo-flood.geojson",
     attribution: "Flood Inundation Zone Data (River-Based) - MLIT",
     attributionUrl:
       "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A31a-2024.html",
   },
   railways: {
-    url: "/data/railways.geojson",
+    url: "https://assets.cms.reearth.io/assets/a6/783eed-3259-4de0-a5ca-58ae9e25af0d/railways.geojson",
     attribution: "Railway Data - MLIT",
     attributionUrl:
       "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-2024.html",
   },
   railwaysTimeSeries: {
-    url: "/data/railwaysTimeSeries.geojson",
+    url: "https://assets.cms.reearth.io/assets/05/3be5fb-214b-4914-998e-19e04881ef61/railwaysTimeSeries.geojson",
     attribution: "Railway Time Series Data - MLIT",
     attributionUrl:
       "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N05-2024.html",

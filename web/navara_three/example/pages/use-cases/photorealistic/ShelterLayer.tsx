@@ -84,7 +84,7 @@ export const ShelterLayer: FC<{ visible?: boolean }> = ({
     return {
       type: "mvt",
       data: {
-        url: "/mvt/11100_saitama-shi_city_2024_shelter_mvt/{z}/{x}/{y}.pbf",
+        url: "https://assets.cms.reearth.io/assets/5d/873399-d226-49c7-a15f-ed11c4fe24be/11100_saitama-shi_city_2024_shelter_mvt/{z}/{x}/{y}.pbf",
       },
       // Render labels using instanced text anchored at point positions.
       text: {

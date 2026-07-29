@@ -12,7 +12,7 @@ import { TileJsonPlugin } from "@navaramap/three-plugins";
 
 import { initializeExample } from "../../../../helpers/initialize";
 
-const SPLAT_URL = "/splat/Sunny%20Meadow.sog";
+const SPLAT_URL = "https://raw.githubusercontent.com/reearth/navara/refs/heads/main/web/navara_three/example/assets/Sunny%20Meadow/Sunny%20Meadow.sog";
 
 const CENTER = { lng: 11.6, lat: 46.543, height: 2 };
 
