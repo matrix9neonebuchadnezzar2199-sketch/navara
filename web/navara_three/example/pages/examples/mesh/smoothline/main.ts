@@ -1,4 +1,4 @@
-import ThreeView from "@navaramap/three";
+import ThreeView, { Color } from "@navaramap/three";
 import type { SmoothLineMeshDesc } from "@navaramap/three-default-descs";
 import {
   DefaultPlugin,
@@ -11,7 +11,9 @@ import { initializeExample } from "../../../../helpers/initialize";
 
 import { CENTER, MID_HEIGHT, loopTrajectory } from "./data";
 
-const view = new ThreeView<DefaultDescriptions>();
+const view = new ThreeView<DefaultDescriptions>({
+  backgroundColor: new Color().setStyle("#cccccc"),
+});
 
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);

@@ -1,4 +1,5 @@
 import ThreeView, {
+  Color,
   degreeToRadian,
   geodeticSurfaceNormal,
   geodeticToVector3,
@@ -19,7 +20,9 @@ import { initializeExample } from "../../../../helpers/initialize";
 const CAR = { lng: 138.036142, lat: 36.085621, height: 1 };
 const ROAD_BEARING = 321;
 
-const view = new ThreeView<DefaultDescriptions>();
+const view = new ThreeView<DefaultDescriptions>({
+  backgroundColor: new Color().setStyle("#0f1118"),
+});
 
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
