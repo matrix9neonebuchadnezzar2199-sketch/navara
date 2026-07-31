@@ -11,12 +11,13 @@ view.addPlugin(tilejson);
 await view.init();
 
 view.setCamera({
-  lng: 138.0141,
+  lng: 138.0140,
   lat: 34.7755,
-  distance: 350,
+  distance: 220,
   heading: 326,
   pitch: -34,
   roll: 0,
+  height: 25,
 });
 
 const terrain = view.addSource({
