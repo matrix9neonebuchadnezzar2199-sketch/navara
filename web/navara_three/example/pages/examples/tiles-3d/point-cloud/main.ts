@@ -11,7 +11,7 @@ view.addPlugin(tilejson);
 await view.init();
 
 view.setCamera({
-  lng: 138.0140,
+  lng: 138.014,
   lat: 34.7755,
   distance: 220,
   heading: 326,
