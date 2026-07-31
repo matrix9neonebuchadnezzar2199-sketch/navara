@@ -39,7 +39,7 @@ view.globe.elevationColormap = TURBO_COLOR_MAP;
 
 view.attribution?.add([
   {
-    attribution: "© Re:Earth Terrain",
+    attribution: "Re:Earth Terrain",
     attributionUrl: "https://terrain.reearth.land/",
   },
   {

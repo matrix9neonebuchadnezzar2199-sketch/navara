@@ -34,7 +34,7 @@ view.setCamera({
 
 const dem = view.addSource({
   type: "raster-dem",
-  url: "https://tiles.mapterhorn.com/{z}/{x}/{y}.webp",
+  url: "https://terrain.reearth.land/terrarium/elevation/{z}/{x}/{y}.png",
   elevationDecoder: TERRARIUM_ELEVATION_DECODER(),
   tileSize: 512,
   maxZoom: 15,
@@ -53,6 +53,10 @@ view.addLayer({
 });
 
 view.attribution?.add([
+  {
+    attribution: "Re:Earth Terrain",
+    attributionUrl: "https://terrain.reearth.land/",
+  },
   {
     attribution: "© Mapterhorn",
     attributionUrl: "https://mapterhorn.com/attribution",

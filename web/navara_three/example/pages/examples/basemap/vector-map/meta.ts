@@ -3,7 +3,7 @@ import type { ExampleMeta } from "../../sections";
 export default {
   section: "basemap",
   order: 2,
-  title: { en: "Vector Map", ja: "ベクタマップ" },
+  title: { en: "Vector tile", ja: "ベクタタイル" },
   description: {
     en: "Display a vector tile basemap.",
     ja: "ベクタータイルベースマップを表示する。",

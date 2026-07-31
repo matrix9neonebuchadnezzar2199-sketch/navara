@@ -19,10 +19,20 @@ view.setCamera({
   roll: 0,
 });
 
-const basemap = await tilejson.addSource({
-  type: "raster-tile",
-  url: "https://papers.reearth.land/bluemarble/tilejson.json",
+const raster = view.addSource({
+  url: "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_NextGeneration/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg",
+  maxZoom: 8,
 });
-view.addLayer({ type: "raster", source: basemap });
+
+view.addLayer({
+  type: "raster",
+  source: raster,
+});
+
+view.attribution?.add([
+  {
+    attributionHtml: `Imagery courtesy of <a href="https://earthdata.nasa.gov/gibs">NASA EOSDIS GIBS</a> · Blue Marble: Next Generation (public domain)`,
+  },
+]);
 
 initializeExample(view);
