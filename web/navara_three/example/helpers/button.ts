@@ -12,6 +12,7 @@
 
 const BUTTON_BAR_CLASS = "example-button-bar";
 const BUTTON_CLASS = "example-button";
+const SLIDER_CLASS = "example-slider";
 
 const BUTTON_CSS = `
 .${BUTTON_BAR_CLASS} {
@@ -38,6 +39,26 @@ const BUTTON_CSS = `
 .${BUTTON_CLASS}:disabled {
   opacity: 0.5;
   cursor: default;
+}
+.${SLIDER_CLASS} {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+  border: 1px solid #d4d7da;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.${SLIDER_CLASS} input[type="range"] {
+  cursor: pointer;
+}
+.${SLIDER_CLASS} .value {
+  min-width: 3.5em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 `;
 
@@ -68,4 +89,52 @@ export const addButton = (
   if (onClick) button.onclick = onClick;
   ensureButtonBar().appendChild(button);
   return button;
+};
+
+/**
+ * Appends a labeled range slider to the shared button bar. The live value
+ * (with `unit`) is shown next to the track and `onInput` fires on every drag,
+ * so the example only states what to do with the value — not the DOM wiring.
+ */
+export const addSlider = (
+  label: string,
+  options: {
+    min: number;
+    max: number;
+    value: number;
+    step?: number;
+    unit?: string;
+  },
+  onInput: (value: number) => void,
+): HTMLInputElement => {
+  const wrapper = document.createElement("label");
+  wrapper.className = SLIDER_CLASS;
+
+  const name = document.createElement("span");
+  name.textContent = label;
+
+  const input = document.createElement("input");
+  input.type = "range";
+  input.min = String(options.min);
+  input.max = String(options.max);
+  input.step = String(options.step ?? 1);
+  input.value = String(options.value);
+
+  const readout = document.createElement("span");
+  readout.className = "value";
+  const unit = options.unit ?? "";
+  const render = (value: number) => {
+    readout.textContent = `${value}${unit}`;
+  };
+  render(options.value);
+
+  input.oninput = () => {
+    const value = Number(input.value);
+    render(value);
+    onInput(value);
+  };
+
+  wrapper.append(name, input, readout);
+  ensureButtonBar().appendChild(wrapper);
+  return input;
 };

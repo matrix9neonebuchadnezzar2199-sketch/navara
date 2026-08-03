@@ -1,7 +1,7 @@
 import type { ExampleMeta } from "../../sections";
 
 export default {
-  section: "source",
+  section: "tiles-3d",
   order: 4,
   title: { en: "Point Cloud", ja: "点群" },
   description: {

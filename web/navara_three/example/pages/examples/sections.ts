@@ -17,7 +17,7 @@ export const SECTION_KEYS = [
   "3d",
   "basemap",
   "terrain",
-  "source",
+  "tiles-3d",
   "styling",
   "interaction",
   "lighting-effect",
@@ -71,7 +71,7 @@ export const SECTION_LABELS: Record<SectionKey, Record<Lang, string>> = {
   "3d": { en: "3D", ja: "3D" },
   basemap: { en: "Basemap", ja: "ベースマップ" },
   terrain: { en: "Terrain", ja: "地形" },
-  source: { en: "Source", ja: "ソース" },
+  "tiles-3d": { en: "3D Tiles", ja: "3D Tiles" },
   styling: { en: "Styling", ja: "スタイリング" },
   interaction: { en: "Interaction & UI", ja: "インタラクション・UI" },
   "lighting-effect": {
