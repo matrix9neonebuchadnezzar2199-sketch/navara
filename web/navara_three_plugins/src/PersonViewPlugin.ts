@@ -122,8 +122,14 @@ export type AnimationConfig = {
   walkClip?: string;
   /** Clip name played while the model is dashing (dash key held). */
   dashClip: string;
-  /** Playback speed multiplier. */
-  speed: number;
+  /** Playback speed for any clip without a per-clip override below. */
+  speed?: number;
+  /** Playback speed for the idle clip (falls back to {@link speed}). */
+  idleSpeed?: number;
+  /** Playback speed for the walk clip (falls back to {@link speed}). */
+  walkSpeed?: number;
+  /** Playback speed for the dash clip (falls back to {@link speed}). */
+  dashSpeed?: number;
   /** Duration in seconds for cross-fade transitions between clips. */
   crossfadeDuration: number;
 };
@@ -163,7 +169,12 @@ export type KeyBindings = {
   toggleView?: string[];
 };
 
-type Action =
+/**
+ * A recognized control input. Delivered to {@link PersonViewPlugin.onAction}
+ * listeners on each keypress — e.g. to dismiss an on-screen controls hint once
+ * the user starts driving the character.
+ */
+export type PersonViewAction =
   | "forward"
   | "backward"
   | "turnLeft"
@@ -173,6 +184,8 @@ type Action =
   | "dash"
   | "orbitCamera"
   | "toggleView";
+
+type Action = PersonViewAction;
 
 export type PersonViewConfig = {
   character?: CharacterConfig;
@@ -188,6 +201,11 @@ export type PersonViewConfig = {
   rotationSpeed?: number;
   /** m/s */
   altSpeed?: number;
+  /**
+   * Factor applied to {@link moveSpeed} while the dash key is held.
+   * @defaultValue `2.5`
+   */
+  dashSpeedMultiplier?: number;
   minAlt?: number;
   maxAlt?: number;
   cameraDistance?: number;
@@ -225,6 +243,7 @@ export type PersonViewConfig = {
 };
 
 type StateListener = (s: PersonViewState) => void;
+type ActionListener = (action: PersonViewAction) => void;
 
 const DEFAULT_ROTATION_OFFSET: ModelRotationOffset = {
   x: 0,
@@ -254,6 +273,7 @@ const DEFAULTS: PersonViewDefaults = {
   moveSpeed: 50,
   rotationSpeed: 3,
   altSpeed: 30,
+  dashSpeedMultiplier: 2.5,
   minAlt: 50,
   maxAlt: 5000,
   cameraDistance: 50,
@@ -317,9 +337,12 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
 
   private state!: PersonViewState;
   private listeners = new Set<StateListener>();
+  private actionListeners = new Set<ActionListener>();
 
   private heldActions = new Set<Action>();
-  private dashMultiplier = 1;
+  /** Whether the dash key is held. Kept separate from the numeric speed factor
+   * so the dash animation still plays when `dashSpeedMultiplier` is 1 (or <1). */
+  private dashHeld = false;
   private orbitKeyHeld = false;
   // Persists the free-camera state after Alt release until the user
   // initiates a new movement action. Lets users dwell at an orbited
@@ -411,7 +434,8 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
           animationEnabled: true,
           animationAutoPlay: true,
           animationActiveClip: animation.idleClip,
-          animationSpeed: animation.speed,
+          // The initial clip is idle, so start it at the idle clip's speed.
+          animationSpeed: this.clipSpeed(animation.idleClip),
           animationLoop: true,
           animationCrossfadeDuration: animation.crossfadeDuration,
         },
@@ -484,6 +508,17 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
   onStateChange(fn: StateListener): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
+  }
+
+  /**
+   * Subscribe to control-input events. The callback fires once per keypress of
+   * any bound action (movement, dash, view toggle, orbit) — for example, to
+   * hide an on-screen controls hint once the user starts driving the
+   * character. Returns an unsubscribe function.
+   */
+  onAction(fn: ActionListener): () => void {
+    this.actionListeners.add(fn);
+    return () => this.actionListeners.delete(fn);
   }
 
   setViewMode(mode: ViewMode): void {
@@ -615,6 +650,44 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
     return this.config.fpvHeightOffset;
   }
 
+  /**
+   * Set the base animation playback speed — the fallback used by any clip
+   * without a per-clip override (`idleSpeed` / `walkSpeed` / `dashSpeed`).
+   * Re-applies to the clip currently playing, so it takes effect immediately.
+   */
+  setAnimationSpeed(speed: number): void {
+    if (this.character) this.character.animation.speed = speed;
+    this.modelRef?.setAnimationSpeed(this.clipSpeed(this.currentAnimState));
+  }
+
+  /** Current base animation playback speed (per-clip overrides aside). */
+  getAnimationSpeed(): number {
+    return this.character?.animation.speed ?? 1;
+  }
+
+  /**
+   * The loaded character model's mesh handle, or `null` before {@link start}
+   * has loaded it (or when no character is configured). Its `ref` is the
+   * GLTFModelDesc — reach the model itself through it, e.g. `model.ref.raw`
+   * for the underlying three.js object or `model.ref.getWorldPosition()`.
+   */
+  get model(): MeshHandle<GLTFModelDesc> | null {
+    return this.handle;
+  }
+
+  /**
+   * Resolve the effective playback speed for a clip: its per-clip override
+   * (`idleSpeed` / `walkSpeed` / `dashSpeed`) if set, else the base `speed`.
+   */
+  private clipSpeed(clip: string | null): number {
+    const a = this.character?.animation;
+    if (!a) return 1;
+    if (clip === a.dashClip) return a.dashSpeed ?? a.speed ?? 1;
+    if (a.walkClip != null && clip === a.walkClip)
+      return a.walkSpeed ?? a.speed ?? 1;
+    return a.idleSpeed ?? a.speed ?? 1;
+  }
+
   dispose(): void {
     if (this.animId != null) cancelAnimationFrame(this.animId);
     this.animId = null;
@@ -629,9 +702,10 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
     this.modelRef = null;
     this.heldActions.clear();
     this.listeners.clear();
+    this.actionListeners.clear();
     this.orbitKeyHeld = false;
     this.orbitLatched = false;
-    this.dashMultiplier = 1;
+    this.dashHeld = false;
     this.view = undefined;
   }
   private resolveCharacter(c: CharacterConfig): ResolvedCharacter {
@@ -812,6 +886,10 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
     for (const fn of this.listeners) fn(this.state);
   }
 
+  private emitAction(action: Action): void {
+    for (const fn of this.actionListeners) fn(action);
+  }
+
   private onKeyDown(e: KeyboardEvent): void {
     const t = e.target as HTMLElement;
     if (
@@ -823,6 +901,10 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
 
     const action = this.keyToAction.get(e.code);
     if (action === undefined) return;
+
+    // Notify listeners once per physical press (ignore auto-repeat), before
+    // the action-specific handling below so every control input is reported.
+    if (!e.repeat) this.emitAction(action);
 
     if (action === "toggleView") {
       if (e.repeat) return;
@@ -838,7 +920,7 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
     if (this.movementSuppressed) return;
 
     if (action === "dash") {
-      this.dashMultiplier = 2.5;
+      this.dashHeld = true;
       return;
     }
     if (this.isMovementAction(action)) {
@@ -859,7 +941,7 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
       return;
     }
     if (action === "dash") {
-      this.dashMultiplier = 1;
+      this.dashHeld = false;
       return;
     }
     this.heldActions.delete(action);
@@ -890,6 +972,10 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
       maxAlt,
       cameraLerpSpeed,
     } = this.config;
+
+    // Derive the speed factor from the held state, so animation choice
+    // (dashHeld) stays independent of the numeric multiplier.
+    const dashMultiplier = this.dashHeld ? this.config.dashSpeedMultiplier : 1;
 
     if (dirX !== 0) {
       this.modelHeading += degreeToRadian(rotationSpeed * dirX);
@@ -924,7 +1010,7 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
     if (dirY !== 0) {
       curPos.addScaledVector(
         this._worldForward,
-        moveSpeed * this.dashMultiplier * deltaTime * dirY,
+        moveSpeed * dashMultiplier * deltaTime * dirY,
       );
     }
 
@@ -990,7 +1076,7 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
     }
 
     const isMoving = dirY !== 0 || dirX !== 0 || dirZ !== 0;
-    const isDashing = isMoving && this.dashMultiplier > 1;
+    const isDashing = isMoving && this.dashHeld;
 
     let nextAnimState = this.currentAnimState;
     if (this.character && this.modelRef) {
@@ -1010,6 +1096,8 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
           targetAnim,
           animation.crossfadeDuration,
         );
+        // Apply the incoming clip's own playback speed.
+        this.modelRef.setAnimationSpeed(this.clipSpeed(targetAnim));
         this.currentAnimState = targetAnim;
       }
       nextAnimState = targetAnim;
@@ -1020,7 +1108,7 @@ export class PersonViewPlugin extends Plugin<View, ViewContext> {
       lat: nextLat,
       alt: nextAlt,
       heading: this.modelHeading,
-      speed: moveSpeed * this.dashMultiplier,
+      speed: moveSpeed * dashMultiplier,
       animationState: nextAnimState,
       mode: this.viewMode,
     };
