@@ -145,6 +145,9 @@ const PAGE_CONFIGS: Record<string, PageConfig> = {
   "mesh/splat": {
     waitTime: 5000,
   },
+  "plugin/person-view": {
+    waitTime: 15000,
+  },
 };
 
 class ScreenshotGenerator {
