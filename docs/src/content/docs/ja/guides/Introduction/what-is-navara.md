@@ -54,7 +54,7 @@ view.addLayer({
 view.attribution?.add([{ attributionHtml: `Imagery courtesy of <a href="https://earthdata.nasa.gov/gibs">NASA EOSDIS GIBS</a> · Blue Marble: Next Generation (public domain)` }]);
 ```
 
-実際に試してみたい場合は、[Getting Started](../getting-started/) でプロジェクトのセットアップ手順を追えます。また、[Examples](https://navara-preview.netlify.app/) ギャラリーでは Navara で何ができるかをブラウザ上のライブデモで確認できます。
+実際に試してみたい場合は、[Getting Started](../getting-started/) でプロジェクトのセットアップ手順を追えます。また、[Examples](https://navara-preview.reearth.workers.dev/) ギャラリーでは Navara で何ができるかをブラウザ上のライブデモで確認できます。
 
 ## Navara でできること
 

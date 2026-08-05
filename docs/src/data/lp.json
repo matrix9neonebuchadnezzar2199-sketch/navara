@@ -9,10 +9,10 @@
     "docs": "/",
     "gettingStarted": "/guides/introduction/getting-started/",
     "tutorial": "/three/tutorial/basic-visualization/",
-    "examples": "https://navara-preview.netlify.app/",
+    "examples": "https://navara-preview.reearth.workers.dev/",
     "github": "https://github.com/eukarya-inc/navara",
     "discord": "#",
-    "roadmap": "/"
+    "roadmap": "https://github.com/reearth/navara/issues/757"
   },
   "images": {
     "hero": {
@@ -44,53 +44,53 @@
     },
     "example-row1-left": {
       "src": "web/navara_three/example/public/screenshots/sky/atmosphere.avif",
-      "href": "https://navara-preview.netlify.app/sky/atmosphere"
+      "href": "https://navara-preview.reearth.workers.dev/sky/atmosphere"
     },
     "example-row1-right": {
       "src": "web/navara_three/example/public/screenshots/weather/clouds.avif",
-      "href": "https://navara-preview.netlify.app/weather/clouds"
+      "href": "https://navara-preview.reearth.workers.dev/weather/clouds"
     },
     "example-row2-left": {
       "src": "web/navara_three/example/public/screenshots/mesh/gltf-animation.avif",
-      "href": "https://navara-preview.netlify.app/mesh/gltf-animation"
+      "href": "https://navara-preview.reearth.workers.dev/mesh/gltf-animation"
     },
     "example-row2-center": {
       "src": "web/navara_three/example/public/screenshots/weather/precipitation.avif",
-      "href": "https://navara-preview.netlify.app/weather/precipitation"
+      "href": "https://navara-preview.reearth.workers.dev/weather/precipitation"
     },
     "example-row2-right": {
       "src": "web/navara_three/example/public/screenshots/evaluator/text.avif",
-      "href": "https://navara-preview.netlify.app/evaluator/text"
+      "href": "https://navara-preview.reearth.workers.dev/evaluator/text"
     },
     "example-row3-left": {
       "src": "web/navara_three/example/public/screenshots/mesh/instanced.avif",
-      "href": "https://navara-preview.netlify.app/mesh/instanced"
+      "href": "https://navara-preview.reearth.workers.dev/mesh/instanced"
     },
     "example-row3-right": {
       "src": "web/navara_three/example/public/screenshots/sky/sun-time.avif",
-      "href": "https://navara-preview.netlify.app/sky/sun-time"
+      "href": "https://navara-preview.reearth.workers.dev/sky/sun-time"
     },
     "example-row4-left": {
       "src": "web/navara_three/example/public/screenshots/mesh/splat.avif",
-      "href": "https://navara-preview.netlify.app/mesh/splat"
+      "href": "https://navara-preview.reearth.workers.dev/mesh/splat"
     },
     "example-row4-center-left": {
       "src": "web/navara_three/example/public/screenshots/gis/polyline.avif",
-      "href": "https://navara-preview.netlify.app/gis/polyline"
+      "href": "https://navara-preview.reearth.workers.dev/gis/polyline"
     },
     "example-row4-center-right": {
       "src": "web/navara_three/example/public/screenshots/mesh/gltf-model.avif",
-      "href": "https://navara-preview.netlify.app/mesh/gltf-model"
+      "href": "https://navara-preview.reearth.workers.dev/mesh/gltf-model"
     },
     "example-row4-right": {
       "src": "web/navara_three/example/public/screenshots/gis/extruded-polygon.avif",
-      "href": "https://navara-preview.netlify.app/gis/extruded-polygon"
+      "href": "https://navara-preview.reearth.workers.dev/gis/extruded-polygon"
     },
     "maplibre-logo": {
       "src": "docs/src/assets/lp/maplibre-logo.svg"
     },
     "maplibre-visual": {
-      "src": "web/navara_three/example/public/screenshots/plugins-maplibre-style.avif"
+      "src": "web/navara_three/example/public/screenshots/basemap/vector-map.avif"
     }
   }
 }

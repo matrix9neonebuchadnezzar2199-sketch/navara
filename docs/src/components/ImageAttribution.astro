@@ -12,15 +12,26 @@
 //   </div>
 import { Info } from "@lucide/astro";
 
+/** A single credit: plain text, or text with a link to the source's terms. */
+type Credit = string | { text: string; href?: string };
+
 interface Props {
   /** One credit per data source, each rendered as its own list row. */
-  items: string[];
+  items: Credit[];
   /** Accessible label for the icon button (localize this). */
   label?: string;
   /** Corner to pin to. Defaults to bottom-right. */
   corner?: "br" | "bl" | "tr" | "tl";
   /** Extra class(es) on the root, e.g. for position overrides. */
   class?: string;
+  /**
+   * Optional provider logo shown to the LEFT of the info button (e.g. the
+   * Google Maps logo required alongside Photorealistic 3D Tiles). Sized and
+   * spaced per the provider's brand guidelines via CSS.
+   */
+  logo?: string;
+  /** Alt text for the logo (required when `logo` is set). */
+  logoAlt?: string;
 }
 
 const {
@@ -28,15 +39,32 @@ const {
   label = "Data attribution",
   corner = "br",
   class: className,
+  logo,
+  logoAlt = "",
 } = Astro.props;
+
+const credits = items.map((it) => (typeof it === "string" ? { text: it } : it));
 ---
 
 <div class:list={["nv-attrib", `nv-attrib-${corner}`, className]}>
+  {logo && <img class="nv-attrib-logo" src={logo} alt={logoAlt} />}
   <button type="button" class="nv-attrib-btn" aria-label={label}>
     <Info />
   </button>
   <ul class="nv-attrib-list" role="tooltip">
-    {items.map((item) => <li>{item}</li>)}
+    {
+      credits.map((c) => (
+        <li>
+          {c.href ? (
+            <a href={c.href} target="_blank" rel="noopener noreferrer">
+              {c.text}
+            </a>
+          ) : (
+            c.text
+          )}
+        </li>
+      ))
+    }
   </ul>
 </div>
 
@@ -44,6 +72,18 @@ const {
   .nv-attrib {
     position: absolute;
     z-index: 2;
+    display: flex;
+    align-items: center;
+    /* Clear space between a provider logo and the info button (10dp per the
+       Google Maps brand guidelines); harmless when there is no logo. */
+    gap: 10px;
+  }
+  /* Provider logo (e.g. Google Maps): 18dp tall — within the 16–19dp brand
+     range. The image already carries an outline, so it reads on any backdrop. */
+  .nv-attrib-logo {
+    display: block;
+    height: 18px;
+    width: auto;
   }
   .nv-attrib-br {
     right: 8px;
@@ -78,18 +118,30 @@ const {
     width: 14px;
     height: 14px;
   }
+  /* Touch: the icon itself is ~20px, well under a finger. Grow the hit target
+     to ~44px with an invisible overlay so the button's look stays the same. */
+  @media (pointer: coarse) {
+    .nv-attrib-btn {
+      position: relative;
+    }
+    .nv-attrib-btn::after {
+      content: "";
+      position: absolute;
+      inset: -12px;
+    }
+  }
   .nv-attrib-list {
     position: absolute;
     right: 0;
     bottom: calc(100% + 6px);
     width: max-content;
-    max-width: min(300px, 68vw);
+    max-width: min(320px, 74vw);
     margin: 0;
-    padding: 8px 12px;
-    list-style: none;
+    padding: 10px 14px 10px 28px;
+    list-style: disc;
     border-radius: 8px;
     background: color-mix(in srgb, black 82%, transparent);
-    font: 400 10px/1.6 "IBM Plex Mono", monospace;
+    font: 400 12px/1.5 "IBM Plex Mono", monospace;
     color: rgba(255, 255, 255, 0.9);
     text-align: left;
     opacity: 0;
@@ -98,6 +150,12 @@ const {
       opacity 0.2s,
       transform 0.2s;
     pointer-events: none;
+  }
+  .nv-attrib-list li + li {
+    margin-top: 5px;
+  }
+  .nv-attrib-list li::marker {
+    color: rgba(255, 255, 255, 0.5);
   }
   /* Top-pinned variants drop the tooltip below the icon instead. */
   .nv-attrib-tr .nv-attrib-list,
@@ -110,10 +168,59 @@ const {
     right: auto;
     left: 0;
   }
-  .nv-attrib:hover .nv-attrib-list,
-  .nv-attrib:focus-within .nv-attrib-list {
+  /* Invisible bridge across the icon↔tooltip gap, so the pointer can travel
+     from the icon into the tooltip (to read/scroll/click links) without the
+     tooltip closing mid-gap. It's part of the list, so it only "exists" for
+     hit-testing while the list is interactive (pointer-events: auto). */
+  .nv-attrib-list::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 10px;
+  }
+  .nv-attrib-tr .nv-attrib-list::before,
+  .nv-attrib-tl .nv-attrib-list::before {
+    top: -10px;
+  }
+  .nv-attrib-br .nv-attrib-list::before,
+  .nv-attrib-bl .nv-attrib-list::before {
+    bottom: -10px;
+  }
+  /* Each credit links to its source's terms/attribution page — kept white,
+     distinguished by the underline (no colour change on hover). */
+  .nv-attrib-list a {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  /* Open state. Clicking/tapping the button pins it open on every device (the
+     script toggles .nv-attrib-open, an outside tap closes it) — the only path
+     touch devices have. Hover-capable pointers additionally open on hover, and
+     keyboard focus opens it anywhere. Deliberately NOT gated on a
+     `(hover: ...)` media query: devices that report hover while being touch
+     driven (iPad with a trackpad, hybrid laptops) would otherwise be left with
+     no way to open it at all.
+     `:focus-visible`, never `:focus-within`: whether a tap focuses the button
+     is browser-specific, and focus left behind by a tap would pin the tooltip
+     open — dismissing it would then do nothing, however the class is toggled.
+     Keyboard focus still opens it, which is the only case that wants it. */
+  .nv-attrib.nv-attrib-open .nv-attrib-list,
+  .nv-attrib:has(:focus-visible) .nv-attrib-list {
     opacity: 1;
     transform: none;
+    pointer-events: auto;
+  }
+  /* `.nv-attrib-shut` marks a tooltip a pointer just toggled closed: hover must
+     not re-open it under the cursor that closed it. Emulated touch (DevTools
+     device mode) parks the cursor on the icon after a tap, so without this the
+     tooltip can never be dismissed there. Cleared on pointerleave. */
+  @media (hover: hover) {
+    .nv-attrib:not(.nv-attrib-shut):hover .nv-attrib-list {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .nv-attrib-list {
@@ -122,3 +229,118 @@ const {
     }
   }
 </style>
+
+<script>
+  // Keep each tooltip inside the viewport. When it opens, measure it against
+  // the default (corner-aligned) position and slide it horizontally by exactly
+  // the overflow, so it spreads into whatever space is actually there. It is a
+  // nudge, not a flip: flipping to the opposite side would abandon the space on
+  // the crowded side and can overflow the other edge on a narrow screen.
+  const PAD = 8;
+  const fit = (attr: Element) => {
+    const list = attr.querySelector<HTMLElement>(".nv-attrib-list");
+    if (!list) return;
+    // Reset to the CSS default alignment, then re-measure.
+    list.style.left = "";
+    list.style.right = "";
+    const r = list.getBoundingClientRect();
+    // Positive dx slides the tooltip right. Clearing the left edge wins when
+    // the tooltip is too wide for the viewport: text is read from the left.
+    let dx = 0;
+    if (r.left < PAD) dx = PAD - r.left;
+    else if (r.right > window.innerWidth - PAD) dx = window.innerWidth - PAD - r.right;
+    if (!dx) return;
+    // Nudge whichever edge the corner variant anchors from (left for bl/tl,
+    // right otherwise) — a right anchor moves right as its offset shrinks.
+    if (attr.classList.contains("nv-attrib-bl") || attr.classList.contains("nv-attrib-tl")) {
+      list.style.left = `${dx}px`;
+    } else {
+      list.style.right = `${-dx}px`;
+    }
+  };
+
+  const attrs = Array.from(document.querySelectorAll<HTMLElement>(".nv-attrib"));
+  // `.nv-attrib-open` is only ever set by a press, so "any open" means "pinned".
+  const anyOpen = () => attrs.some((a) => a.classList.contains("nv-attrib-open"));
+  const closeAll = () =>
+    attrs.forEach((a) => {
+      if (!a.classList.contains("nv-attrib-open")) return;
+      a.classList.remove("nv-attrib-open");
+      // Dropping the class is not enough while the pointer sits on the icon:
+      // :hover would put the tooltip straight back up, so a scroll or an
+      // outside press would appear to do nothing. Emulated touch parks the
+      // cursor exactly there after every tap. Retired on pointerleave.
+      if (a.querySelector(".nv-attrib-btn")?.matches(":hover")) {
+        a.classList.add("nv-attrib-shut");
+      }
+    });
+  let openScrollY = 0;
+
+  // One interaction model for every device — no `(hover: ...)` sniffing, which
+  // silently leaves touch-driven-but-hover-reporting devices with no way in.
+  // Click/tap pins the tooltip open; hover (where supported) and keyboard focus
+  // open it transiently via CSS alone.
+  attrs.forEach((attr) => {
+    attr.addEventListener("pointerenter", () => fit(attr));
+    attr.addEventListener("focusin", () => fit(attr));
+    const btn = attr.querySelector<HTMLElement>(".nv-attrib-btn");
+    btn?.addEventListener("click", () => {
+      const willOpen = !attr.classList.contains("nv-attrib-open");
+      closeAll(); // one at a time — and a second press on the same button closes
+      if (willOpen) {
+        attrs.forEach((a) => a.classList.remove("nv-attrib-shut"));
+        attr.classList.add("nv-attrib-open");
+        fit(attr);
+        openScrollY = window.scrollY;
+      }
+    });
+    // The cursor moving off the icon retires the hover suppression.
+    attr.addEventListener("pointerleave", () => attr.classList.remove("nv-attrib-shut"));
+  });
+
+  // A press outside dismisses, and the click it would produce is cancelled so
+  // the page underneath stays inert — the press is spent on the dismissal.
+  // Deliberately not an overlay: a viewport-covering element would swallow the
+  // gesture as well, and scroll containers beneath it (the horizontal gallery)
+  // could no longer be panned while a tooltip was open. Closing on the press
+  // instead leaves the gesture with its original target, so the scroll it
+  // starts continues natively. The flag is recomputed on every press, so it can
+  // never go stale.
+  let swallowClick = false;
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      const outside = !attrs.some((a) => a.contains(e.target as Node));
+      swallowClick = outside && anyOpen();
+      if (outside) closeAll();
+    },
+    true,
+  );
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (!swallowClick) return;
+      swallowClick = false;
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    true,
+  );
+  // Scrolling dismisses a pinned tooltip as well (capture, so scrollable
+  // containers count too). A page scroll must clear a small threshold first — a
+  // tap can nudge the page as the mobile address bar collapses, which would
+  // otherwise close the tooltip before it could be read.
+  document.addEventListener(
+    "scroll",
+    (e) => {
+      if (!anyOpen()) return;
+      if (e.target === document && Math.abs(window.scrollY - openScrollY) < 8) return;
+      closeAll();
+    },
+    true,
+  );
+  // A pinned tooltip outlives the layout it was fitted to (rotation, resize).
+  window.addEventListener("resize", () =>
+    attrs.forEach((a) => a.classList.contains("nv-attrib-open") && fit(a)),
+  );
+</script>

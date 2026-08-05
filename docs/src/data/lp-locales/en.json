@@ -3,8 +3,8 @@
   "short": "EN",
   "htmlLang": "en",
   "meta": {
-    "title": "Navara — an open-source 3D globe map engine",
-    "description": "Navara is a highly extensible, general-purpose 3D globe map engine. It streams real-world geospatial data — satellite imagery, terrain, 3D city models, and vector data — onto an interactive globe and lets you style it for any use case."
+    "title": "Navara – an open-source 3D globe map engine",
+    "description": "Navara is a highly extensible 3D map engine. Load GIS data - satellite imagery, terrain, 3D city models, and vector data - and layer your own visualizations on top: declaratively, with plugins, or by implementing custom representations for your application's needs."
   },
   "nav": {
     "docs": "Docs",
@@ -15,74 +15,66 @@
   "intro": {
     "h1Html": "The beautiful globe,<br /><span>without the complexity.</span>",
     "h1Sub": null,
-    "copyHtml": "Navara is a <b>highly extensible, general-purpose 3D globe map engine</b>. It streams real-world geospatial data — satellite imagery, terrain, 3D city models, and vector data — onto an interactive globe, and lets you style it for any use case. From a simple basemap to photoreal scenes with atmosphere, sunlight, and shadows — the geospatial math runs in a Rust / WASM GIS engine distributed across Web Workers, so everything stays responsive even with large datasets.",
+    "copyHtml": "Navara is a <b>highly extensible 3D map engine</b>. Load a wide range of GIS data - satellite imagery, terrain, 3D city models, and vector data - and freely layer your own visualizations on top. Visualize GIS data declaratively, add advanced features with plugins, and go further by implementing custom representations tailored to your application's needs.",
     "ctaShowcase": "Try the showcase",
     "ctaDocs": "Read the docs",
     "gettingStarted": "Getting Started guide"
   },
   "why": {
     "eyebrow": "WHY NAVARA",
-    "h2Html": "Hard things made simple —<br />and <mark>beautiful</mark>.",
+    "h2Html": "Complexity, made simple –<br />and <mark>beautiful</mark>.",
     "values": [
       {
         "title": "Beautiful, instantly",
-        "desc": "A photoreal scene comes up in a few lines of code."
+        "desc": "Create beautiful scenes with just a few lines of code."
       },
       {
         "title": "Yours to control",
-        "desc": "Tune atmosphere, clouds, water, and effects down to the last detail."
+        "desc": "Fine-tune a wide range of effects down to the smallest detail, and extend them whenever you need to."
       },
       {
-        "title": "Layered, not complicated",
-        "desc": "Combine all four API tiers in the same view."
+        "title": "Expressive, yet simple",
+        "desc": "A flexible foundation for building, extending, and reusing your own visualizations."
       },
       {
-        "title": "A foundation you keep",
-        "desc": "A renderer-agnostic Rust core — ready for WebGPU and native."
+        "title": "Built to last",
+        "desc": "A renderer-agnostic architecture powered by Rust and WebAssembly, with WebGPU and native support planned."
       }
     ],
     "apiLede": {
-      "title": "Declarative, freely extensible.",
-      "sub": "Plugin, API, and Shader — as deep as you need."
+      "title": "Declarative and extensible.",
+      "sub": "Plugin, API, and Shader – your way."
     },
     "apiSegments": [
       {
         "label": "Declarative",
-        "scene": "PLATEAU buildings, terrain, and a basemap — from config alone.",
-        "desc": "Declare layers and materials as plain config objects. The map comes up with no imperative code."
+        "scene": "Add 3D Tiles, terrain, and a basemap declaratively.",
+        "desc": "Declare layers and materials as config objects to visualize GIS data."
       },
       {
         "label": "Plugin",
-        "scene": "One line of DefaultPlugin adds atmosphere, sun, clouds, and shadows.",
-        "desc": "Add purpose-built features as plugins in one line — and package deeper work to reuse."
+        "scene": "Use DefaultPlugin to add atmosphere, sun, clouds, and shadows all at once.",
+        "desc": "Add purpose-built features as plugins with ease, and reuse complex functionality."
       },
       {
         "label": "API",
         "scene": "Every building evaluated by measured height, colored per feature.",
-        "desc": "Drive feature evaluation, picking, geodesy, and camera control imperatively."
+        "desc": "Flexibly drive feature evaluation, picking, geodesy, and camera control."
       },
       {
         "label": "Shader",
-        "scene": "A hand-written FogLight shader lights the night city.",
+        "scene": "Use a FogLight shader to add a nighttime look.",
         "desc": "Full access to Three.js for your own shaders and effects."
       }
-    ],
-    "mediaAttribution": [
-      "3D City Model (Project PLATEAU) - MLIT",
-      "Re:Earth Terrain",
-      "Re:Earth Papers",
-      "Protomaps",
-      "© OpenStreetMap contributors"
     ],
     "mediaAttributionLabel": "Data attribution"
   },
   "arch": {
     "eyebrow": "ARCHITECTURE",
-    "h2": "A headless GIS core, independent of the renderer.",
-    "sub": "On Three.js today. In any environment tomorrow.",
+    "h2Html": "A headless GIS core,<br />independent of the rendering engine.",
     "sourceTitle": "Rust / WASM",
     "sourceSub": "Data parsing, geometry construction, and more",
-    "renderTitle": "Three.js today, other engines tomorrow",
+    "renderTitle": "Three.js and more",
     "renderSub": "Geometry is drawn by the rendering engine",
     "diagramAlt": "Architecture diagram: Rust / WASM parses data and builds geometry, and its output is drawn by Three.js today, with other engines and Native tomorrow."
   },
@@ -96,22 +88,21 @@
     "example": {
       "label": "EXAMPLES",
       "link": "See more"
-    }
+    },
+    "mediaAttributionLabel": "Data attribution"
   },
   "maplibre": {
-    "eyebrow": "OPEN SOURCE — MAPLIBRE FAMILY",
+    "eyebrow": "OPEN SOURCE – MAPLIBRE FAMILY",
     "h2": "Your styles and tiles, straight to 3D.",
-    "copy": "MapLibre, together with its open-source community, shaped modern web mapping. Navara is open source too (MIT / Apache-2.0) — and extends it into 3D.",
+    "copy": "MapLibre, together with its open-source community, shaped modern web mapping. Navara is open source too (MIT / Apache-2.0) – and extends it into 3D.",
     "items": [
-      "Supports the MapLibre Style Spec: layers and expressions in the JSON you already know (MapLibre Style Plugin, in development)",
-      "Extends the expression system to 3D-native concepts such as terrain, atmosphere, and height",
-      "Standard support planned for MapLibre Tiles (MLT), the next-generation format"
+      "Supports MapLibre styles (MapLibre Style Plugin, in development), so you can reuse your existing MapLibre assets as-is.",
+      "Support planned for MapLibre Tile (MLT), the next-generation format."
     ],
-    "roadmap": "See the roadmap"
+    "roadmap": "See the roadmap",
+    "mediaAttributionLabel": "Data attribution"
   },
   "footer": {
-    "h2": "Get started",
-    "cta": "Read the Getting Started guide",
     "docs": "Docs",
     "github": "GitHub",
     "discord": "Discord",
@@ -119,10 +110,10 @@
   },
   "imageAlts": {
     "hero": "Main visual: a globe rendered with Navara",
-    "why-tier-1": "Declarative style — PLATEAU buildings and terrain on the paper-white basemap",
-    "why-tier-2": "Plugins — the same scene with the photoreal atmosphere added",
-    "why-tier-3": "Spatial operations — buildings colored by their measured height",
-    "why-tier-4": "Custom shaders — the same scene at night, lit by fog lights",
+    "why-tier-1": "Declarative style – PLATEAU buildings and terrain on the paper-white basemap",
+    "why-tier-2": "Plugins – the same scene with the photoreal atmosphere added",
+    "why-tier-3": "Spatial operations – buildings colored by their measured height",
+    "why-tier-4": "Custom shaders – the same scene at night, lit by fog lights",
     "tutorial-wide": "Realistic Atmosphere",
     "tutorial-left": "Arc Line Visualization",
     "tutorial-right": "Interior Explore",

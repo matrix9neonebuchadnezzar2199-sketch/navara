@@ -63,7 +63,7 @@ Beyond the declarative Source/Layer API, `ThreeView` exposes per-feature styling
 
 ## Documentation
 
-Full documentation, including every source/layer/material option and runnable examples, is at https://navara-docs.netlify.app/.
+Full documentation, including every source/layer/material option and runnable examples, is at https://navara-docs.reearth.workers.dev//.
 
 ## License
 

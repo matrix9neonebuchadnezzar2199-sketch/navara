@@ -197,7 +197,7 @@ sequenceDiagram
 
 ## Future Extensibility
 
-The `VectorTileSource` trait and `SourceId` design are intentionally format-agnostic. Adding a new vector tile format (e.g., MapLibre Tiles, PMTiles, FlatGeobuf) requires:
+The `VectorTileSource` trait and `SourceId` design are intentionally format-agnostic. Adding a new vector tile format (e.g., MapLibre Tile, PMTiles, FlatGeobuf) requires:
 
 1. Implement `VectorTileSource` for the new format
 2. Register setup/teardown systems in `VectorTileSet::Prepare`

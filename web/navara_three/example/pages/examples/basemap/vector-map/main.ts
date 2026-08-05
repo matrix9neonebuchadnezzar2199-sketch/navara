@@ -4,7 +4,7 @@ import { TileJsonPlugin } from "@navaramap/three-plugins";
 import { initializeExample } from "../../../../helpers/initialize";
 
 const view = new ThreeView({
-  backgroundColor: new Color().setStyle("#cccccc"),
+  backgroundColor: new Color().setStyle("#dddddd"),
 });
 
 const tilejson = new TileJsonPlugin();

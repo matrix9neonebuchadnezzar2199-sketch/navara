@@ -123,4 +123,4 @@ class PickableTorusKnot extends Object3D implements PickableMesh {
 // fragment shader: R = high byte, G = mid byte, B = low byte of batchId
 ```
 
-Reference: `example/pages/mesh-layers/custom-pickable/main.ts` (Navara repo). Full authoring guide: https://navara-docs.netlify.app/three/core/custom-desc/
+Reference: `example/pages/mesh-layers/custom-pickable/main.ts` (Navara repo). Full authoring guide: https://navara-docs.reearth.workers.dev//three/core/custom-desc/

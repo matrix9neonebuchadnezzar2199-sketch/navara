@@ -6,9 +6,11 @@
 // Image `src` values are repo-root-relative paths pointing into docs/src/assets
 // or web/navara_three/example/public/screenshots.
 import type { ImageMetadata } from "astro";
-import { ArrowUpRight, ChevronDown, Globe } from "@lucide/astro";
+import { ArrowUpRight, Check, ChevronDown, Globe } from "@lucide/astro";
 import lp from "../data/lp.json";
 import ImageAttribution from "./ImageAttribution.astro";
+import GalleryTile from "./GalleryTile.astro";
+import googleMapsLogo from "../assets/lp/google-maps-logo.png";
 import githubIcon from "../assets/lp/github-invertocat.svg?raw";
 import archGlobe from "../assets/lp/arch-globe.svg?url";
 import archTerrain from "../assets/lp/arch-terrain.svg?url";
@@ -85,6 +87,101 @@ const alt = (id: string): string => {
 
 const { colors, links } = lp;
 const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors.sub};--ml:${colors.maplibre}`;
+
+// Attribution credits (text + link to each source's terms). The strings are
+// language-agnostic, so they live here rather than duplicated per locale; only
+// the button label is translated (via `mediaAttributionLabel`).
+const SRC = {
+  gsiPhoto: {
+    text: "Geospatial Information Authority of Japan Tiles - Latest Nationwide Photo (Seamless)",
+    href: "https://maps.gsi.go.jp/development/ichiran.html",
+  },
+  gsiDem: {
+    text: "Geospatial Information Authority of Japan Tiles - Digital Elevation Map",
+    href: "https://maps.gsi.go.jp/development/ichiran.html",
+  },
+  gsiVector: {
+    text: "Geospatial Information Authority of Japan Vector Tile Experimental Service",
+    href: "https://github.com/gsi-cyberjapan/gsimaps-vector-experiment",
+  },
+  plateauChiyoda: {
+    text: "3D City Model (Project PLATEAU) Chiyoda Ward (FY2023) - MLIT PLATEAU",
+    href: "https://www.geospatial.jp/ckan/dataset/plateau-13101-chiyoda-ku-2023",
+  },
+  plateauTakanawa: {
+    text: "[UC23-11] Advanced Area Management Using Storytelling GIS - MLIT PLATEAU",
+    href: "https://www.geospatial.jp/ckan/dataset/plateau-uc23-11",
+  },
+  plateauGeneric: {
+    text: "3D City Model (Project PLATEAU) - MLIT",
+    href: "https://www.mlit.go.jp/plateau/",
+  },
+  nasaNight: {
+    text: "NASA Earth at Night imagery - NASA Earth Observatory",
+    href: "https://earthobservatory.nasa.gov/features/NightLights",
+  },
+  google: {
+    text: "Google Maps Photorealistic 3D Tiles",
+    href: "https://www.google.com/permissions/geoguidelines/",
+  },
+  mapterhorn: { text: "© Mapterhorn", href: "https://mapterhorn.com/attribution" },
+  reearthTerrain: { text: "Re:Earth Terrain", href: "https://terrain.reearth.land/" },
+  reearthPapers: { text: "Re:Earth Papers", href: "https://papers.reearth.land" },
+  protomaps: { text: "© Protomaps", href: "https://protomaps.com" },
+  protomapsPlain: { text: "Protomaps", href: "https://protomaps.com" },
+  osm: {
+    text: "© OpenStreetMap contributors",
+    href: "https://www.openstreetmap.org/copyright",
+  },
+  fox: {
+    text: "Fox by PixelMannen (CC0), rig & animation by tomkranis (CC BY 4.0) - Khronos glTF Sample Assets",
+    href: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Fox",
+  },
+  lantern: {
+    text: "Lantern by Microsoft & Frank Galligan (CC0) - Khronos glTF Sample Assets",
+    href: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Lantern",
+  },
+  muscleCar: {
+    text: "Classic Muscle car by Lexyc16 (CC BY 4.0)",
+    href: "https://sketchfab.com/3d-models/classic-muscle-car-641efc889e5f4543bae51d0922e6f4b3",
+  },
+  sunnyMeadow: {
+    text: "Sunny Meadow by Jeremias Kieferle - CC BY 4.0",
+    href: "https://assets.cms.reearth.io/assets/e2/e8e117-8059-4450-adde-7fa7a3c5908a/Sunny Meadow/LICENSE",
+  },
+} as const;
+
+// Which sources each gallery image draws on. `attrib(id)` resolves them to the
+// credit objects ImageAttribution renders.
+const TILE_SOURCES: Record<string, (keyof typeof SRC)[]> = {
+  "tutorial-wide": ["gsiPhoto", "gsiDem", "gsiVector", "plateauChiyoda"],
+  "tutorial-left": ["gsiPhoto", "nasaNight"],
+  "tutorial-right": ["plateauTakanawa", "gsiDem", "gsiPhoto"],
+  "example-row1-left": ["google"],
+  "example-row1-right": ["mapterhorn", "gsiPhoto"],
+  "example-row2-left": ["reearthPapers", "fox"],
+  "example-row2-center": ["google"],
+  "example-row2-right": ["reearthPapers"],
+  "example-row3-left": ["reearthPapers", "lantern"],
+  "example-row3-right": ["google"],
+  "example-row4-left": ["reearthPapers", "sunnyMeadow"],
+  "example-row4-center-left": ["reearthPapers", "osm"],
+  "example-row4-center-right": ["reearthPapers", "muscleCar"],
+  "example-row4-right": ["reearthPapers", "osm"],
+};
+const attrib = (id: string) => (TILE_SOURCES[id] ?? []).map((k) => SRC[k]);
+const galleryAttribLabel = t.gallery.mediaAttributionLabel;
+const googleLogoSrc = googleMapsLogo.src;
+
+// The "4 API tiers" showcase still and the MapLibre still, credited inline.
+const whyAttrib = [
+  SRC.plateauGeneric,
+  SRC.reearthTerrain,
+  SRC.reearthPapers,
+  SRC.protomapsPlain,
+  SRC.osm,
+];
+const maplibreAttrib = [SRC.osm, SRC.protomaps];
 ---
 
 <html lang={t.htmlLang} style={rootStyle}>
@@ -130,7 +227,7 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
             </select>
             <ChevronDown class="lp-lang-chevron" size={14} stroke-width={2} aria-hidden="true" />
           </label>
-          <a class="lp-nav-cta" href="#get-started">{t.nav.getStarted}</a>
+          <a class="lp-nav-cta" href={localizeHref(links.gettingStarted)}>{t.nav.getStarted}</a>
         </nav>
       </header>
 
@@ -207,7 +304,7 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
                   <p class="lp-api-lede-sub">{t.why.apiLede.sub}</p>
                 </div>
                 <ImageAttribution
-                  items={t.why.mediaAttribution}
+                  items={whyAttrib}
                   label={t.why.mediaAttributionLabel}
                   corner="tr"
                 />
@@ -277,8 +374,7 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
       <section class="lp-arch">
         <div class="lp-container">
           <p class="lp-eyebrow" data-reveal>{t.arch.eyebrow}</p>
-          <h2 class="lp-h2" data-reveal style="--rd:1">{t.arch.h2}</h2>
-          <p class="lp-arch-sub" data-reveal style="--rd:2">{t.arch.sub}</p>
+          <h2 class="lp-h2" data-reveal style="--rd:1" set:html={t.arch.h2Html} />
           {/* The diagram is composed from the arch-* line-art SVGs rather than
               a baked image: source geometry (terrain / marker / buildings) on
               the left flows through converging arrows into the globe the
@@ -372,70 +468,138 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
                scroller, pinned to the viewport edge. -->
           <div class="lp-gallery-scroll">
           <div class="lp-tutorial-grid">
-            <a
-              class="lp-tile lp-tile-wide"
-              data-reveal
-              data-motion="img"
+            <GalleryTile
+              cellClass="lp-tile-wide"
               href={localizeHref(slot("tutorial-wide").href ?? links.tutorial)}
-            >
-              {src("tutorial-wide") && <img src={src("tutorial-wide")} alt={alt("tutorial-wide")} />}
-            </a>
-            <a
-              class="lp-tile lp-tile-half"
-              data-reveal
-              data-motion="img"
+              imgSrc={src("tutorial-wide")}
+              imgAlt={alt("tutorial-wide")}
+              items={attrib("tutorial-wide")}
+              label={galleryAttribLabel}
+            />
+            <GalleryTile
+              cellClass="lp-tile-half"
               href={localizeHref(slot("tutorial-left").href ?? links.tutorial)}
-            >
-              {src("tutorial-left") && <img src={src("tutorial-left")} alt={alt("tutorial-left")} />}
-            </a>
-            <a
-              class="lp-tile lp-tile-half"
-              data-reveal
-              data-motion="img"
-              style="--rd:1"
+              imgSrc={src("tutorial-left")}
+              imgAlt={alt("tutorial-left")}
+              items={attrib("tutorial-left")}
+              label={galleryAttribLabel}
+            />
+            <GalleryTile
+              cellClass="lp-tile-half"
+              rd={1}
               href={localizeHref(slot("tutorial-right").href ?? links.tutorial)}
-            >
-              {src("tutorial-right") && <img src={src("tutorial-right")} alt={alt("tutorial-right")} />}
-            </a>
+              imgSrc={src("tutorial-right")}
+              imgAlt={alt("tutorial-right")}
+              items={attrib("tutorial-right")}
+              label={galleryAttribLabel}
+            />
           </div>
           <div class="lp-example-grid">
-          <!-- Row 1 — 3:2 -->
-          <a class="lp-tile lp-span-36" data-reveal data-motion="img" href={slot("example-row1-left").href ?? links.examples}>
-            {src("example-row1-left") && <img src={src("example-row1-left")} alt={alt("example-row1-left")} />}
-          </a>
-          <a class="lp-tile lp-span-24" data-reveal data-motion="img" style="--rd:1" href={slot("example-row1-right").href ?? links.examples}>
-            {src("example-row1-right") && <img src={src("example-row1-right")} alt={alt("example-row1-right")} />}
-          </a>
-          <!-- Row 2 — 1:1:1 -->
-          <a class="lp-tile lp-span-20" data-reveal data-motion="img" href={slot("example-row2-left").href ?? links.examples}>
-            {src("example-row2-left") && <img src={src("example-row2-left")} alt={alt("example-row2-left")} />}
-          </a>
-          <a class="lp-tile lp-span-20" data-reveal data-motion="img" style="--rd:1" href={slot("example-row2-center").href ?? links.examples}>
-            {src("example-row2-center") && <img src={src("example-row2-center")} alt={alt("example-row2-center")} />}
-          </a>
-          <a class="lp-tile lp-span-20" data-reveal data-motion="img" style="--rd:2" href={slot("example-row2-right").href ?? links.examples}>
-            {src("example-row2-right") && <img src={src("example-row2-right")} alt={alt("example-row2-right")} />}
-          </a>
-          <!-- Row 3 — 2:3 -->
-          <a class="lp-tile lp-span-24" data-reveal data-motion="img" href={slot("example-row3-left").href ?? links.examples}>
-            {src("example-row3-left") && <img src={src("example-row3-left")} alt={alt("example-row3-left")} />}
-          </a>
-          <a class="lp-tile lp-span-36" data-reveal data-motion="img" style="--rd:1" href={slot("example-row3-right").href ?? links.examples}>
-            {src("example-row3-right") && <img src={src("example-row3-right")} alt={alt("example-row3-right")} />}
-          </a>
-          <!-- Row 4 — 3:3:2:2 -->
-          <a class="lp-tile lp-span-15" data-reveal data-motion="img" href={slot("example-row4-left").href ?? links.examples}>
-            {src("example-row4-left") && <img src={src("example-row4-left")} alt={alt("example-row4-left")} />}
-          </a>
-          <a class="lp-tile lp-span-15" data-reveal data-motion="img" style="--rd:1" href={slot("example-row4-center-left").href ?? links.examples}>
-            {src("example-row4-center-left") && <img src={src("example-row4-center-left")} alt={alt("example-row4-center-left")} />}
-          </a>
-          <a class="lp-tile lp-span-15" data-reveal data-motion="img" style="--rd:2" href={slot("example-row4-center-right").href ?? links.examples}>
-            {src("example-row4-center-right") && <img src={src("example-row4-center-right")} alt={alt("example-row4-center-right")} />}
-          </a>
-          <a class="lp-tile lp-span-15" data-reveal data-motion="img" style="--rd:3" href={slot("example-row4-right").href ?? links.examples}>
-            {src("example-row4-right") && <img src={src("example-row4-right")} alt={alt("example-row4-right")} />}
-          </a>
+          {/* Row 1 — 3:2 */}
+          <GalleryTile
+            cellClass="lp-span-36"
+            href={slot("example-row1-left").href ?? links.examples}
+            imgSrc={src("example-row1-left")}
+            imgAlt={alt("example-row1-left")}
+            items={attrib("example-row1-left")}
+            label={galleryAttribLabel}
+            logo={googleLogoSrc}
+            logoAlt="Google Maps"
+          />
+          <GalleryTile
+            cellClass="lp-span-24"
+            rd={1}
+            href={slot("example-row1-right").href ?? links.examples}
+            imgSrc={src("example-row1-right")}
+            imgAlt={alt("example-row1-right")}
+            items={attrib("example-row1-right")}
+            label={galleryAttribLabel}
+          />
+          {/* Row 2 — 1:1:1 */}
+          <GalleryTile
+            cellClass="lp-span-20"
+            href={slot("example-row2-left").href ?? links.examples}
+            imgSrc={src("example-row2-left")}
+            imgAlt={alt("example-row2-left")}
+            items={attrib("example-row2-left")}
+            label={galleryAttribLabel}
+          />
+          <GalleryTile
+            cellClass="lp-span-20"
+            rd={1}
+            href={slot("example-row2-center").href ?? links.examples}
+            imgSrc={src("example-row2-center")}
+            imgAlt={alt("example-row2-center")}
+            items={attrib("example-row2-center")}
+            label={galleryAttribLabel}
+            logo={googleLogoSrc}
+            logoAlt="Google Maps"
+          />
+          <GalleryTile
+            cellClass="lp-span-20"
+            rd={2}
+            href={slot("example-row2-right").href ?? links.examples}
+            imgSrc={src("example-row2-right")}
+            imgAlt={alt("example-row2-right")}
+            items={attrib("example-row2-right")}
+            label={galleryAttribLabel}
+          />
+          {/* Row 3 — 2:3 */}
+          <GalleryTile
+            cellClass="lp-span-24"
+            href={slot("example-row3-left").href ?? links.examples}
+            imgSrc={src("example-row3-left")}
+            imgAlt={alt("example-row3-left")}
+            items={attrib("example-row3-left")}
+            label={galleryAttribLabel}
+          />
+          <GalleryTile
+            cellClass="lp-span-36"
+            rd={1}
+            href={slot("example-row3-right").href ?? links.examples}
+            imgSrc={src("example-row3-right")}
+            imgAlt={alt("example-row3-right")}
+            items={attrib("example-row3-right")}
+            label={galleryAttribLabel}
+            logo={googleLogoSrc}
+            logoAlt="Google Maps"
+          />
+          {/* Row 4 — 3:3:2:2 */}
+          <GalleryTile
+            cellClass="lp-span-15"
+            href={slot("example-row4-left").href ?? links.examples}
+            imgSrc={src("example-row4-left")}
+            imgAlt={alt("example-row4-left")}
+            items={attrib("example-row4-left")}
+            label={galleryAttribLabel}
+          />
+          <GalleryTile
+            cellClass="lp-span-15"
+            rd={1}
+            href={slot("example-row4-center-left").href ?? links.examples}
+            imgSrc={src("example-row4-center-left")}
+            imgAlt={alt("example-row4-center-left")}
+            items={attrib("example-row4-center-left")}
+            label={galleryAttribLabel}
+          />
+          <GalleryTile
+            cellClass="lp-span-15"
+            rd={2}
+            href={slot("example-row4-center-right").href ?? links.examples}
+            imgSrc={src("example-row4-center-right")}
+            imgAlt={alt("example-row4-center-right")}
+            items={attrib("example-row4-center-right")}
+            label={galleryAttribLabel}
+          />
+          <GalleryTile
+            cellClass="lp-span-15"
+            rd={3}
+            href={slot("example-row4-right").href ?? links.examples}
+            imgSrc={src("example-row4-right")}
+            imgAlt={alt("example-row4-right")}
+            items={attrib("example-row4-right")}
+            label={galleryAttribLabel}
+          />
           </div>
           </div>
         </div>
@@ -465,7 +629,7 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
               {
                 t.maplibre.items.map((item: string) => (
                   <li>
-                    <span>—</span>
+                    <Check class="lp-maplibre-check" size={16} aria-hidden="true" />
                     {item}
                   </li>
                 ))
@@ -479,14 +643,17 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
           </div>
           <div class="lp-maplibre-visual" data-reveal data-motion="img">
             {src("maplibre-visual") && <img src={src("maplibre-visual")} alt={alt("maplibre-visual")} />}
+            <ImageAttribution
+              items={maplibreAttrib}
+              label={t.maplibre.mediaAttributionLabel}
+              corner="bl"
+            />
           </div>
         </div>
       </section>
 
       <!-- Get started (footer) -->
-      <footer id="get-started" class="lp-footer" data-reveal-group>
-        <h2>{t.footer.h2}</h2>
-        <a class="lp-footer-cta" href={localizeHref(links.gettingStarted)}>{t.footer.cta}</a>
+      <footer class="lp-footer" data-reveal-group>
         <div class="lp-footer-links">
           <a href={localizeHref(links.docs)}>{t.footer.docs}</a>
           <a href={links.github}>{t.footer.github}</a>
@@ -605,6 +772,98 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
           lumCache.set(img, lum);
           return lum;
         };
+
+        // Per-tile attribution ink: sample the image pixels DIRECTLY UNDER the
+        // info icon (top-right) and flip it to dark ink over light spots,
+        // keeping white over dark — whichever contrasts better. Geometry is
+        // measured relative to the cell (its reveal transform is a translate,
+        // which cancels in the difference) and mapped through object-fit: cover.
+        const lumUnder = (
+          img: HTMLImageElement,
+          cell: Element,
+          el: Element,
+        ): number | null => {
+          if (!img.complete || !img.naturalWidth) return null;
+          const cr = cell.getBoundingClientRect();
+          const er = el.getBoundingClientRect();
+          const cw = img.clientWidth || cr.width;
+          const ch = img.clientHeight || cr.height;
+          if (!cw || !ch) return null;
+          const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+          const visW = cw / scale;
+          const visH = ch / scale;
+          const cropX = (img.naturalWidth - visW) / 2;
+          const cropY = (img.naturalHeight - visH) / 2;
+          let sx = cropX + (er.left - cr.left) / scale;
+          let sy = cropY + (er.top - cr.top) / scale;
+          let sw = er.width / scale;
+          let sh = er.height / scale;
+          sx = Math.max(0, Math.min(sx, img.naturalWidth - 1));
+          sy = Math.max(0, Math.min(sy, img.naturalHeight - 1));
+          sw = Math.max(1, Math.min(sw, img.naturalWidth - sx));
+          sh = Math.max(1, Math.min(sh, img.naturalHeight - sy));
+          const canvas = document.createElement("canvas");
+          canvas.width = 8;
+          canvas.height = 8;
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+          if (!ctx) return null;
+          try {
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 8, 8);
+            const data = ctx.getImageData(0, 0, 8, 8).data;
+            let sum = 0;
+            for (let i = 0; i < data.length; i += 4) {
+              sum +=
+                0.2126 * linear(data[i]) +
+                0.7152 * linear(data[i + 1]) +
+                0.0722 * linear(data[i + 2]);
+            }
+            return sum / (data.length / 4);
+          } catch {
+            return null; // tainted canvas (cross-origin) — leave the default ink
+          }
+        };
+        const sampleInk = (cell: Element) => {
+          const img = cell.querySelector("img");
+          const attr = cell.querySelector(".nv-attrib");
+          const btn = cell.querySelector(".nv-attrib-btn");
+          if (!img || !attr || !btn) return;
+          const lum = lumUnder(img as HTMLImageElement, cell, btn);
+          if (lum === null) return;
+          attr.classList.toggle(
+            "nv-attrib-ink-dark",
+            contrast(priLum, lum) > contrast(1, lum),
+          );
+        };
+        // Sample when a tile is (near) on screen: by then its layout — and thus
+        // the info button's position, which the sampled rect depends on — has
+        // settled, avoiding an early read of stale geometry.
+        const inkObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (!e.isIntersecting) return;
+              const cell = e.target;
+              const img = cell.querySelector("img") as HTMLImageElement | null;
+              if (img && (!img.complete || !img.naturalWidth)) {
+                img.addEventListener("load", () => sampleInk(cell), { once: true });
+              } else {
+                sampleInk(cell);
+              }
+              inkObserver.unobserve(cell);
+            });
+          },
+          { rootMargin: "300px" },
+        );
+        const inkCells = document.querySelectorAll(".lp-tile-cell");
+        inkCells.forEach((cell) => inkObserver.observe(cell));
+        // The cover crop (and thus the sampled pixels) shifts with tile size.
+        let inkResizeTimer = 0;
+        window.addEventListener("resize", () => {
+          clearTimeout(inkResizeTimer);
+          inkResizeTimer = window.setTimeout(
+            () => inkCells.forEach((cell) => sampleInk(cell)),
+            150,
+          );
+        });
 
         let sideTicking = false;
         const updateSideInk = () => {
@@ -824,6 +1083,14 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
       }
       .lp a:hover {
         color: var(--acc);
+      }
+      /* Attribution credit links stay white with an underline — override the
+         accent-coloured, underline-less default LP link style above. */
+      .lp .nv-attrib-list a,
+      .lp .nv-attrib-list a:hover {
+        color: #fff;
+        text-decoration: underline;
+        text-underline-offset: 2px;
       }
       /* Zero-specificity reset so per-section margin rules always win. */
       :where(.lp h1, .lp h2, .lp h3, .lp p) {
@@ -1472,11 +1739,6 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
         background: #fff;
         text-align: center;
       }
-      .lp-arch-sub {
-        margin-bottom: 56px;
-        font-size: 15px;
-        color: var(--ink-soft);
-      }
       /* Diagram composed from the arch-* line-art SVGs. Two grid rows: a shared
          head row (titles) and a fixed-height body row (source pieces → arrows →
          globe). Isolating the bodies in one aligned row keeps the arrow
@@ -1640,13 +1902,17 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
       .lp-gallery-side-inner {
         position: sticky;
         bottom: 28px;
-        margin: 28px 0 28px 40px;
+        margin: 28px 0 28px 24px;
         display: grid;
       }
       /* Both label sets are stacked in the same cell and crossfade when the
          overlay crosses into the example grid. */
       .lp-gallery-side-set {
         grid-area: 1 / 1;
+        /* Bottom-align both sets so "See more" (and its distance to the screen
+           edge) stays put regardless of the vertical label's length — only the
+           taller label extends further up. */
+        align-self: end;
         opacity: 0;
         transition: opacity 0.35s ease;
         pointer-events: none;
@@ -1684,10 +1950,27 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
         display: grid;
         grid-template-columns: 1fr 1fr;
       }
+      /* Grid item wrapping each tile: carries the column-span / height classes
+         and hosts the per-tile attribution overlay (a sibling of the link, so
+         the info button is never nested inside the tile's <a>). */
+      .lp-tile-cell {
+        position: relative;
+      }
+      /* A cell showing its attribution has to outrank its siblings. While the
+         reveal fade is running the cell's opacity is < 1, which makes it a
+         stacking context: the tooltip is then trapped inside the cell, and the
+         next tile in DOM order (the one to its right) paints over it. Lifting
+         the whole cell keeps the tooltip on top through the fade. */
+      .lp-tile-cell:hover,
+      .lp-tile-cell:has(.nv-attrib-open),
+      .lp-tile-cell:has(:focus-visible) {
+        z-index: 3;
+      }
       .lp-tile {
         position: relative;
         display: block;
         overflow: hidden;
+        height: 100%;
       }
       .lp-tile img {
         position: absolute;
@@ -1695,6 +1978,28 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
         width: 100%;
         height: 100%;
         object-fit: cover;
+      }
+      /* Per-tile attribution: top-right (bottom-right would collide with the
+         on-hover title). 10px inset gives the Google logo its required top/right
+         clear space. No plate — a white icon + shadow reads on any screenshot. */
+      .lp-tile-attrib.nv-attrib-tr {
+        top: 10px;
+        right: 10px;
+      }
+      .lp-tile-attrib .nv-attrib-btn,
+      .lp-tile-attrib .nv-attrib-btn:hover {
+        padding: 2px;
+        background: none;
+        box-shadow: none;
+        backdrop-filter: none;
+        filter: none;
+        color: #fff;
+      }
+      /* Over light imagery, flip to dark theme ink (the class is toggled per
+         tile by the top-right luminance sampler). */
+      .lp-tile-attrib.nv-attrib-ink-dark .nv-attrib-btn,
+      .lp-tile-attrib.nv-attrib-ink-dark .nv-attrib-btn:hover {
+        color: var(--pri);
       }
       /* Hover lift on linked tiles (the reveal transition keeps transform,
          so hover only touches filter to stay snappy). */
@@ -1837,7 +2142,9 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
         display: flex;
         gap: 10px;
       }
-      .lp-maplibre-list li span {
+      .lp-maplibre-list li .lp-maplibre-check {
+        flex: 0 0 auto;
+        margin-top: 3px;
         color: color-mix(in oklab, var(--ml), white 60%);
       }
       .lp-maplibre-roadmap {
@@ -1866,36 +2173,27 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
         object-fit: cover;
         border-radius: 14px;
       }
+      /* No plate; theme ink reads on the light basemap still. This section has
+         no luminance sampler, so the ink is fixed (the still is always light). */
+      .lp-maplibre-visual .nv-attrib-btn,
+      .lp-maplibre-visual .nv-attrib-btn:hover {
+        background: none;
+        box-shadow: none;
+        backdrop-filter: none;
+        color: var(--pri);
+      }
 
       /* Get started (footer) */
       .lp-footer {
-        padding: 120px 48px 64px;
+        padding: 72px 48px 56px;
         background: var(--pri);
         color: var(--on-dark);
         text-align: center;
-      }
-      .lp-footer h2 {
-        font: 700 60px "Arsenal", "Zen Kaku Gothic New", sans-serif;
-      }
-      .lp a.lp-footer-cta {
-        margin-top: 36px;
-        display: inline-block;
-        background: var(--on-dark);
-        color: var(--pri);
-        padding: 12px 26px;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 14px;
-      }
-      .lp a.lp-footer-cta:hover {
-        background: var(--acc);
-        color: var(--pri);
       }
       .lp-footer-links {
         display: flex;
         justify-content: center;
         gap: 26px;
-        margin-top: 40px;
         font-size: 14px;
         font-weight: 500;
       }
@@ -1906,7 +2204,7 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
         color: var(--acc);
       }
       .lp-footer-credit {
-        margin-top: 64px;
+        margin-top: 28px;
         font-size: 12px;
         color: var(--on-dark-soft);
       }
@@ -1968,7 +2266,7 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
           gap: 36px;
         }
         .lp-footer {
-          padding: 88px 32px 56px;
+          padding: 56px 32px 48px;
         }
       }
 
@@ -2062,9 +2360,6 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
         }
         .lp-h2 {
           font-size: 30px;
-        }
-        .lp-arch-sub {
-          margin-bottom: 32px;
         }
         /* Vertical flow on phones, mirroring the original SP diagram: source
            pieces in a row, converging arrows pointing down, then the globe.
@@ -2180,7 +2475,7 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
           grid-auto-rows: 320px;
         }
         .lp-gallery-side-inner {
-          margin: 20px 0 20px 16px;
+          margin: 20px 0 20px 12px;
           bottom: 20px;
         }
         .lp-gallery-label {
@@ -2203,10 +2498,7 @@ const rootStyle = `--pri:${colors.primary};--acc:${colors.accent};--sub:${colors
         }
 
         .lp-footer {
-          padding: 72px 20px 48px;
-        }
-        .lp-footer h2 {
-          font-size: 34px;
+          padding: 48px 20px 40px;
         }
         .lp-footer-links {
           flex-wrap: wrap;

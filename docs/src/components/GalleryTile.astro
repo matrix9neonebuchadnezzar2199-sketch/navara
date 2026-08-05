@@ -1,0 +1,54 @@
+---
+// A single gallery tile: a linked image plus its own data-attribution overlay
+// (info icon at the top-right, with an optional provider logo to its left).
+//
+// The grid item is the wrapper `.lp-tile-cell` (it carries the column-span /
+// height classes and the reveal hooks); the clickable `<a class="lp-tile">`
+// fills it. Keeping the attribution as a *sibling* of the link — not a child —
+// avoids nesting a <button> inside an <a> (invalid, and it breaks the layout).
+import type { ComponentProps } from "astro/types";
+import ImageAttribution from "./ImageAttribution.astro";
+
+interface Props {
+  /** Resolved link target for the tile. */
+  href: string;
+  /** Resolved image URL (null renders an empty tile). */
+  imgSrc: string | null;
+  /** Image alt — also reused as the on-hover tile title by the gallery script. */
+  imgAlt: string;
+  /** Per-source credits for this specific image (text, optionally linked). */
+  items: ComponentProps<typeof ImageAttribution>["items"];
+  /** Accessible label for the attribution button. */
+  label: string;
+  /** Grid classes for the cell (column span and/or fixed height). */
+  cellClass: string;
+  /** Reveal stagger index (sets --rd). */
+  rd?: number;
+  /** Optional provider logo shown left of the info button. */
+  logo?: string;
+  /** Alt text for the logo. */
+  logoAlt?: string;
+}
+
+const { href, imgSrc, imgAlt, items, label, cellClass, rd, logo, logoAlt } =
+  Astro.props;
+---
+
+<div
+  class:list={["lp-tile-cell", cellClass]}
+  data-reveal
+  data-motion="img"
+  style={rd ? `--rd:${rd}` : undefined}
+>
+  <a class="lp-tile" href={href}>
+    {imgSrc && <img src={imgSrc} alt={imgAlt} />}
+  </a>
+  <ImageAttribution
+    items={items}
+    label={label}
+    corner="tr"
+    class="lp-tile-attrib"
+    logo={logo}
+    logoAlt={logoAlt}
+  />
+</div>

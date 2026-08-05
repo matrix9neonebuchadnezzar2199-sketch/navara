@@ -3,8 +3,8 @@
   "short": "JA",
   "htmlLang": "ja",
   "meta": {
-    "title": "Navara — オープンソースの 3D 地球儀地図エンジン",
-    "description": "Navara は、拡張性の高い汎用 3D 地図エンジンです。衛星画像・地形・3D 都市モデル・ベクターデータといった地理空間データをインタラクティブな地球儀にストリーミングし、用途に合わせて表現できます。"
+    "title": "Navara – オープンソースの 3D 地球儀地図エンジン",
+    "description": "Navara は、拡張性を重視して設計された 3D 地図エンジンです。衛星画像・地形・3D 都市モデル・ベクターデータといった多様な GIS データを読み込み、宣言的な可視化やプラグイン、独自実装によって自由に表現を重ねられます。"
   },
   "nav": {
     "docs": "Docs",
@@ -15,7 +15,7 @@
   "intro": {
     "h1Html": "The beautiful globe,<br /><span>without the complexity.</span>",
     "h1Sub": "複雑さなしに、美しい地球を。",
-    "copyHtml": "Navara は、<b>拡張性の高い汎用 3D 地図エンジン</b>です。衛星画像・地形・3D 都市モデル・ベクターデータといった現実世界の地理空間データをインタラクティブな地球儀にストリーミングし、用途に合わせて表現できます。シンプルなベースマップから、大気・太陽光・影を備えたフォトリアルなシーンまで幅広く対応。地理空間計算は Web Worker に分散された Rust / WASM 製の GIS エンジンが担うため、大規模なデータでもレスポンシブに動き続けます。",
+    "copyHtml": "Navara は、<b>拡張性を重視して設計された 3D 地図エンジン</b>です。衛星画像・地形・3D 都市モデル・ベクターデータといった多様な GIS データを読み込み、その上に自由に表現を重ねられます。GIS データは宣言的に可視化でき、プラグインを追加するだけで高度な機能を手軽に組み込めます。さらに、アプリケーションの要件に応じた独自の表現を、自分の手で実装することも可能です。",
     "ctaShowcase": "Try the showcase",
     "ctaDocs": "Read the docs",
     "gettingStarted": "Getting Started ガイド"
@@ -26,63 +26,55 @@
     "values": [
       {
         "title": "すぐに、美しく",
-        "desc": "ほんの数行のコードで、フォトリアルなシーンが立ち上がります。"
+        "desc": "ほんの数行のコードで、美しいシーンが立ち上がります。"
       },
       {
         "title": "思いのままに",
-        "desc": "大気・雲・水面・エフェクトを、細部まで自在に調整できます。"
+        "desc": "多様なエフェクトを細部まで調整でき、必要に応じて拡張もできます。"
       },
       {
-        "title": "重ねても、複雑にしない",
-        "desc": "4 つの API ティアを、同じビューの中で組み合わせられます。"
+        "title": "高い表現力と、シンプルな設計",
+        "desc": "自分だけの表現を、作り・拡張し・再利用できる柔軟な基盤。"
       },
       {
         "title": "書き直さない土台",
-        "desc": "レンダラーに依存しない Rust 製コア。WebGPU やネイティブへの展開も見据えています。"
+        "desc": "Rust / WASM によるレンダリングエンジンに依存しない設計。WebGPU やネイティブも対応予定。"
       }
     ],
     "apiLede": {
       "title": "宣言的に、思いのままに拡張。",
-      "sub": "Plugin・API・Shader で、深い層まで自由に。"
+      "sub": "Plugin・API・Shader で自由に。"
     },
     "apiSegments": [
       {
         "label": "Declarative",
-        "scene": "PLATEAU の建物・地形・ベースマップを、設定だけで表示。",
-        "desc": "レイヤーやマテリアルを設定オブジェクトで宣言するだけ。手続きコードなしで地図が立ち上がります。"
+        "scene": "3D Tiles・地形・ベースマップを、宣言的に追加。",
+        "desc": "レイヤーやマテリアルを設定オブジェクトで宣言するだけで、GIS データを可視化。"
       },
       {
         "label": "Plugin",
-        "scene": "DefaultPlugin を 1 行で、大気・太陽・雲・影を追加。",
-        "desc": "目的別の機能をプラグインとして 1 行で追加。深い層で作った機能も再利用できます。"
+        "scene": "DefaultPlugin を使用し、一括で大気・太陽・雲・影を追加。",
+        "desc": "目的別の機能をプラグインとして簡単に追加。複雑な機能も再利用できます。"
       },
       {
         "label": "API",
         "scene": "各建物を計測高さで評価し、地物ごとに色分け。",
-        "desc": "フィーチャー評価・ピッキング・座標計算・カメラ制御を命令的に操作。"
+        "desc": "地物評価・ピッキング・座標計算・カメラ制御を柔軟に操作。"
       },
       {
         "label": "Shader",
-        "scene": "自作 FogLight シェーダが、夜の街を街灯で灯す。",
+        "scene": "FogLight シェーダを使用し、夜の表現を追加。",
         "desc": "Three.js へフルアクセスし、独自のシェーダやエフェクトを実装。"
       }
-    ],
-    "mediaAttribution": [
-      "3D City Model (Project PLATEAU) - MLIT",
-      "Re:Earth Terrain",
-      "Re:Earth Papers",
-      "Protomaps",
-      "© OpenStreetMap contributors"
     ],
     "mediaAttributionLabel": "データの帰属表示"
   },
   "arch": {
     "eyebrow": "ARCHITECTURE",
-    "h2": "レンダラーから独立した、ヘッドレスな GIS コア。",
-    "sub": "現在は Three.js の上で。将来は、あらゆる環境で。",
+    "h2Html": "レンダリングエンジンから独立した、<br />ヘッドレスな GIS コア。",
     "sourceTitle": "Rust / WASM",
     "sourceSub": "データのパース、ジオメトリ生成、その他",
-    "renderTitle": "現在は Three.js、将来は他のエンジンも",
+    "renderTitle": "Three.js、さらに対応予定",
     "renderSub": "ジオメトリはレンダリングエンジンが描画",
     "diagramAlt": "Rust / WASM がデータのパースとジオメトリ生成を担い、その出力を Three.js（将来は他のエンジンや Native）が描画するアーキテクチャ図。"
   },
@@ -96,22 +88,21 @@
     "example": {
       "label": "EXAMPLES",
       "link": "もっと見る"
-    }
+    },
+    "mediaAttributionLabel": "データの帰属表示"
   },
   "maplibre": {
-    "eyebrow": "OPEN SOURCE — MAPLIBRE FAMILY",
+    "eyebrow": "OPEN SOURCE – MAPLIBRE FAMILY",
     "h2": "スタイルもタイルも、そのまま 3D へ。",
     "copy": "MapLibre はオープンソースコミュニティとともに、現代の Web 地図のかたちを築いてきました。Navara も同じオープンソース（MIT / Apache-2.0）として、その世界を 3D へ広げていきます。",
     "items": [
-      "MapLibre Style Spec に対応。レイヤーも式も、使い慣れた JSON のまま扱えます（MapLibre Style Plugin として開発中）",
-      "式システムを拡張し、地形・大気・高さといった 3D ならではの表現にも対応",
-      "次世代フォーマット MapLibre Tiles (MLT) にも標準対応予定"
+      "MapLibre Style に対応（MapLibre Style Plugin として開発中）。既存の MapLibre 資産をそのまま再利用できます。",
+      "次世代フォーマット MapLibre Tile (MLT) にも対応予定。"
     ],
-    "roadmap": "Roadmap を見る"
+    "roadmap": "Roadmap を見る",
+    "mediaAttributionLabel": "データの帰属表示"
   },
   "footer": {
-    "h2": "Get started",
-    "cta": "Getting Started ガイドを読む",
     "docs": "Docs",
     "github": "GitHub",
     "discord": "Discord",
@@ -119,10 +110,10 @@
   },
   "imageAlts": {
     "hero": "Navara で描画した地球儀のメインビジュアル",
-    "why-tier-1": "宣言的スタイル — ペーパーホワイトの地図の上の PLATEAU 建物と地形",
-    "why-tier-2": "プラグイン — 同じシーンにフォトリアルな大気が追加された様子",
-    "why-tier-3": "空間演算 — 計測高さでフィーチャー単位に色分けされた建物",
-    "why-tier-4": "カスタムシェーダ — 夜に切り替わり街灯の霧で照らされた同じシーン",
+    "why-tier-1": "宣言的スタイル – ペーパーホワイトの地図の上の PLATEAU 建物と地形",
+    "why-tier-2": "プラグイン – 同じシーンにフォトリアルな大気が追加された様子",
+    "why-tier-3": "空間演算 – 計測高さでフィーチャー単位に色分けされた建物",
+    "why-tier-4": "カスタムシェーダ – 夜に切り替わり街灯の霧で照らされた同じシーン",
     "tutorial-wide": "Realistic Atmosphere",
     "tutorial-left": "Arc Line Visualization",
     "tutorial-right": "Interior Explore",

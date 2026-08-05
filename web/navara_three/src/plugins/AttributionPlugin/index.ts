@@ -125,7 +125,7 @@ let styleRefCount = 0;
  */
 const NAVARA_CREDIT: AttributionItem = {
   attribution: "Navara",
-  attributionUrl: "https://navara-docs.netlify.app/",
+  attributionUrl: "https://navara-docs.reearth.workers.dev//",
 };
 
 /**

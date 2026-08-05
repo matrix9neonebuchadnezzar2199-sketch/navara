@@ -13,13 +13,13 @@ Navara is a 3D globe map engine: reusable GIS logic lives in a Rust/WASM core, a
 
 ## Packages
 
-| Package | What it provides | When you need it |
-|---|---|---|
-| `@navaramap/three` | `ThreeView` (default export), `Color`, geodetic math utils, `MeshDesc`/`EffectDesc`/`LightDesc` base classes, handle types, built-in attribution UI (`view.attribution`, on by default) | Always |
-| `@navaramap/three-default-plugin` | `DefaultPlugin`, `DefaultDescriptions` (registers ~40 built-in descriptors) | Almost always |
-| `@navaramap/three-default-descs` | Individual descriptor classes/types (`BoxMeshDesc`, `SSREffectDesc`, `SunLightDesc`, …) | Typed `addMesh<T>`/`addEffect<T>` calls, or manual registration without DefaultPlugin |
-| `@navaramap/three-plugins` | `PersonViewPlugin`, `OverlayPlugin`, `CesiumIonPlugin`, `TileJsonPlugin` | Per feature |
-| `@navaramap/three-api` | Standalone GIS math (no view) | Pure geometry computation |
+| Package                           | What it provides                                                                                                                                                                        | When you need it                                                                      |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `@navaramap/three`                | `ThreeView` (default export), `Color`, geodetic math utils, `MeshDesc`/`EffectDesc`/`LightDesc` base classes, handle types, built-in attribution UI (`view.attribution`, on by default) | Always                                                                                |
+| `@navaramap/three-default-plugin` | `DefaultPlugin`, `DefaultDescriptions` (registers ~40 built-in descriptors)                                                                                                             | Almost always                                                                         |
+| `@navaramap/three-default-descs`  | Individual descriptor classes/types (`BoxMeshDesc`, `SSREffectDesc`, `SunLightDesc`, …)                                                                                                 | Typed `addMesh<T>`/`addEffect<T>` calls, or manual registration without DefaultPlugin |
+| `@navaramap/three-plugins`        | `PersonViewPlugin`, `OverlayPlugin`, `CesiumIonPlugin`, `TileJsonPlugin`                                                                                                                | Per feature                                                                           |
+| `@navaramap/three-api`            | Standalone GIS math (no view)                                                                                                                                                           | Pure geometry computation                                                             |
 
 Most apps need only the first two.
 
@@ -27,16 +27,30 @@ Most apps need only the first two.
 
 ```typescript
 import ThreeView from "@navaramap/three";
-import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
+import {
+  DefaultPlugin,
+  type DefaultDescriptions,
+} from "@navaramap/three-default-plugin";
 
 const view = new ThreeView<DefaultDescriptions>({ shadow: true }); // 1. construct
 const defaultPlugin = new DefaultPlugin();
-view.addPlugin(defaultPlugin);                                     // 2. add ALL plugins — before init, or it throws
-await view.init();                                                 // 3. async init (WASM + workers + pipeline)
-defaultPlugin.addDefaultPhotorealScene();                          // 4. optional photoreal sky/sun/AA bundle
-view.setCamera({ lng: 139.77, lat: 35.68, height: 10000, heading: 0, pitch: -30, roll: 0 });
-const src = view.addSource({ type: "raster-tile", url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", maxZoom: 18 });
-view.addLayer({ type: "raster", source: src });                    // 5. sources/layers/effects after init
+view.addPlugin(defaultPlugin); // 2. add ALL plugins — before init, or it throws
+await view.init(); // 3. async init (WASM + workers + pipeline)
+defaultPlugin.addDefaultPhotorealScene(); // 4. optional photoreal sky/sun/AA bundle
+view.setCamera({
+  lng: 139.77,
+  lat: 35.68,
+  height: 10000,
+  heading: 0,
+  pitch: -30,
+  roll: 0,
+});
+const src = view.addSource({
+  type: "raster-tile",
+  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  maxZoom: 18,
+});
+view.addLayer({ type: "raster", source: src }); // 5. sources/layers/effects after init
 ```
 
 When `DefaultPlugin` is used, parameterize the view as `new ThreeView<DefaultDescriptions>` so descriptor keys are typed.
@@ -63,7 +77,7 @@ For "make it look good" goals, use the proven compositions in [references/recipe
 - **Handle events vs desc events:** mesh/light/effect handles (`BaseHandle`) only emit `deleted` — desc-specific events (`load` / `error` / `animationReady` on GLTF, instanced-GLTF and splat descs) live on the desc, so subscribe via `handle.ref.on("load", ...)`.
 - **Never write to `view.camera.raw` frustum fields** (`fov` etc.) — the engine overwrites them and Rust-side culling desyncs. Use the `view.camera.fov/near/far` setters.
 - **Units:** mesh `position` is ECEF meters; `sampleTerrainHeight`/`observeTerrainHeightAt` take **radians** (use `degreeToRadian`); batch IDs are 24-bit.
-- **Mesh placement is Cartesian (ECEF) by default:** raw `position`/`rotation`/`scale` are earth-centered ECEF meters, so a bare `position` won't sit upright at a lng/lat. For geographic placement set `matrixWorld` to a tangent-frame matrix — then `position`/`rotation`/`scale` become offsets *within* that frame. Pick the frame function whose axis orientation you want (all exported from `@navaramap/three`): `eastNorthUpToFixedFrame` (ENU), `northEastDownToFixedFrame` (NED), `northUpEastToFixedFrame` (NUE), `northWestUpToFixedFrame` (NWU). See [references/low-level-api.md](references/low-level-api.md).
+- **Mesh placement is Cartesian (ECEF) by default:** raw `position`/`rotation`/`scale` are earth-centered ECEF meters, so a bare `position` won't sit upright at a lng/lat. For geographic placement set `matrixWorld` to a tangent-frame matrix — then `position`/`rotation`/`scale` become offsets _within_ that frame. Pick the frame function whose axis orientation you want (all exported from `@navaramap/three`): `eastNorthUpToFixedFrame` (ENU), `northEastDownToFixedFrame` (NED), `northUpEastToFixedFrame` (NUE), `northWestUpToFixedFrame` (NWU). See [references/low-level-api.md](references/low-level-api.md).
 - **Init-only options** cannot change after `init()`: `shadow`, `maxSse`, `segments`, `useNormal`.
 - **Effect compatibility:** `hideUnderground: false` and `logarithmicDepthBuffer` break some effect descriptors — test, and prefer defaults.
 - `picking: true` (constructor, default on) is required for the `pick` event and pickable meshes.
@@ -81,20 +95,20 @@ Lighting only affects surfaces that carry **normals**. Anything without normals 
 
 Built-in lights — register via `DefaultPlugin`, then `view.addLight<T>({ ... })`:
 
-| Descriptor | Key | Use |
-|---|---|---|
-| `AmbientLightDesc` | `ambient` | flat fill — raise overall brightness or light everything uniformly; no direction, no shadows |
-| `LightProbeDesc` | `lightProbe` | pseudo-IBL from spherical-harmonics coefficients (e.g. a baked night ambient) |
-| `SkyLightProbeDesc` | `skyLightProbe` | dynamic sky ambient that follows the sun through the atmosphere system |
-| `SunLightDesc` | `sun` | directional sun; its direction is derived from `atmosphere.date`, and it casts CSM shadows |
+| Descriptor          | Key             | Use                                                                                          |
+| ------------------- | --------------- | -------------------------------------------------------------------------------------------- |
+| `AmbientLightDesc`  | `ambient`       | flat fill — raise overall brightness or light everything uniformly; no direction, no shadows |
+| `LightProbeDesc`    | `lightProbe`    | pseudo-IBL from spherical-harmonics coefficients (e.g. a baked night ambient)                |
+| `SkyLightProbeDesc` | `skyLightProbe` | dynamic sky ambient that follows the sun through the atmosphere system                       |
+| `SunLightDesc`      | `sun`           | directional sun; its direction is derived from `atmosphere.date`, and it casts CSM shadows   |
 
 `addDefaultPhotorealScene()` already adds a `sun` + `skyLightProbe` — start there for realistic scenes and add `ambient`/`lightProbe` to taste.
 
-**`atmosphere.date` is local-time-sensitive.** It's a plain JS `Date`, so `new Date("2024-06-21T12:00:00")` is read in the *device's* timezone — the sun lands in a different place per machine. Pin a global instant with an explicit UTC string (`new Date("2024-06-21T12:00:00Z")`). To hold the same time-of-day or sun elevation while flying the camera to another country, don't recompute by hand — use `view.atmosphere.setDateFromCameraAt({ lng })` (keeps local solar time) or `setElevationFromCameraAt({ lat, lng })` (keeps sun elevation).
+**`atmosphere.date` is local-time-sensitive.** It's a plain JS `Date`, so `new Date("2024-06-21T12:00:00")` is read in the _device's_ timezone — the sun lands in a different place per machine. Pin a global instant with an explicit UTC string (`new Date("2024-06-21T12:00:00Z")`). To hold the same time-of-day or sun elevation while flying the camera to another country, don't recompute by hand — use `view.atmosphere.setDateFromCameraAt({ lng })` (keeps local solar time) or `setElevationFromCameraAt({ lat, lng })` (keeps sun elevation).
 
 ## Where to verify — never guess API details
 
-**Primary reference: the docs site — https://navara-docs.netlify.app/** (Japanese under `/ja/`). Sections: `/three/` (core API: sources, layers, materials, camera, events), `/three_default_descs/` (every built-in mesh/effect/light Descriptor and its options), `/three_default_plugin/`, `/three_plugins/`.
+**Primary reference: the docs site — https://navara-docs.reearth.workers.dev//** (Japanese under `/ja/`). Sections: `/three/` (core API: sources, layers, materials, camera, events), `/three_default_descs/` (every built-in mesh/effect/light Descriptor and its options), `/three_default_plugin/`, `/three_plugins/`.
 
 - **Do not guess material or config property names** — this skill shows patterns, not exhaustive option lists. Verify exact fields against the docs site, or the TypeScript definitions in `node_modules/@navaramap/*` (`.d.ts`).
 - Working inside the Navara repository? The docs source is `docs/src/content/docs/` and runnable examples are `web/navara_three/example/pages/` — reference paths in this skill starting with `example/pages/` refer to that examples directory.

@@ -34,5 +34,5 @@ If a change touches only `web/`, the pnpm equivalents are faster: `pnpm run buil
 **When to record knowledge in a skill vs. docs:**
 
 - A skill captures the distilled form: API-usage invariants (e.g. init order), gotchas that produce broken code when unknown, decision guides (which API tier to use), and proven recipes (goal → composition). When you uncover such a pattern while working, add it to the relevant skill first — keep entries terse and verified against the implementation, never guessed.
-- Knowledge flows **skills → docs**: user-facing content accumulated in skills should then be expanded into the documentation site (`docs/`, published at https://navara-docs.netlify.app/) following its writing rules. Docs are the human-facing, exhaustive form; skills stay the LLM-facing, distilled form.
+- Knowledge flows **skills → docs**: user-facing content accumulated in skills should then be expanded into the documentation site (`docs/`, published at https://navara-docs.reearth.workers.dev//) following its writing rules. Docs are the human-facing, exhaustive form; skills stay the LLM-facing, distilled form.
 - Do not reduce skills to link indexes into the docs, and do not duplicate exhaustive API listings into skills — for exact property names and signatures, skills point to the docs site and TypeScript definitions instead.

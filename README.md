@@ -19,12 +19,12 @@ Under the hood, Navara implements the complex but reusable GIS logic in a Rust/W
 
 Navara is part of the [MapLibre](https://maplibre.org/) ecosystem. For discussions, join the `#maplibre` channel on the OSM-US Slack ([invite link](https://slack.openstreetmap.us)).
 
-- 📖 **Documentation**: https://navara-docs.netlify.app/
-- 🌏 **Live examples**: https://navara-preview.netlify.app/
+- 📖 **Documentation**: https://navara-docs.reearth.workers.dev//
+- 🌏 **Live examples**: https://navara-preview.reearth.workers.dev/
 
 ## Usage
 
-See [What is Navara?](https://navara-docs.netlify.app/guides/introduction/what-is-navara/) for an overview and [Getting Started](https://navara-docs.netlify.app/guides/introduction/getting-started/) to build your first globe.
+See [What is Navara?](https://navara-docs.reearth.workers.dev//guides/introduction/what-is-navara/) for an overview and [Getting Started](https://navara-docs.reearth.workers.dev//guides/introduction/getting-started/) to build your first globe.
 
 ## Architecture
 

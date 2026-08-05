@@ -9,7 +9,7 @@ import { initializeExample } from "../../../../helpers/initialize";
 
 import { huts } from "./data";
 
-const view = new ThreeView<DefaultDescriptions>();
+const view = new ThreeView<DefaultDescriptions>({ shadow: true, useNormal: true });
 
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
@@ -20,7 +20,7 @@ await view.init();
 
 view.atmosphere.date = new Date("2026-07-16T03:00:00Z");
 view.addLight({ ambient: { intensity: 0.6 } });
-view.addLight({ sun: { intensity: 1.8 } });
+view.addLight({ sun: { intensity: 1.8, castShadow: true,shadowFar: 1000 } });
 
 view.setCamera({
   lng: 86.82918,
@@ -37,6 +37,8 @@ const basemap = await tilejson.addSource({
 });
 view.addLayer({ type: "raster", source: basemap });
 
+view.addLayer({ type: "terrain", ellipsoid: { receiveShadow: true } });
+
 const source = view.addSource({ type: "geojson", data: huts });
 view.addLayer({
   type: "vector",
@@ -45,6 +47,7 @@ view.addLayer({
     color: new Color().setStyle("#0091ff"),
     extrudedHeight: 5,
     clampToGround: false,
+    castShadow: true,
   },
 });
 

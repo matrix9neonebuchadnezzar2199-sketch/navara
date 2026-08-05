@@ -28,7 +28,7 @@ layer.on("featureUpdated", ({ evaluator }) => {
 - `readFeatureProperties(cb)` reads attributes without styling (e.g. build a legend).
 - **Label decluttering:** `text`/`point`/`billboard` materials declutter by default (`declutter: true`) — screen-overlapping labels hide the lower-priority one (with a fade). Set `declutter: false` on the material to draw every label unconditionally. Placement priority: layer-level `declutterPriority` on the material, overridable per feature by returning `declutterPriority` from `evaluate()` — higher wins; among equal priorities currently-shown labels are sticky (hysteresis), then ties resolve deterministically by anchor position. The placement math itself is a Rust kernel (`declutterPlace` in `navara_wasm_api`); the TS `DeclutterManager` only orchestrates. Reference: `example/pages/styling/mvt-text`.
 - To restyle interactively (click-to-highlight), change your evaluation state and call `layer.forceUpdate()`.
-- Full API: https://navara-docs.netlify.app/three/api/feature-evaluator/ — runnable references in the Navara repo: `example/pages/styling/*` (one per geometry × source type).
+- Full API: https://navara-docs.reearth.workers.dev//three/api/feature-evaluator/ — runnable references in the Navara repo: `example/pages/styling/*` (one per geometry × source type).
 
 ## Picking & spatial queries
 
@@ -85,4 +85,4 @@ Pick the tangent-frame function by the axis orientation your mesh expects — al
 
 Mesh transform modes: standard `position`/`rotation`/`scale` (Cartesian ECEF — the default), `matrix` (local frame), `matrixWorld` (world frame — the usual choice for geographic placement, as above).
 
-Full math API reference: https://navara-docs.netlify.app/three/api/navara_three_api — the most complete runnable reference for picking + geometry math is `example/pages/debug/mesh-picking/main.ts` in the Navara repo.
+Full math API reference: https://navara-docs.reearth.workers.dev//three/api/navara_three_api — the most complete runnable reference for picking + geometry math is `example/pages/debug/mesh-picking/main.ts` in the Navara repo.

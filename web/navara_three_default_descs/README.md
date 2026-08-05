@@ -35,7 +35,7 @@ These descriptors are also reference implementations for writing custom descript
 
 ## Documentation
 
-Every descriptor and its options are documented at https://navara-docs.netlify.app/.
+Every descriptor and its options are documented at https://navara-docs.reearth.workers.dev//.
 
 ## License
 
