@@ -80,16 +80,27 @@ See [ThreeView Properties](../../../three/api/threeview-properties/).
 | `ctx.getRenderer()`    | Get the WebGLRenderer instance                |
 | `ctx.getInputBuffer()` | Get the input buffer from the effect composer |
 
+#### Descriptor Lookup
+
+| Method                  | Description                                                                 |
+| ----------------------- | --------------------------------------------------------------------------- |
+| `ctx.findEffect(key)`   | First active effect Descriptor registered under `key` (e.g. `"mrt"`)         |
+| `ctx.findLight(key)`    | First active light Descriptor registered under `key` (e.g. `"sun"`)          |
+| `ctx.findMesh(key)`     | First active mesh Descriptor registered under `key` (e.g. `"gltfModel"`)     |
+
+Use these to inherit the scene's existing configuration instead of duplicating it — a custom lighting effect can read the sun's intensity and colour from `ctx.findLight("sun")` rather than taking its own options. Each returns `undefined` when no such Descriptor is active.
+
 #### Buffer / Texture Access
 
 | Method                        | Description                                      |
 | ----------------------------- | ------------------------------------------------ |
 | `ctx.getRenderTarget()`       | Get the main render target (includes G-buffer)   |
 | `ctx.getGlobeDepthTexture()`  | Get the globe depth texture for post-processing  |
-| `ctx.getGlobeNormalTexture()` | Get the globe normal texture for post-processing |
+| `ctx.getGlobeNormalTexture()` | Get the terrain-only normal, sampled in screen space. Declare `globeNormal` in `requiredBuffers` — it is kept at 1x1 otherwise |
 | `ctx.getNormalTexture()`      | Get the scene normal texture from the G-buffer   |
 | `ctx.getEffectIdsTexture()`   | Get the effect IDs texture from the G-buffer     |
 | `ctx.getEmissiveTexture()`    | Get the emissive texture from the G-buffer       |
+| `ctx.getShadowTexture()`      | Get the shadow texture (R=shadow amount, 0=lit..1=fully shadowed) from the G-buffer |
 
 #### Shadow (Experimental)
 
@@ -100,14 +111,19 @@ See [ThreeView Properties](../../../three/api/threeview-properties/).
 
 ## G-Buffer (MRT) Output
 
-Navara renders into a multiple-render-target (MRT) G-buffer. Beyond color, every material also writes a view-space **normal**, an **effect ID** bitmask, and an **emissive** buffer. Depth/normal-based effects (SSAO, SSR, outlines, aerial perspective, clouds) and selective effects (Bloom / Outline) read these attachments, so a mesh participates in those effects only if its material writes the G-buffer.
+Navara renders into a multiple-render-target (MRT) G-buffer. Depth/normal-based effects (SSAO, SSR, outlines, aerial perspective, clouds) and selective effects (Bloom / Outline) read these attachments, so a mesh participates in those effects only if its material writes the G-buffer.
 
-| Attachment | Location | Contents                                     |
-| ---------- | -------- | -------------------------------------------- |
-| Color      | 0        | `gl_FragColor`                               |
-| Normal     | 1        | View-space normal (plus material properties) |
-| Effect ID  | 2        | Selective-effect bitmask                     |
-| Emissive   | 3        | Selective-effect additive emissive           |
+Only color and normal are always present. The rest are allocated on demand and **packed after them with no gaps**, so their locations shift with the configuration — the shader receives each one's `layout(location = …)` as a stamped define.
+
+| Attachment | Location | Contents                                                     | Allocated                |
+| ---------- | -------- | ------------------------------------------------------------ | ------------------------ |
+| Color      | 0        | `gl_FragColor`                                                | always                   |
+| Normal     | 1        | View-space normal (plus material properties)                  | always                   |
+| Effect ID  | packed   | Selective-effect bitmask                                      | `buffers.selectiveEffect` |
+| Emissive   | packed   | Selective-effect additive emissive                            | `buffers.emissive`        |
+| Shadow     | packed   | R = shadow amount (0 = lit .. 1 = shadowed), G = albedo flag  | `buffers.shadow`          |
+
+Never hardcode an optional attachment index — read it from the `ViewContext` accessors below.
 
 ### Built-in Materials Are Automatic
 
@@ -145,9 +161,97 @@ Requirements and behavior:
 
 The automatic built-in patching is performed by an internal `overrideMaterialsForMRT()` on import; application code never calls it.
 
+#### Complete Example
+
+Two things are required, and missing either one silently produces a mesh that
+takes part in no depth/normal-based effect:
+
+1. `setupMaterialForMRT()`, so the material writes the attachments.
+2. `getPassKey()` returning `"mrt"`, so the mesh renders in the G-buffer pass.
+   The default is `"opaque"`, which is composited **after** the G-buffer copy —
+   a mesh left there writes nothing, whatever its material does.
+
+```typescript
+import ThreeView, {
+  MeshDesc,
+  setupMaterialForMRT,
+  type MeshConfig,
+  type MeshUpdate,
+  type PassKey,
+  type ViewContext,
+} from "@navaramap/three";
+import { Mesh, ShaderMaterial, SphereGeometry, Uniform, Vector3 } from "three";
+
+type Description = { glowSphere?: { radius?: number } };
+type GlowSphereConfig = MeshConfig & Description;
+type GlowSphereUpdate = MeshUpdate & Description;
+
+class GlowSphereDesc extends MeshDesc<
+  GlowSphereConfig,
+  GlowSphereUpdate,
+  Mesh<SphereGeometry, ShaderMaterial>
+> {
+  private config: GlowSphereConfig;
+
+  constructor(view: ThreeView, ctx: ViewContext, config: GlowSphereConfig) {
+    super(view, ctx, config);
+    this.config = config;
+  }
+
+  protected override getPassKey(): PassKey {
+    return "mrt";
+  }
+
+  createMesh() {
+    const material = new ShaderMaterial({
+      uniforms: { uColor: new Uniform(new Vector3(0.1, 0.8, 0.5)) },
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          // View space — packNormalToVec2 assumes it.
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        varying vec3 vNormal;
+        void main() {
+          gl_FragColor = vec4(uColor, 1.0);
+        }
+      `,
+    });
+
+    setupMaterialForMRT(material, { normal: "vNormal" });
+
+    const radius = this.config.glowSphere?.radius ?? 100;
+    return new Mesh(new SphereGeometry(radius, 32, 32), material);
+  }
+}
+
+const view = new ThreeView();
+view.registerMesh("glowSphere", GlowSphereDesc);
+await view.init();
+
+view.addMesh<GlowSphereDesc>({
+  glowSphere: { radius: 200 },
+  position: { x: 0, y: 0, z: 6_400_000 },
+});
+```
+
 ### Reading the G-Buffer
 
 To read these buffers from a custom effect, use the [Buffer / Texture Access](#buffer--texture-access) accessors on `ctx`, or reference the MRT pass from another effect via [`find<MRTPassEffectDesc>("mrt")`](#referencing-other-effect-descs).
+
+The effectIds, emissive, shadow and globeNormal buffers are optional: they exist only while an active effect declares them in its `static requiredBuffers` (e.g. `["selectiveEffect", "emissive"]`, `["shadow"]` or `["globeNormal"]`), and the accessors return `undefined` otherwise.
+
+`globeNormal` is the odd one out: it is a separate screen-space copy of the terrain normal rather than a G-buffer attachment, so it takes no attachment slot and does not count against the device's `MAX_DRAW_BUFFERS`. Undeclared, its target stays 1x1 and `ctx.getGlobeNormalTexture()` returns a texture you cannot sample meaningfully. A custom effect that reads them must declare `requiredBuffers` so the view allocates them. Note that changing the set of allocated buffers reallocates attachments and recompiles shaders, so effects should be added once and tuned via `update()` rather than added and removed repeatedly. Because a configuration change rebuilds the attachments, fetch these textures each frame (in `update()` or the pass's `render()`) instead of caching them at pass creation.
+
+Buffer encodings to be aware of when sampling:
+
+- The normal buffer's RG channels hold the **view-space normal in octahedral encoding** — decode with `unpackVec2ToNormal()` from the `NORMAL_PACKING_SHADER` GLSL string exported by `@navaramap/three` (a plain `xy * 2 - 1` reconstruction produces wrong shading).
+- The shadow buffer holds `R = shadow amount` (0 = lit .. 1 = fully shadowed) and `G = albedo-output flag` (1 when the fragment's color is plain albedo via the [`lit`](../../../three/api/threeview-properties/#lit) option — a deferred lighting pass uses it as its "shade this pixel" mask).
+- Depth textures follow Three.js packing conventions — check `depthBufferPacking` / `globeDepthBufferPacking` on the MRT pass and unpack with the helpers in the `DEPTH_PACKING_SHADER` GLSL string exported by `@navaramap/three` (Three.js's `packing` chunk).
 
 ## Custom Mesh Desc
 

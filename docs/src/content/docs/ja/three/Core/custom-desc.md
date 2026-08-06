@@ -80,16 +80,27 @@ Descriptor の種類に応じて、対応する基底クラスを継承して実
 | `ctx.getRenderer()`    | WebGLRenderer インスタンスを取得           |
 | `ctx.getInputBuffer()` | エフェクトコンポーザーの入力バッファを取得 |
 
+#### Descriptor の検索
+
+| メソッド                | 説明                                                                    |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `ctx.findEffect(key)`   | `key` で登録されたアクティブなエフェクト Descriptor（例: `"mrt"`）      |
+| `ctx.findLight(key)`    | `key` で登録されたアクティブなライト Descriptor（例: `"sun"`）          |
+| `ctx.findMesh(key)`     | `key` で登録されたアクティブなメッシュ Descriptor（例: `"gltfModel"`）  |
+
+シーンの既存設定を重複して持たずに引き継ぐために使います。たとえばカスタムのライティングエフェクトは、独自オプションを増やす代わりに `ctx.findLight("sun")` から太陽の強度と色を読めます。該当する Descriptor が無ければ `undefined` を返します。
+
 #### バッファ / テクスチャアクセス
 
 | メソッド                      | 説明                                                 |
 | ----------------------------- | ---------------------------------------------------- |
 | `ctx.getRenderTarget()`       | メインレンダーターゲット（G-buffer を含む）を取得    |
 | `ctx.getGlobeDepthTexture()`  | ポストプロセッシング用のグローブ深度テクスチャを取得 |
-| `ctx.getGlobeNormalTexture()` | ポストプロセッシング用のグローブ法線テクスチャを取得 |
+| `ctx.getGlobeNormalTexture()` | 地形のみの法線を画面座標で取得。`requiredBuffers` に `globeNormal` を宣言すること（未宣言だと 1x1 のまま） |
 | `ctx.getNormalTexture()`      | G-buffer からシーン法線テクスチャを取得              |
 | `ctx.getEffectIdsTexture()`   | G-buffer からエフェクト ID テクスチャを取得          |
 | `ctx.getEmissiveTexture()`    | G-buffer からエミッシブテクスチャを取得              |
+| `ctx.getShadowTexture()`      | G-buffer からシャドウテクスチャ（R=影の量、0=非影..1=完全な影）を取得 |
 
 #### シャドウ（実験的）
 
@@ -100,14 +111,19 @@ Descriptor の種類に応じて、対応する基底クラスを継承して実
 
 ## G-Buffer（MRT）への出力
 
-Navara は複数のレンダーターゲット（MRT）からなる G-buffer にレンダリングします。色に加えて、すべてのマテリアルはビュー空間の**法線**、**エフェクト ID** ビットマスク、**エミッシブ**バッファも書き込みます。深度・法線を利用するエフェクト（SSAO、SSR、アウトライン、大気透視、雲）や選択的エフェクト（Bloom / Outline）はこれらのアタッチメントを読み取るため、メッシュがそれらのエフェクトに参加できるのは、そのマテリアルが G-buffer に書き込む場合だけです。
+Navara は複数のレンダーターゲット（MRT）からなる G-buffer にレンダリングします。深度・法線を利用するエフェクト（SSAO、SSR、アウトライン、大気透視、雲）や選択的エフェクト（Bloom / Outline）はこれらのアタッチメントを読み取るため、メッシュがそれらのエフェクトに参加できるのは、そのマテリアルが G-buffer に書き込む場合だけです。
 
-| アタッチメント | ロケーション | 内容                                       |
-| -------------- | ------------ | ------------------------------------------ |
-| Color          | 0            | `gl_FragColor`                             |
-| Normal         | 1            | ビュー空間の法線（＋マテリアルプロパティ） |
-| Effect ID      | 2            | 選択的エフェクトのビットマスク             |
-| Emissive       | 3            | 選択的エフェクトの加算エミッシブ           |
+常に存在するのは color と normal だけです。それ以外は必要に応じて確保され、**隙間なく後ろに詰められる**ため、ロケーションは構成によって変わります。シェーダーには各バッファの `layout(location = …)` が define として渡されます。
+
+| アタッチメント | ロケーション | 内容                                                         | 確保される条件            |
+| -------------- | ------------ | ------------------------------------------------------------ | ------------------------- |
+| Color          | 0            | `gl_FragColor`                                                | 常時                      |
+| Normal         | 1            | ビュー空間の法線（＋マテリアルプロパティ）                    | 常時                      |
+| Effect ID      | 可変         | 選択的エフェクトのビットマスク                                | `buffers.selectiveEffect` |
+| Emissive       | 可変         | 選択的エフェクトの加算エミッシブ                              | `buffers.emissive`        |
+| Shadow         | 可変         | R = 影の量（0=非影..1=完全な影）、G = albedo 出力フラグ       | `buffers.shadow`          |
+
+オプションのアタッチメント index はハードコードせず、後述の `ViewContext` のアクセサから取得してください。
 
 ### 組み込みマテリアルは自動対応
 
@@ -145,9 +161,93 @@ setupMaterialForMRT(lineMaterial);
 
 組み込みマテリアルの自動パッチは、import 時に内部の `overrideMaterialsForMRT()` が実行します。アプリケーションコードから呼ぶことはありません。
 
+#### 完全な例
+
+必要なのは 2 つで、**どちらか一方でも欠けると、深度・法線ベースのエフェクトに一切参加しないメッシュが黙って出来上がります**。
+
+1. `setupMaterialForMRT()` — マテリアルがアタッチメントに書き込むようにする
+2. `getPassKey()` が `"mrt"` を返す — メッシュを G-buffer パスで描画する。既定は `"opaque"` で、これは G-buffer のコピー**後**に合成されるため、そこに置かれたメッシュはマテリアルが何をしていても書き込みません
+
+```typescript
+import ThreeView, {
+  MeshDesc,
+  setupMaterialForMRT,
+  type MeshConfig,
+  type MeshUpdate,
+  type PassKey,
+  type ViewContext,
+} from "@navaramap/three";
+import { Mesh, ShaderMaterial, SphereGeometry, Uniform, Vector3 } from "three";
+
+type Description = { glowSphere?: { radius?: number } };
+type GlowSphereConfig = MeshConfig & Description;
+type GlowSphereUpdate = MeshUpdate & Description;
+
+class GlowSphereDesc extends MeshDesc<
+  GlowSphereConfig,
+  GlowSphereUpdate,
+  Mesh<SphereGeometry, ShaderMaterial>
+> {
+  private config: GlowSphereConfig;
+
+  constructor(view: ThreeView, ctx: ViewContext, config: GlowSphereConfig) {
+    super(view, ctx, config);
+    this.config = config;
+  }
+
+  protected override getPassKey(): PassKey {
+    return "mrt";
+  }
+
+  createMesh() {
+    const material = new ShaderMaterial({
+      uniforms: { uColor: new Uniform(new Vector3(0.1, 0.8, 0.5)) },
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        varying vec3 vNormal;
+        void main() {
+          gl_FragColor = vec4(uColor, 1.0);
+        }
+      `,
+    });
+
+    setupMaterialForMRT(material, { normal: "vNormal" });
+
+    const radius = this.config.glowSphere?.radius ?? 100;
+    return new Mesh(new SphereGeometry(radius, 32, 32), material);
+  }
+}
+
+const view = new ThreeView();
+view.registerMesh("glowSphere", GlowSphereDesc);
+await view.init();
+
+view.addMesh<GlowSphereDesc>({
+  glowSphere: { radius: 200 },
+  position: { x: 0, y: 0, z: 6_400_000 },
+});
+```
+
 ### G-Buffer の読み取り
 
 これらのバッファをカスタムエフェクトから読み取るには、`ctx` の [バッファ / テクスチャアクセス](#バッファ--テクスチャアクセス) アクセサを使うか、[`find<MRTPassEffectDesc>("mrt")`](#他のエフェクトを参照) で他のエフェクトから MRT パスを参照します。
+
+エフェクト ID・エミッシブ・シャドウ・globeNormal のバッファはオプションです。アクティブなエフェクトが `static requiredBuffers` で宣言している間だけ存在し（例: `["selectiveEffect", "emissive"]` / `["shadow"]` / `["globeNormal"]`）、それ以外ではアクセサは `undefined` を返します。
+
+`globeNormal` だけは性質が異なり、G-buffer のアタッチメントではなく**地形法線の画面座標コピー**です。そのためアタッチメント枠を消費せず、デバイスの `MAX_DRAW_BUFFERS` にも数えられません。未宣言の場合はコピー先が 1x1 のままで、`ctx.getGlobeNormalTexture()` が返すテクスチャは意味のあるサンプリングができません。これらを読み取るカスタムエフェクトは、ビューにバッファを確保させるため `requiredBuffers` を宣言してください。なお、確保されるバッファ構成の変更はアタッチメントの再確保とシェーダーの再コンパイルを伴うため、エフェクトは一度追加したら削除・再追加を繰り返さず、`update()` で調整してください。また構成変更でアタッチメントは再構築されるため、これらのテクスチャはパス生成時にキャッシュせず、毎フレーム（`update()` やパスの `render()` で）取得してください。
+
+サンプリング時に注意すべきエンコーディング:
+
+- 法線バッファの RG チャンネルは**ビュー空間法線の octahedral エンコード**です。`@navaramap/three` がエクスポートする `NORMAL_PACKING_SHADER` GLSL 文字列の `unpackVec2ToNormal()` でデコードしてください（単純な `xy * 2 - 1` の再構成では誤った陰影になります）。
+- シャドウバッファは `R = 影の量`（0=非影..1=完全な影）、`G = albedo 出力フラグ`（[`lit`](../../../three/api/threeview-properties/#lit) オプションで color が素の albedo のとき 1 — deferred lighting パスが「このピクセルを照らす」マスクとして使います）を保持します。
+- 深度テクスチャは Three.js の packing 規約に従います。MRT パスの `depthBufferPacking` / `globeDepthBufferPacking` を確認し、`@navaramap/three` がエクスポートする `DEPTH_PACKING_SHADER` GLSL 文字列（Three.js の `packing` チャンク）のヘルパーでアンパックしてください。
 
 ## カスタムメッシュ
 
