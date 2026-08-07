@@ -76,7 +76,18 @@ Tiny examples (hello-world scale) may inline everything in `main.ts` and use **t
 The detail page (`pages/detail/DetailApp.tsx`) renders **only the example's `main.ts`** (collected via a vite `?raw` glob) as its "Source" section. Structure gallery examples so that single file reads as the feature's API story (reference: `pages/examples/getting-started/layers/`):
 
 - **`main.ts`** — view/plugin setup + the feature's Navara API calls, written with top-level `await` (no `run()` wrapper). Keep `addSource` / `addLayer` / `layer.update()` / `layer.delete()` calls direct and visible (philosophy rule). Comments: only a few one-liners stating non-obvious API facts (e.g. why extruded polygons need `clampToGround: false`); **no header doc comment** — the example's summary belongs in `meta.ts` (`title` / `description`), not main.ts.
-- **`data.ts`** — bulky inline data (GeoJSON fixtures etc.) as a typed exported constant. It is not shown on the detail page, so main.ts stays readable.
+- **`data.ts`** — bulky inline data (GeoJSON fixtures etc.) as a typed exported constant. It is not shown on the detail page, so main.ts stays readable. **A fixture used by more than one example moves to `example/data/<name>.ts`** (named after the data, exporting a matching constant — e.g. `data/gorakShepHuts.ts`) instead of being copied per directory. Each page still keeps its own `data.ts`, re-exporting the shared constant as `data`, so main.ts always imports the same way and never reaches across example directories:
+
+  ```typescript
+  // pages/examples/effect/selective-bloom/data.ts
+  export { gorakShepHuts as data } from "../../../../data/gorakShepHuts";
+  ```
+
+  ```typescript
+  // main.ts — the `data` name lets addSource use shorthand
+  import { data } from "./data";
+  const source = view.addSource({ type: "geojson", data });
+  ```
 - **UI chrome → `example/helpers/button.ts`** — gallery demos use a few plain DOM buttons via `addButton(label)` (fixed top-left bar styled for the neutral basemap; returns a plain `HTMLButtonElement` — drive it with `.textContent` / `.disabled` / `.onclick` from main.ts). **Tweakpane is for dev/debug pages only, not the gallery.** Never move Navara API calls into helpers — helpers hold presentation only.
 - **`initializeExample(view, loadingMeshes?)` (required)** — every gallery example calls `initializeExample(view)` (`example/helpers/initialize.ts`) as the **last line** of main.ts, with no explanatory comment. Pages that add async-loading meshes (GLTF models, 3D Gaussian Splats) pass their handles: `initializeExample(view, [splat])`. It bundles the example-harness plumbing that is *not* part of the API story — the opaque name signals readers to skip it; no monkey-patching, it only listens to public events. Currently that plumbing is scene-loaded signalling: the **detail page** (`pages/detail/DetailApp.tsx`) renders the loading overlay (progress bar + percentage; scene loading has no measurable progress, so a pseudo-progress eases toward 90% and snaps to 100% on the demo's signal) over the demo iframe, and the demo posts `SCENE_LOADED_MESSAGE` once the page settles — no engine `postUpdate` for a quiet window (a single `idle` event is not reliable: the first can fire mid-setup) and every passed mesh has emitted its `load` event (`GLTFModelDesc`, `InstancedGltfModelMeshDesc`, `SplatMeshDesc`). Spark loads splats through its own pipeline that emits no engine events, which is why splat handles must be passed; give any new async-loading desc the same `load` event and pass its handle the same way. Add any future per-page boilerplate inside `initializeExample`, not as new lines in main.ts.
 

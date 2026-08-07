@@ -13,6 +13,7 @@
 const BUTTON_BAR_CLASS = "example-button-bar";
 const BUTTON_CLASS = "example-button";
 const SLIDER_CLASS = "example-slider";
+const SWITCH_CLASS = "example-switch";
 
 const BUTTON_CSS = `
 .${BUTTON_BAR_CLASS} {
@@ -22,6 +23,10 @@ const BUTTON_CSS = `
   display: flex;
   gap: 8px;
   font-family: system-ui, sans-serif;
+}
+.${BUTTON_BAR_CLASS}--right {
+  left: auto;
+  right: 16px;
 }
 .${BUTTON_CLASS} {
   padding: 8px 14px;
@@ -60,6 +65,34 @@ const BUTTON_CSS = `
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+.${SWITCH_CLASS} {
+  display: flex;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #d4d7da;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.${SWITCH_CLASS} button {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #333;
+  background: transparent;
+  border: none;
+  border-left: 1px solid #e5e7e9;
+  cursor: pointer;
+}
+.${SWITCH_CLASS} button:first-child {
+  border-left: none;
+}
+.${SWITCH_CLASS} button:hover[aria-pressed="false"] {
+  background: #f5f6f7;
+}
+.${SWITCH_CLASS} button[aria-pressed="true"] {
+  color: #fff;
+  background: #0091ff;
+  cursor: default;
+}
 `;
 
 let buttonBar: HTMLDivElement | undefined;
@@ -89,6 +122,44 @@ export const addButton = (
   if (onClick) button.onclick = onClick;
   ensureButtonBar().appendChild(button);
   return button;
+};
+
+/**
+ * Appends a segmented switch to the shared button bar: one labeled segment per
+ * option, the selected one highlighted. `onChange` fires with the index of the
+ * newly picked option (never for the already-selected one), so the example only
+ * states what each option does — not the DOM wiring.
+ *
+ * `align: "right"` puts the control bar in the top-right corner instead, for
+ * pages whose top-left holds something the controls would sit on top of.
+ */
+export const addSwitch = (
+  labels: string[],
+  selectedIndex: number,
+  onChange: (index: number) => void,
+  options: { align?: "left" | "right" } = {},
+): void => {
+  const wrapper = document.createElement("div");
+  wrapper.className = SWITCH_CLASS;
+
+  const segments = labels.map((label, index) => {
+    const segment = document.createElement("button");
+    segment.textContent = label;
+    segment.setAttribute("aria-pressed", String(index === selectedIndex));
+    segment.onclick = () => {
+      if (segment.getAttribute("aria-pressed") === "true") return;
+      for (const other of segments) {
+        other.setAttribute("aria-pressed", String(other === segment));
+      }
+      onChange(index);
+    };
+    wrapper.appendChild(segment);
+    return segment;
+  });
+
+  const bar = ensureButtonBar();
+  bar.classList.toggle(`${BUTTON_BAR_CLASS}--right`, options.align === "right");
+  bar.appendChild(wrapper);
 };
 
 /**

@@ -148,6 +148,25 @@ const PAGE_CONFIGS: Record<string, PageConfig> = {
   "plugin/person-view": {
     waitTime: 15000,
   },
+  "effect/selective-bloom": {
+    waitTime: 8000,
+  },
+  "effect/selective-outline": {
+    waitTime: 8000,
+  },
+  // Google Photorealistic 3D Tiles refine slowly under software GL.
+  "effect/color-grading-lut": {
+    waitTime: 60000,
+  },
+  "effect/depth-of-field": {
+    waitTime: 15000,
+  },
+  "effect/fog-light": {
+    waitTime: 10000,
+  },
+  "effect/ssr": {
+    waitTime: 15000,
+  },
 };
 
 class ScreenshotGenerator {
@@ -399,6 +418,11 @@ class ScreenshotGenerator {
           pageConfig,
           examplePage.url.startsWith("/demo/"),
         );
+
+        // Re-hide page chrome right before capture: a dev-server dependency
+        // re-optimization (e.g. a page's first dynamic import) reloads the
+        // page, which drops the style tag injected after goto.
+        await this.hidePageUI(page);
 
         // Capture screenshot. Curated example keys are nested paths
         // ("getting-started/hello-world"), so ensure the parent dir exists.

@@ -1,18 +1,17 @@
 import ThreeView, { Color } from "@navaramap/three";
+import type { SelectiveBloomEffectDesc } from "@navaramap/three-default-descs";
 import {
   DefaultPlugin,
   type DefaultDescriptions,
 } from "@navaramap/three-default-plugin";
 import { TileJsonPlugin } from "@navaramap/three-plugins";
 
+import { addButton } from "../../../../helpers/button";
 import { initializeExample } from "../../../../helpers/initialize";
 
 import { data } from "./data";
 
-const view = new ThreeView<DefaultDescriptions>({
-  shadow: true,
-  useNormal: true,
-});
+const view = new ThreeView<DefaultDescriptions>();
 
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
@@ -21,26 +20,28 @@ view.addPlugin(tilejson);
 
 await view.init();
 
-view.atmosphere.date = new Date("2026-07-16T03:00:00Z");
-view.addLight({ ambient: { intensity: 0.6 } });
-view.addLight({ sun: { intensity: 1.8, castShadow: true, shadowFar: 1000 } });
+view.addLight({ ambient: { intensity: 0.25 } });
 
 view.setCamera({
-  lng: 86.82918,
-  lat: 27.98082,
-  distance: 52,
-  heading: 25,
-  pitch: -35,
+  lng: 86.829164,
+  lat: 27.980929,
+  distance: 48,
+  heading: 205,
+  pitch: -32,
   roll: 0,
 });
 
 const basemap = await tilejson.addSource({
   type: "raster-tile",
-  url: "https://papers.reearth.land/styles/papers-light/tilejson.json",
+  url: "https://papers.reearth.land/styles/papers-dark/tilejson.json",
 });
 view.addLayer({ type: "raster", source: basemap });
 
-view.addLayer({ type: "terrain", ellipsoid: { receiveShadow: true } });
+view.addLayer({ type: "terrain", ellipsoid: {} });
+
+const bloom = view.addEffect<SelectiveBloomEffectDesc>({
+  selectiveBloom: { strength: 0.8, radius: 0.35, threshold: 0 },
+});
 
 const source = view.addSource({ type: "geojson", data });
 view.addLayer({
@@ -50,9 +51,19 @@ view.addLayer({
     color: new Color().setStyle("#0091ff"),
     extrudedHeight: 5,
     clampToGround: false,
-    castShadow: true,
+    effectIds: [bloom.id],
+    emissiveColor: new Color().setStyle("#0091ff"),
+    emissiveIntensity: 0.4,
   },
 });
+
+let visible = true;
+const toggle = addButton("Bloom: On");
+toggle.onclick = () => {
+  visible = !visible;
+  bloom.update({ visible });
+  toggle.textContent = `Bloom: ${visible ? "On" : "Off"}`;
+};
 
 view.attribution?.add([
   {
