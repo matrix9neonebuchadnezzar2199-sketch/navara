@@ -1,3 +1,22 @@
+## v0.0.6 - 2026-08-17
+
+### 🚀 Features
+
+- Replace legacy data with source completely (#756)
+- Increase animation speed and dash speed multiplier for PersonViewPlugin (#759)
+- Enhance person view plugin (#761)
+- Set reflectivity for watermask automatically (#762)
+- Dynamic MRT buffers (#765)
+
+### 🐛 Bug Fixes
+
+- Improve text rendering quality (#754)
+- Improve pmtiles overture example (#755)
+- Improve CSM precision (#758)
+- Interpolate terrain height sampling API (#760)
+- Improve fog light quality (#766)
+- Improve SSR quality (#767)
+
 ## v0.0.5 - 2026-07-31
 
 ### 🚀 Features
