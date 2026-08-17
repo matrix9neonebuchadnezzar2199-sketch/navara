@@ -6,7 +6,7 @@
 // Image `src` values are repo-root-relative paths pointing into docs/src/assets
 // or web/navara_three/example/public/screenshots.
 import type { ImageMetadata } from "astro";
-import { ArrowUpRight, Check, ChevronDown, Globe } from "@lucide/astro";
+import { ArrowUpRight, Check, ChevronDown, Globe, Maximize2, Play } from "@lucide/astro";
 import lp from "../data/lp.json";
 import ImageAttribution from "./ImageAttribution.astro";
 import GalleryTile from "./GalleryTile.astro";
@@ -235,8 +235,37 @@ const maplibreAttrib = [SRC.osm, SRC.protomaps];
            catch-copy section slides up over it; once that section is fully
            visible the page scrolls normally again. -->
       <div class="lp-hero-stage">
+        <!-- Hero: the promo video loops behind the catch copy. An AVIF still
+             (the video's own first frame) paints first and plays the opening
+             animation; the video fades in over it once it is actually
+             rolling, so there is never a black flash. Phones get the smaller
+             encode plus a fullscreen button (the portrait crop hides most of
+             the frame; fullscreen shows it all). Sources are picked by the
+             script below; without JS (or with reduced motion) the still
+             simply stays. -->
         <div class="lp-hero">
-          {src("hero") && <img src={src("hero")} alt={alt("hero")} />}
+          <picture>
+            <source media="(max-width: 640px)" srcset="/promo/promo-poster-sp.avif" type="image/avif" />
+            <img src="/promo/promo-poster.avif" alt={t.hero.posterAlt} />
+          </picture>
+          <video
+            class="lp-hero-video"
+            muted
+            loop
+            playsinline
+            preload="auto"
+            aria-hidden="true"
+            data-src="/promo/navara-promo.mp4"
+            data-src-sp="/promo/navara-promo-sp.mp4"
+          ></video>
+          <button class="lp-hero-fs" type="button" aria-label={t.hero.fullscreen}>
+            <Maximize2 size={18} stroke-width={2} aria-hidden="true" />
+          </button>
+          <!-- Shown only when autoplay is refused (iOS Low Power Mode etc.):
+               a play() from a tap is allowed even while autoplay is not. -->
+          <button class="lp-hero-play" type="button" aria-label={t.hero.play}>
+            <Play size={22} stroke-width={2} aria-hidden="true" />
+          </button>
         </div>
         <!-- Catch copy + intro -->
         <section class="lp-intro">
@@ -1024,6 +1053,80 @@ const maplibreAttrib = [SRC.osm, SRC.protomaps];
         );
       }
 
+      // Hero video: pick the phone or desktop encode, start the infinite
+      // loop, and fade it in over the poster still once frames are actually
+      // rendering. Reduced motion keeps the still.
+      const heroEl = document.querySelector<HTMLElement>(".lp-hero");
+      const heroVideo = document.querySelector<HTMLVideoElement>(".lp-hero-video");
+      if (heroEl && heroVideo) {
+        if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+          const sp = window.matchMedia("(max-width: 640px)").matches;
+          heroVideo.src = (sp ? heroVideo.dataset.srcSp : heroVideo.dataset.src) ?? "";
+          // Not `once`: the blocked state can come back (e.g. the resume
+          // after fullscreen is refused in Low Power Mode), so every
+          // successful (re)start must clear it again.
+          heroVideo.addEventListener("playing", () => {
+            heroEl.classList.add("lp-video-live");
+            heroEl.classList.remove("lp-video-blocked");
+          });
+          // Autoplay can be refused (iOS Low Power Mode, browser policies);
+          // that cannot be overridden, but a play() from a tap is still
+          // allowed, so surface a play button as the fallback.
+          heroVideo.play().catch(() => heroEl.classList.add("lp-video-blocked"));
+          const playButton = document.querySelector<HTMLButtonElement>(".lp-hero-play");
+          playButton?.addEventListener("click", () => heroVideo.play().catch(() => {}));
+        }
+        const fsButton = document.querySelector<HTMLButtonElement>(".lp-hero-fs");
+        fsButton?.addEventListener("click", () => {
+          // iOS Safari only offers the vendor call, and only on the element.
+          const v = heroVideo as HTMLVideoElement & { webkitEnterFullscreen?: () => void };
+          if (v.requestFullscreen) v.requestFullscreen().catch(() => {});
+          else v.webkitEnterFullscreen?.();
+        });
+        // Leaving fullscreen pauses the video (iOS closes its native player
+        // with a pause). Resuming right away races the player teardown —
+        // WebKit can pause again AFTER our play() succeeded, which leaves the
+        // video stopped without any rejection to react to. So: resume after a
+        // beat, then verify playback actually stuck; if it did not (teardown
+        // race, Low Power Mode refusal), surface the play button.
+        const inNativeFullscreen = () => {
+          const v = heroVideo as HTMLVideoElement & { webkitDisplayingFullscreen?: boolean };
+          return Boolean(document.fullscreenElement) || Boolean(v.webkitDisplayingFullscreen);
+        };
+        const resume = () => {
+          window.setTimeout(() => {
+            if (heroVideo.paused && !inNativeFullscreen()) {
+              heroVideo.play().catch(() => {});
+            }
+          }, 500);
+          window.setTimeout(() => {
+            if (heroVideo.paused && !inNativeFullscreen()) {
+              heroEl.classList.add("lp-video-blocked");
+            }
+          }, 1000);
+        };
+        heroVideo.addEventListener("webkitendfullscreen", resume);
+        document.addEventListener("fullscreenchange", () => {
+          if (!document.fullscreenElement) resume();
+        });
+        // Catch-all: if the loop stops for any other reason while the page is
+        // visible (tab restore, media-session interference), offer the button.
+        heroVideo.addEventListener("pause", () => {
+          window.setTimeout(() => {
+            if (
+              heroVideo.paused &&
+              !inNativeFullscreen() &&
+              document.visibilityState === "visible"
+            ) {
+              heroEl.classList.add("lp-video-blocked");
+            }
+          }, 1000);
+        });
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible" && heroVideo.paused) resume();
+        });
+      }
+
       // The hero opening also waits for its image, fading it in only once it
       // can be painted in full.
       const heroImg = document.querySelector<HTMLImageElement>(".lp-hero img");
@@ -1215,10 +1318,6 @@ const maplibreAttrib = [SRC.osm, SRC.protomaps];
         align-items: center;
         justify-content: space-between;
         padding: 20px 48px;
-        background: linear-gradient(
-          color-mix(in srgb, var(--pri) 45%, transparent),
-          transparent
-        );
         transition: background 0.3s ease;
       }
       .lp-header.lp-header-solid {
@@ -1348,12 +1447,73 @@ const maplibreAttrib = [SRC.osm, SRC.protomaps];
         min-height: 480px;
         background: var(--pri);
       }
-      .lp-hero img {
+      .lp-hero img,
+      .lp-hero video {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
+        /* Center crop: on phones the 16:9 frame is cut down to the portrait
+           viewport around its middle (the fullscreen button shows it all). */
         object-fit: cover;
+        object-position: center;
+      }
+      /* The video sits over the poster still and only fades in once playback
+         has actually started, so the poster covers loading and autoplay
+         refusals alike. */
+      .lp-hero video {
+        opacity: 0;
+        transition: opacity 0.9s ease;
+      }
+      .lp-hero.lp-video-live video {
+        opacity: 1;
+      }
+      .lp-hero-fs {
+        display: none;
+        position: absolute;
+        right: 16px;
+        bottom: 20px;
+        z-index: 2;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid color-mix(in srgb, #fff 35%, transparent);
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--pri) 45%, transparent);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: var(--on-dark);
+        cursor: pointer;
+      }
+      @media (max-width: 640px) {
+        .lp-hero-fs {
+          display: flex;
+        }
+      }
+      /* Autoplay-refused fallback (iOS Low Power Mode etc.): a centered play
+         button; a tap-initiated play() is allowed even when autoplay is not. */
+      .lp-hero-play {
+        display: none;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+        width: 64px;
+        height: 64px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid color-mix(in srgb, #fff 35%, transparent);
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--pri) 45%, transparent);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: var(--on-dark);
+        cursor: pointer;
+      }
+      .lp-hero.lp-video-blocked .lp-hero-play {
+        display: flex;
       }
       .lp-main {
         position: relative;
