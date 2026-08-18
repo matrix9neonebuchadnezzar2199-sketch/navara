@@ -118,7 +118,6 @@ export const run = async (view: ThreeView<CustomDescriptions>) => {
       roughness: 1,
       castShadow: true,
       receiveShadow: true,
-      height: -40,
     },
   });
 
@@ -136,7 +135,6 @@ export const run = async (view: ThreeView<CustomDescriptions>) => {
       roughness: 1,
       castShadow: true,
       receiveShadow: true,
-      height: -40,
     },
   });
 
