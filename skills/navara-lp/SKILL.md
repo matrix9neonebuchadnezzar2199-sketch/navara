@@ -41,6 +41,36 @@ To add a locale: add its `lp-locales/<code>.json` and a page rendering `<Landing
 - Verify interactive bits headlessly (Playwright against `pnpm preview`): reveal-on-scroll, the tier showcase cross-fade + synced list/caption highlight, the attribution tooltip. **Look at the screenshots** — a clean build can still be visually wrong.
 - After Rust/WASM-adjacent changes elsewhere, also run repo-root `pnpm run build:example`, `format`, `lint`.
 
+## Hero video
+
+The hero is the looping promo video (assets in `docs/public/promo/`: desktop +
+SP H.264 encodes, AVIF posters of the video's first frame; produced per the
+`navara-promo-video` skill). Implementation lives in `LandingPage.astro`
+(markup near the top, script mid-file, styles by `.lp-hero`). Hard-won
+invariants — do not regress these:
+
+- **iOS never fires `loadeddata` (or decodes a frame) until playback starts**,
+  so nothing may gate on it. The fade-in-then-play sequence *primes* instead:
+  muted `play()` while the video is transparent, first `playing` event →
+  pause + rewind + fade the static first frame in over the poster →
+  `play()` again on `transitionend` (with a timeout fallback).
+- Autoplay is refused in iOS Low Power Mode and cannot be forced; a
+  tap-initiated `play()` still works — a centered play button appears via the
+  `lp-video-blocked` class whenever the video is stopped unexpectedly.
+- Exiting fullscreen pauses the video, and iOS can pause again *after* a
+  successful programmatic resume (teardown race) — so the resume path retries
+  and then verifies `paused` before falling back to the play button. The
+  deliberate priming pause is excluded from that watchdog
+  (`fadeRestartPending`).
+- SP (≤640px) picks the smaller encode via `matchMedia`, crops center with
+  `object-fit: cover`, and shows a bottom-right fullscreen button
+  (`webkitEnterFullscreen` fallback for iPhones without
+  `video.requestFullscreen`).
+- Reduced motion keeps the AVIF poster; no video src is ever set.
+- **Verify on a real iPhone** (`pnpm dev:docs --host`), including Low Power
+  Mode on/off — desktop Chromium allows muted autoplay everywhere and cannot
+  reproduce any of the above.
+
 ## References
 
 - **[references/scene-tiers.md](references/scene-tiers.md)** — the "4 API tiers, 1 engine" showcase (`.lp-api-stage`: cross-fading stills behind a bottom-right editorial open-circle ring — Declarative core, Plugin/API/Shader on the ring): building the fixed-camera, multi-look capture page (`web/navara_three/example/pages/lp-tiers/`), the four look recipes, night FogLight tuning, real OSM street lamps, and the capture→AVIF→slots workflow. Read this before creating or re-shooting those stills.

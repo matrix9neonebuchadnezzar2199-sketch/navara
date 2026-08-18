@@ -1259,39 +1259,57 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
       // motion keeps the still.
       const heroEl = document.querySelector<HTMLElement>(".lp-hero");
       const heroVideo = document.querySelector<HTMLVideoElement>(".lp-hero-video");
+      // True from the priming pause until the post-fade restart has actually
+      // resumed — the stopped-video watchdog below must not treat that
+      // deliberate pause as a stall.
+      let fadeRestartPending = false;
       if (heroEl && heroVideo) {
         if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
           const sp = window.matchMedia("(max-width: 640px)").matches;
-          // Not `once`: the blocked state can come back (e.g. the resume
-          // after fullscreen is refused in Low Power Mode), so every
-          // successful (re)start must clear it again.
+          // Gating the fade on loadeddata does NOT work on iOS: Safari never
+          // decodes a frame (loadeddata never fires) until playback starts.
+          // So prime instead — start muted playback while the video is still
+          // transparent, and on the first 'playing' (a frame is provably
+          // rendering everywhere) pause, rewind to the poster frame, fade the
+          // static frame in, and restart once the fade has finished. Motion
+          // therefore never happens mid-fade on any platform.
+          let primed = false;
           heroVideo.addEventListener("playing", () => {
-            heroEl.classList.add("lp-video-live");
-            heroEl.classList.remove("lp-video-blocked");
-          });
-          heroVideo.addEventListener(
-            "loadeddata",
-            () => {
-              // First frame is decodable: fade it in (still paused), then
-              // start playback when the opacity transition ends. Autoplay can
-              // be refused (iOS Low Power Mode, browser policies); that
-              // cannot be overridden, but a play() from a tap is still
-              // allowed, so surface a play button as the fallback.
+            if (!primed) {
+              primed = true;
+              fadeRestartPending = true;
+              heroVideo.pause();
+              heroVideo.currentTime = 0;
               heroEl.classList.add("lp-video-live");
               let started = false;
               const start = () => {
                 if (started) return;
                 started = true;
-                heroVideo.play().catch(() => heroEl.classList.add("lp-video-blocked"));
+                heroVideo
+                  .play()
+                  .then(() => (fadeRestartPending = false))
+                  .catch(() => {
+                    fadeRestartPending = false;
+                    heroEl.classList.add("lp-video-blocked");
+                  });
               };
               heroVideo.addEventListener("transitionend", start, { once: true });
               // Fallback in case transitionend never fires (display: none
               // ancestors, interrupted transitions).
               window.setTimeout(start, 1200);
-            },
-            { once: true },
-          );
+              return;
+            }
+            // Not `once`: the blocked state can come back (e.g. the resume
+            // after fullscreen is refused in Low Power Mode), so every
+            // successful (re)start must clear it again.
+            heroEl.classList.add("lp-video-live");
+            heroEl.classList.remove("lp-video-blocked");
+          });
           heroVideo.src = (sp ? heroVideo.dataset.srcSp : heroVideo.dataset.src) ?? "";
+          // Autoplay can be refused (iOS Low Power Mode, browser policies);
+          // that cannot be overridden, but a play() from a tap is still
+          // allowed, so surface a play button as the fallback.
+          heroVideo.play().catch(() => heroEl.classList.add("lp-video-blocked"));
           const playButton = document.querySelector<HTMLButtonElement>(".lp-hero-play");
           playButton?.addEventListener("click", () => heroVideo.play().catch(() => {}));
         }
@@ -1334,12 +1352,13 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
           window.setTimeout(() => {
             if (
               heroVideo.paused &&
+              !fadeRestartPending &&
               !inNativeFullscreen() &&
               document.visibilityState === "visible"
             ) {
               heroEl.classList.add("lp-video-blocked");
             }
-          }, 1000);
+          }, 1500);
         });
         document.addEventListener("visibilitychange", () => {
           if (document.visibilityState === "visible" && heroVideo.paused) resume();
