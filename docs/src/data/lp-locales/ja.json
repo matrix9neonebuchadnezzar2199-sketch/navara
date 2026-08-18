@@ -18,7 +18,7 @@
   },
   "intro": {
     "h1Html": "The beautiful globe,<br /><span>without the complexity.</span>",
-    "h1Sub": "複雑さなしに、美しい地球を。",
+    "h1Sub": null,
     "copyHtml": "Navara は、<b>拡張性を重視して設計された 3D 地図エンジン</b>です。衛星画像・地形・3D 都市モデル・ベクターデータといった多様な GIS データを読み込み、その上に自由に表現を重ねられます。GIS データは宣言的に可視化でき、プラグインを追加するだけで高度な機能を手軽に組み込めます。さらに、アプリケーションの要件に応じた独自の表現を、自分の手で実装することも可能です。",
     "ctaShowcase": "Try the showcase",
     "ctaDocs": "Read the docs",

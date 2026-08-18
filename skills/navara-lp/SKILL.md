@@ -29,6 +29,14 @@ To add a locale: add its `lp-locales/<code>.json` and a page rendering `<Landing
 - **Theme-derived tints:** use `color-mix(in oklab, var(--pri), white NN%)` (matching the existing `--ink*`/`--line*` derivations) rather than raw hex, so a theme change in `lp.json` propagates.
 - **Pre-release:** the LP is parked under `/lp` (`lpPathOf`) and carries `<meta name="robots" content="noindex,nofollow">`. Leave both until release.
 - **Code snippets (`.lp-hello` HELLO WORLD section):** the snippet is language-agnostic, so it lives in the component frontmatter (`helloCode`), not the locale JSONs — explanations stay in localized copy, code comments in English. Rendered with Astro's `<Code theme="css-variables">`; the `--astro-code-*` vars on `.lp-hello-code` map Shiki onto the LP palette so a theme change propagates. Every API call must be real (it's a TileJSON-based variant of the docs' Getting Started example — the TileJSON document supplies tile URL, zoom range, and attribution); verify against the docs before editing.
+- **Phone gutters are 20px for every band** — keep section padding uniform so
+  headings line up down the page; if a visual needs the extra width (the
+  `.lp-arch` diagram), let *it* break out with negative margins instead of
+  shrinking the section's padding.
+- **Stills bake in the example's own attribution button** (bottom-right). Where
+  the LP overlays its own `ImageAttribution` the baked one must be cropped away
+  — `.lp-hello-visual img` is oversized (`height: 106%`) so the frame clips that
+  band at every aspect ratio; don't crop the shared asset, docs pages use it.
 - **MapLibre section is parked** behind `SHOW_MAPLIBRE = false` in the component frontmatter (copy and image slots kept); flip to true to bring it back.
 
 ## Reusable components
@@ -70,6 +78,50 @@ invariants — do not regress these:
 - **Verify on a real iPhone** (`pnpm dev:docs --host`), including Low Power
   Mode on/off — desktop Chromium allows muted autoplay everywhere and cannot
   reproduce any of the above.
+
+## Mobile viewport units and page ends
+
+Desktop Chromium has no dynamic toolbar, so none of this reproduces there —
+these were all found on an iPhone.
+
+- **Covering elements use `lvh`, content bands use `svh`.** The first scroll on
+  iOS is spent collapsing the toolbar, which grows the viewport from `svh` to
+  `lvh`: a sticky hero sized `100svh` uncovers a strip of page background under
+  the video exactly while that happens. `.lp-hero` is `100lvh` and publishes
+  `--lp-toolbar-h: calc(100lvh - 100svh)`, which its bottom-anchored chrome
+  (scroll cue, fullscreen button) adds back so it stays inside the smaller,
+  toolbar-shown viewport it is first seen in. `min-height` bands (`.lp-hello`,
+  `.lp-outro`) keep `svh` — they must fit the *smaller* viewport.
+- **A pin line that must hug the bottom edge uses `dvh`.** `.lp-intro` sticks at
+  `calc(100dvh - var(--lp-intro-h))`: with `svh` the panel stops a collapsed
+  toolbar's height short of the bottom and leaves a strip of bare video under it,
+  with `lvh` it is cut off while the toolbar is out. Only `dvh` follows the
+  viewport that is actually on screen.
+- **`viewport-fit=cover` + `--lp-safe-*`.** The meta viewport opts into the
+  full screen so the full-bleed media (hero video, closing globe still) reaches
+  the physical edges on notched phones — without it iOS insets the layout
+  viewport and the closing band's image stops short of the bottom. `svh`/`lvh`
+  then include the safe areas too, which is what makes the `lvh` hero cover the
+  home-indicator strip. Everything that hugs an edge pays the inset back through
+  `--lp-safe-l/r/b` (`env(safe-area-inset-*, 0px)` named on `:root`): the header
+  and `.lp-container` for the landscape notch, `.lp-intro`, `.lp-footer` and the
+  hero's bottom chrome for the home indicator. Because they are custom
+  properties, a desktop browser can simulate a notch — append
+  `:root{--lp-safe-l:47px;--lp-safe-r:47px;--lp-safe-b:34px}` **to `<body>`**
+  (the LP's own `<style is:global>` lives there, so a `<head>` tag would lose
+  the cascade).
+- **The page can never paint iOS Safari's toolbars — only tint them.**
+  `viewport-fit=cover` reaches the display's safe areas, not the browser chrome,
+  so "extend the closing image under the URL bar" is not achievable; matching the
+  color is. Safari tints its bars from `<meta name="theme-color">` (falling back
+  to the page background), so both that meta and the canvas are the closing
+  band's `--outro-bg` black, and the bottom reads as one surface.
+- **`body`'s background is the document canvas** (`html` sets none), so it shows
+  through the sub-pixel remainder of a fractional-height page, during overscroll,
+  and as that toolbar tint. It is `--outro-bg` (black, hoisted to `:root`) — a
+  light canvas showed as a ~1px white hairline under the closing band on iOS, and
+  a `--pri` one as a navy seam below it. Every band paints
+  its own background (`.lp-main` carries the light one).
 
 ## References
 

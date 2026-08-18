@@ -229,9 +229,16 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
 <html lang={t.htmlLang} style={rootStyle}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* viewport-fit=cover: the full-bleed media (hero video, closing globe)
+        reaches the physical screen edges on notched phones; the --lp-safe-*
+        vars below keep text and controls out of those areas. */}
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{t.meta.title}</title>
     <meta name="description" content={t.meta.description} />
+    {/* iOS Safari tints its toolbars with this (it samples the page background
+        otherwise): black, so the closing band reads as continuing past the URL
+        bar — the page itself can never paint that area. */}
+    <meta name="theme-color" content="#000000" />
     {/* TODO: Remove when Navara is released. */}
     <meta name="robots" content="noindex,nofollow" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -1401,6 +1408,16 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
 
     <style is:global>
       :root {
+        /* Safe-area insets, named once so every edge-hugging rule reads the
+           same (and so they can be simulated in a browser without a notch).
+           Zero everywhere except on notched phones under viewport-fit=cover. */
+        /* Not a theme color: matched to the baked glow-globe screenshot's
+           own background (sampled pure black), so image and band are one. Also
+           the canvas and browser-chrome tint — see body below. */
+        --outro-bg: #000;
+        --lp-safe-l: env(safe-area-inset-left, 0px);
+        --lp-safe-r: env(safe-area-inset-right, 0px);
+        --lp-safe-b: env(safe-area-inset-bottom, 0px);
         --ink: color-mix(in oklab, var(--pri), black 20%);
         --ink-soft: color-mix(in oklab, var(--pri), white 35%);
         --on-dark: color-mix(in oklab, var(--pri), white 88%);
@@ -1413,7 +1430,15 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
       }
       body {
         margin: 0;
-        background: var(--sub);
+        /* html has no background, so this color is propagated to the document
+           canvas: it shows through the sub-pixel remainder at the page ends and
+           during mobile overscroll, and iOS Safari tints its toolbars with it
+           (see the theme-color meta, which pins the same value). The page can
+           never *draw* under those toolbars, so matching the closing band's
+           black is what makes it read as one surface at the bottom; the hero at
+           the top is dark enough for the same color to disappear there. Every
+           band paints its own background (.lp-main carries the light one). */
+        background: var(--outro-bg);
         color: var(--ink);
         font-family: "Arsenal", "Zen Kaku Gothic New", sans-serif;
         -webkit-font-smoothing: antialiased;
@@ -1448,6 +1473,10 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
       .lp-container {
         max-width: 1320px;
         margin: 0 auto;
+        /* Landscape notch: content blocks step in, their section's full-bleed
+           background stays edge to edge. */
+        padding-left: var(--lp-safe-l);
+        padding-right: var(--lp-safe-r);
       }
 
       /* Motion system — scroll-driven reveals.
@@ -1560,7 +1589,7 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 20px 48px;
+        padding: 20px max(48px, var(--lp-safe-r)) 20px max(48px, var(--lp-safe-l));
         transition: background 0.3s ease;
       }
       .lp-header.lp-header-solid {
@@ -1678,9 +1707,16 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
            scrolling resumes once the catch copy is fully visible. */
         position: sticky;
         top: 0;
-        /* svh keeps the pinned hero stable under mobile dynamic toolbars. */
+        /* Mobile dynamic toolbars: `svh` is the viewport with the toolbars
+           shown, `lvh` with them collapsed. The pinned hero has to cover the
+           larger one — sized to svh, the first scroll (which the browser spends
+           collapsing its toolbar) uncovers a strip of page background under the
+           video. The bottom-anchored chrome below adds this difference back, so
+           it stays inside the smaller, toolbar-shown viewport it is first seen
+           in. */
+        --lp-toolbar-h: calc(100lvh - 100svh);
         height: 100vh;
-        height: 100svh;
+        height: 100lvh;
         min-height: 480px;
         background: var(--pri);
       }
@@ -1709,7 +1745,7 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
         display: none;
         position: absolute;
         right: 16px;
-        bottom: 20px;
+        bottom: calc(20px + var(--lp-toolbar-h, 0px) + var(--lp-safe-b));
         z-index: 2;
         width: 44px;
         height: 44px;
@@ -1757,7 +1793,7 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
         display: none;
         position: absolute;
         left: 50%;
-        bottom: 22px;
+        bottom: calc(22px + var(--lp-toolbar-h, 0px) + var(--lp-safe-b));
         transform: translateX(-50%);
         z-index: 2;
         color: var(--on-dark);
@@ -1802,10 +1838,16 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
          stage's scroll budget is used up. */
       .lp-intro {
         position: sticky;
+        /* dvh, not svh: the pin line has to follow the *current* viewport, or
+           the panel stops short of the bottom edge by the height of a
+           collapsed mobile toolbar and leaves a strip of bare video under it.
+           (lvh would be the mirror bug — cut off while the toolbar is out.) */
         top: calc(100vh - var(--lp-intro-h, 200vh));
-        top: calc(100svh - var(--lp-intro-h, 200svh));
+        top: calc(100dvh - var(--lp-intro-h, 200dvh));
         z-index: 1;
-        padding: 80px 48px 72px;
+        /* Pinned flush with the bottom of the viewport, so the bottom padding
+           also has to clear the home indicator. */
+        padding: 80px 48px calc(72px + var(--lp-safe-b));
         /* Frosted-glass panel over the hero image. */
         background: color-mix(in srgb, var(--pri) 40%, transparent);
         backdrop-filter: blur(14px);
@@ -2236,7 +2278,11 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
       }
       .lp-hello-visual img {
         width: 100%;
-        height: 100%;
+        /* The still bakes the example's own attribution button into its
+           bottom-right corner, and the LP overlays its own credit there.
+           Oversize the image so the frame clips that bottom band away at every
+           aspect ratio (16/9 on phones leaves no crop of its own). */
+        height: 106%;
         object-fit: cover;
       }
       /* Overlaid on the image, opposite the attribution icon. */
@@ -2717,9 +2763,6 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
       /* The closing band: one canvas holding the outro CTA and the footer,
          with the glow-globe still spanning both. */
       .lp-close {
-        /* Not a theme color: matched to the baked glow-globe screenshot's
-           own background (sampled pure black), so image and band are one. */
-        --outro-bg: #000;
         position: relative;
         overflow: hidden;
         background: var(--outro-bg);
@@ -2778,7 +2821,7 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
         right: 0;
         bottom: 0;
         z-index: 1;
-        padding: 56px 48px 48px;
+        padding: 56px 48px calc(48px + var(--lp-safe-b));
         color: var(--on-dark);
         text-align: center;
       }
@@ -2807,10 +2850,10 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
          layout at a fixed 900px composition width. */
       @media (max-width: 960px) {
         .lp-header {
-          padding: 18px 28px;
+          padding: 18px max(28px, var(--lp-safe-r)) 18px max(28px, var(--lp-safe-l));
         }
         .lp-intro {
-          padding: 72px 32px 60px;
+          padding: 72px 32px calc(60px + var(--lp-safe-b));
         }
         .lp-intro-grid {
           grid-template-columns: 1fr;
@@ -2893,13 +2936,13 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
           font-size: 24px;
         }
         .lp-footer {
-          padding: 44px 32px 40px;
+          padding: 44px 32px calc(40px + var(--lp-safe-b));
         }
       }
 
       @media (max-width: 640px) {
         .lp-header {
-          padding: 14px 20px;
+          padding: 14px max(20px, var(--lp-safe-r)) 14px max(20px, var(--lp-safe-l));
         }
         .lp-nav {
           gap: 18px;
@@ -2914,7 +2957,7 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
         }
 
         .lp-intro {
-          padding: 52px 20px 44px;
+          padding: 52px 20px calc(44px + var(--lp-safe-b));
         }
         .lp-h1 {
           font-size: 38px;
@@ -2990,7 +3033,7 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
           bottom: 12px;
         }
         .lp-arch {
-          padding: 72px 6px;
+          padding: 72px 20px;
         }
         .lp-h2 {
           font-size: 30px;
@@ -3009,8 +3052,11 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
           grid-template-rows: none;
           grid-template-areas: none;
           row-gap: clamp(20px, 6vw, 36px);
-          width: min(480px, 100%);
-          margin-top: 24px;
+          /* The heading keeps the section's shared 20px gutter; only the
+             diagram breaks out of it, so the pieces keep the wider canvas
+             they are tuned for without misaligning the titles. */
+          width: min(480px, calc(100% + 28px));
+          margin: 24px -14px 0;
         }
         /* Shift the group right via inside padding (not a transform on the
            full-width box) so it never bleeds past the viewport. padding-left of
@@ -3132,7 +3178,7 @@ const outroAttrib = [SRC.nasaBlackMarble, SRC.reearthPapers];
         }
 
         .lp-footer {
-          padding: 48px 20px 40px;
+          padding: 48px 20px calc(40px + var(--lp-safe-b));
         }
         .lp-footer-links {
           flex-wrap: wrap;
