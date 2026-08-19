@@ -43,6 +43,12 @@ To add a locale: add its `lp-locales/<code>.json` and a page rendering `<Landing
 
 - **`docs/src/components/ImageAttribution.astro`** — data-attribution overlay: an info icon that reveals a per-source credit list on hover/focus (no plate, never overflows). Props: `items: string[]`, `label`, `corner` (`br`/`bl`/`tr`/`tl`), `class`. Drop inside any `position: relative` image wrapper. Use it for **any** credited image, not just the LP. Source the credit strings from `web/navara_three/example/helpers/constants.ts` `attribution` fields (+ a basemap tilejson's own credit).
 
+## Brand logo & favicon
+
+- Logo SVGs live in `docs/public/logo/{black,white}/` (horizontal + vertical), mirrored in `web/navara_three/example/public/logo/`. They are the delivered Illustrator exports with the `<i:aipgf>` round-trip block stripped (that block was ~97% of the file size) and the viewBox cropped to the tight content bbox — keep both properties if the assets are ever re-delivered.
+- The LP inlines the **black** variants via `?raw` + `logoSvg()` (the black paths carry no `fill` attributes, so CSS `fill: currentColor` re-inks them per surface): `.lp-hero-logo` is the vertical lockup centered over the hero video, `.lp-brand` the horizontal one in the header. The branding hands off on scroll: the header logo is `opacity: 0; visibility: hidden` until `lp-header-solid`, at which point the intro panel has covered the hero lockup. `.lp-video-blocked` clears the hero lockup so the fallback play button gets the center.
+- The favicon is the delivered white-bird-on-black-square mark, present as `favicon.png` (72×72, the referenced one) and `favicon.svg` (cleaned like the logos; kept but unreferenced) in both `docs/public/` and `web/.../example/public/`. Three places point at `/favicon.png`: the LP `<head>`, Starlight's `favicon` option in `docs/astro.config.mjs`, and the example's `template.html` (injected into every generated page).
+
 ## Build & verify
 
 - `cd docs && pnpm build` (whole docs site) — LP copy/image errors surface here (missing alt, missing image, unknown slot).
@@ -75,6 +81,11 @@ invariants — do not regress these:
   (`webkitEnterFullscreen` fallback for iPhones without
   `video.requestFullscreen`).
 - Reduced motion keeps the AVIF poster; no video src is ever set.
+- **`.lp-hero` must keep `overflow: hidden`.** The opening animation
+  (`nv-hero-in`) holds the full-viewport poster at scale ~1.045 for 3s;
+  unclipped, that widens the document's scrollable area and Chromium keeps the
+  stale horizontal scrollbar even after the animation ends (it only clears on
+  the next relayout, e.g. scrolling into the reveal sections).
 - **Verify on a real iPhone** (`pnpm dev:docs --host`), including Low Power
   Mode on/off — desktop Chromium allows muted autoplay everywhere and cannot
   reproduce any of the above.
