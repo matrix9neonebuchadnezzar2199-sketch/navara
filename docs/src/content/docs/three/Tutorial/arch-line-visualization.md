@@ -20,18 +20,22 @@ Learn how to visualize air traffic volume data between airports using arch lines
 
 ## Basic Implementation
 
-First, create the base view. Set a dark background color and add a starfield and satellite imagery tiles.
+First, create the base view.
 
 ```typescript
 import ThreeView, { Color } from "@navaramap/three";
 import { ToneMappingMode } from "@navaramap/three-default-descs";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
+import { TileJsonPlugin } from "@navaramap/three-plugins";
 
 const plugin = new DefaultPlugin();
 const view = new ThreeView<DefaultDescriptions>({
   backgroundColor: new Color().setStyle("#0b0a0d"),
 });
 view.addPlugin(plugin);
+
+const tilejson = new TileJsonPlugin();
+view.addPlugin(tilejson);
 
 await view.init();
 
@@ -66,14 +70,9 @@ view.addEffect({
 });
 
 // Base satellite imagery tiles
-const satelliteSource = view.addSource({
+const satelliteSource = await tilejson.addSource({
   type: "raster-tile",
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Latest Nationwide Photo (Seamless)
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  url: "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg",
-  maxZoom: 6,
-  minZoom: 2,
+  url: "https://papers.reearth.land/bluemarble/tilejson.json",
 });
 view.addLayer({
   type: "raster",
@@ -84,25 +83,15 @@ view.addLayer({
 view.setCamera({ lng: 140, lat: 20, height: 12_600_000, heading: 0, pitch: -90, roll: 0 });
 ```
 
-:::tip[Choosing ToneMappingMode]
-- `ToneMappingMode.REINHARD2`: Produces a natural look, suitable for dark scenes
-- `ToneMappingMode.AGX`: Enables a more cinematic appearance
-- Adjust `toneMappingExposure` according to the scene brightness
-:::
-
 ## Adding Night Tiles
 
 To create a more beautiful nighttime Earth, overlay night tiles (NASA Earth at Night).
 
 ```typescript
 // Add night tiles (overlaid with transparency)
-const nightSource = view.addSource({
+const nightSource = await tilejson.addSource({
   type: "raster-tile",
-  // Credit:
-  // - NASA Earth at Night imagery (Converted as raster tiles)
-  url: "/data/blue-marble-night/{z}/{x}/{y}.webp",
-  maxZoom: 6,
-  minZoom: 1,
+  url: "https://papers.reearth.land/blackmarble/tilejson.json",
 });
 view.addLayer({
   type: "raster",
@@ -113,13 +102,11 @@ view.addLayer({
 });
 ```
 
-:::note[Preparing Night Tiles]
-You need to convert NASA Earth at Night imagery to XYZ tile format. Download from [NASA Earth Observatory](https://earthobservatory.nasa.gov/features/NightLights) and convert using tools such as `gdal`.
+:::note[About the Night Tiles]
+`blackmarble` is NASA Earth Observatory's [Earth at Night 2016](https://earthobservatory.nasa.gov/features/NightLights) served as XYZ tiles by [Re:Earth Papers](https://papers.reearth.land).
 :::
 
 ## Adding a Glow Effect
-
-Using `GlowGlobeMeshDesc`, you can add a beautiful glow effect around the globe.
 
 ```typescript
 import type { GlowGlobeMeshDesc } from "@navaramap/three-default-descs";
@@ -127,11 +114,11 @@ import type { GlowGlobeMeshDesc } from "@navaramap/three-default-descs";
 // Add globe glow effect
 view.addMesh<GlowGlobeMeshDesc>({
   glowGlobe: {
-    radiusScale: 1.2,  // Glow radius (multiplier relative to Earth's radius)
-    coefficient: 0.43, // Glow intensity coefficient
-    exponent: 40.0,    // Glow falloff rate
+    radiusScale: 1.2,
+    coefficient: 0.43,
+    exponent: 40.0,
     glowColor: new Color().setStyle("#938cff"),
-    opacity: 0.5,      // Opacity
+    opacity: 0.5,
   },
 });
 ```
@@ -147,7 +134,7 @@ view.addMesh<GlowGlobeMeshDesc>({
 
 ## Loading GeoJSON Data
 
-Load air traffic volume data between airports in GeoJSON format. Here we use the inter-airport flow volume data from the National Land Numerical Information service.
+Load air traffic volume data between airports in GeoJSON format.
 
 ```typescript
 import type { FeatureCollection, MultiLineString } from "geojson";
@@ -167,12 +154,14 @@ type AirportTrafficData = FeatureCollection<
 >;
 
 // Fetch data
-const response = await fetch("/data/airport-traffic-volume.geojson");
+const response = await fetch(
+  "https://assets.cms.reearth.io/assets/3b/63858d-9197-4b39-bbed-c17b6add52a4/airport-traffic-volume.geojson"
+);
 const data: AirportTrafficData = await response.json();
 ```
 
-:::note[Data Preparation]
-Convert the [inter-airport flow volume data from the National Land Numerical Information service](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S10b-2014.html) to GeoJSON format for use.
+:::note[About the Data]
+This is the [inter-airport flow volume data from the National Land Numerical Information service](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S10b-2014.html), converted to GeoJSON and hosted on [Re:Earth CMS](https://reearth.io/product/cms).
 :::
 
 ## Data-Driven Color Mapping with ColorMap
@@ -252,8 +241,6 @@ For details on `ColorMap` class methods (`linear()`, `quantize()`, etc.), see th
 
 ## Adding the Arch Line Object
 
-Add the arch line definitions as an object.
-
 ```typescript
 import type { ArclineMeshDesc } from "@navaramap/three-default-descs";
 
@@ -266,11 +253,11 @@ const arcLineHandle = view.addMesh<ArclineMeshDesc>({
 
 ## Adding Dash Animation
 
-Use `requestAnimationFrame` to update the dash offset and express flow directionality. Adjusting the animation speed based on distance creates a more natural appearance.
+Update the dash offset on every frame with `view.on("preUpdate", ...)` to express flow directionality. `preUpdate` fires just before the view processes a frame, so the offsets written there are picked up by the render of that same frame. Adjusting the animation speed based on distance creates a more natural appearance.
 
 ```typescript
-// Dash animation - flows from origin to destination
-const dashAnimFunc = () => {
+// Dash animation flowing from origin to destination
+view.on("preUpdate", () => {
   arcLines.forEach((arcLineDef) => {
     // Calculate animation speed based on distance
     const baseSpeed = 5000;
@@ -282,11 +269,7 @@ const dashAnimFunc = () => {
   });
 
   arcLineHandle.update({ arcLines });
-  requestAnimationFrame(dashAnimFunc);
-};
-
-// Start animation
-dashAnimFunc();
+});
 ```
 
 :::note[Adjusting Animation Speed]
@@ -296,8 +279,6 @@ dashAnimFunc();
 :::
 
 ## Complete Example
-
-Below is a complete example that visualizes air traffic volume between airports.
 
 ```typescript
 import ThreeView, {
@@ -312,6 +293,7 @@ import {
   type GlowGlobeMeshDesc,
 } from "@navaramap/three-default-descs";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
+import { TileJsonPlugin } from "@navaramap/three-plugins";
 import type { FeatureCollection, MultiLineString } from "geojson";
 
 // Type definition for air traffic volume data
@@ -338,7 +320,9 @@ const PLASMA_COLORMAP = new ColorMap("sequential", "Plasma", [
 
 // Construct data
 const constructData = async () => {
-  const response = await fetch("/data/airport-traffic-volume.geojson");
+  const response = await fetch(
+    "https://assets.cms.reearth.io/assets/3b/63858d-9197-4b39-bbed-c17b6add52a4/airport-traffic-volume.geojson"
+  );
   const data: AirportTrafficData = await response.json();
 
   const maxTrafficLog = Math.max(
@@ -398,6 +382,9 @@ async function run() {
   });
   view.addPlugin(plugin);
 
+  const tilejson = new TileJsonPlugin();
+  view.addPlugin(tilejson);
+
   await view.init();
 
   view.atmosphere.date.setHours(8);
@@ -431,14 +418,9 @@ async function run() {
   });
 
   // Satellite imagery tiles
-  const satelliteSource = view.addSource({
+  const satelliteSource = await tilejson.addSource({
     type: "raster-tile",
-    // Credit:
-    // - Geospatial Information Authority of Japan Tiles - Latest Nationwide Photo (Seamless)
-    //   https://maps.gsi.go.jp/development/ichiran.html
-    url: "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg",
-    maxZoom: 6,
-    minZoom: 2,
+    url: "https://papers.reearth.land/bluemarble/tilejson.json",
   });
   view.addLayer({
     type: "raster",
@@ -446,13 +428,9 @@ async function run() {
   });
 
   // Night tiles (optional)
-  const nightSource = view.addSource({
+  const nightSource = await tilejson.addSource({
     type: "raster-tile",
-    // Credit:
-    // - NASA Earth at Night imagery (Converted as raster tiles)
-    url: "/data/blue-marble-night/{z}/{x}/{y}.webp",
-    maxZoom: 6,
-    minZoom: 1,
+    url: "https://papers.reearth.land/blackmarble/tilejson.json",
   });
   view.addLayer({
     type: "raster",
@@ -482,7 +460,7 @@ async function run() {
   });
 
   // Dash animation
-  const dashAnimFunc = () => {
+  view.on("preUpdate", () => {
     arcLines.forEach((arcLineDef) => {
       const baseSpeed = 5000;
       const distance = arcLineDef.distance || 1;
@@ -493,9 +471,7 @@ async function run() {
     });
 
     arcLineHandle.update({ arcLines });
-    requestAnimationFrame(dashAnimFunc);
-  };
-  dashAnimFunc();
+  });
 
   // Camera settings
   view.setCamera({ lng: 140, lat: 20, height: 12_600_000, heading: 0, pitch: -90, roll: 0 });

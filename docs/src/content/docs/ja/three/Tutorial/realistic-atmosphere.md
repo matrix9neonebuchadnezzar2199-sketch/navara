@@ -7,22 +7,20 @@ sidebar:
 
 ![実行結果](@assets/tutorial/realistic-atmosphere-result.png)
 
-大気エフェクトを使用して、よりリアルなビジュアル表現を実現します。
-
 **このチュートリアルで学べること:**
 - 大気遠近法（Aerial Perspective）エフェクトの追加
 - 空・太陽・星のDescriptor設定
 - 雲エフェクトの追加
-- トーンマッピングとアンチエイリアシングの設定
+- トーンマッピングの設定
 - 雨・雪エフェクトの追加
-- 水面マテリアルの設定（国土地理院MVTデータ活用）
+- 地形のウォーターマスクによる水面表現
 
 ## 大気遠近法エフェクトを追加する
 
-大気遠近法（Aerial Perspective）は、距離に応じた空気感・霞の効果を付与します。`DefaultPlugin` を使うと、すべてのデフォルトDescriptorが登録され、`addDefaultPhotorealScene()` でフォトリアルなシーンを一括セットアップできます。
+大気遠近法（Aerial Perspective）は、距離に応じた空気感・霞の効果を付与します。`DefaultPlugin` を登録しておくと、`addDefaultPhotorealScene()` がフォトリアルなシーンを一括で構築します。 空・太陽光・星・環境光・大気エフェクト・トーンマッピング・アンチエイリアシングまで含めてです。
 
 ```typescript
-import ThreeView, { JAPAN_GSI_ELEVATION_DECODER } from "@navaramap/three";
+import ThreeView from "@navaramap/three";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
 
 const plugin = new DefaultPlugin();
@@ -30,15 +28,15 @@ const view = new ThreeView<DefaultDescriptions>({ shadow: true });
 view.addPlugin(plugin);
 await view.init();
 
-// フォトリアルなシーンを一括セットアップ（空・太陽光・星・大気エフェクト・トーンマッピング・アンチエイリアシングなど）
 const layers = plugin.addDefaultPhotorealScene();
 
-// 必要に応じて Aerial Perspective を調整
 layers.aerialPerspective.update({
   aerialPerspective: {
-    irradiance: true, // Deferred lighting (required for displaying cloud shadows)
+    irradiance: true,
   },
 });
+
+view.lit = false;
 
 const photoSource = view.addSource({
   // Credit:
@@ -46,7 +44,7 @@ const photoSource = view.addSource({
   //   https://maps.gsi.go.jp/development/ichiran.html
   type: "raster-tile",
   url: "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg",
-  maxZoom: 23,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "raster",
@@ -54,14 +52,11 @@ view.addLayer({
 });
 
 const terrainSource = view.addSource({
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  type: "raster-dem",
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
-  minZoom: 6,
-  maxZoom: 15,
+  type: "quantized-mesh",
+  url: "https://terrain.reearth.land/cesium-mesh/ellipsoid/{z}/{x}/{y}.terrain",
+  requestVertexNormals: true,
+  requestWaterMask: true,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "terrain",
@@ -72,48 +67,52 @@ view.addLayer({
   },
 });
 
-view.addLayer({
-  type: "raster",
-  source: terrainSource,
-  hillshade: {},
-});
+// 朝の斜光が雲を側面から照らすため、雲が平坦な白い塊ではなく立体として見えます。
+view.atmosphere.date = new Date("2026-06-22T08:00:00+09:00");
 
-view.setCamera({ lng: 139.7511, lat: 35.6736, height: 400, heading: -100, pitch: -20, roll: 0 });
+// 雲頂より上から。雲の広がり全体が街の上に並びます。
+view.setCamera({ lng: 139.7511, lat: 35.6736, height: 4200, heading: -100, pitch: -22, roll: 0 });
 ```
 
-`addDefaultPhotorealScene()` により、空・太陽光・星・スカイライトプローブなどの大気Descriptorも自動で追加されています。影を落とすには太陽光の設定を更新します。
+影を落とすには太陽光を更新します。
 
 ```typescript
-layers.sun.update({ sun: { castShadow: true } }); // Cast shadows
+layers.sun.update({ sun: { castShadow: true } });
 ```
 
-:::caution[irradiance の注意点]
-`irradiance` を有効にすると、透明なマテリアル（ガラスなど）の描画が安定しないことがあります。透明オブジェクトを多用する場合は `irradiance: false` を検討してください。
+このチュートリアルのスクリーンショットに写っている影は**雲影**です。太陽のシャドウマップは描画され続けますが `view.lit = false` の間は適用されないため、他に必要がなければ `castShadow` はオフにしてください。
+
+:::caution[irradiance は deferred lighting なので `view.lit = false` とセットで使う]
+`irradiance` はライトを追加するものではありません。ジオメトリを描画した**後**に G-buffer を事前計算済み大気から再ライティングします。これはマテリアルがアルベドを書き出している場合にのみ成立し、それを行うのが [`view.lit = false`](../../../three/api/threeview-properties/#lit) です。既定の `true` のままだとフォワードパスと大気で二重にライティングされてしまいます。
+
+deferred パスが扱わないものが 2 つあります。
+
+- **`sun.castShadow` によるキャストシャドウ。** フォワードパスで適用されるため消えます。雲影はエフェクトが大気側からサンプリングするため残ります（雲影に `irradiance` が必要なのはこのためです）。
+- **透明マテリアル。** すでにカラーバッファへ合成済みで再ライティングできません。
+
+どちらかに依存する近景シーンでは、`irradiance: false` と既定の `view.lit` のままにしてください。
 :::
 
-## トーンマッピングとアンチエイリアシングを設定する
+## トーンマッピングを設定する
 
-HDR らしい自然な見た目にするためにトーンマッピングと露出、アンチエイリアシングを設定します。
+HDR らしい自然な見た目にするためにトーンマッピングの露出を設定します。このシーンは `irradiance` による大気からのライティングでフォワードライティングのシーンより明るく出るため、通常のシーンが 10 前後になるのに対して 6 程度に落ち着きます。
 
 ```typescript
-// Tone mapping
-layers.toneMapping.update({ toneMapping: { mode: ToneMappingMode.AGX } });
-view.toneMappingExposure = 10; // Adjust according to the scene
-
-// Anti-aliasing
-// addDefaultPhotorealScene() automatically selects SMAA for desktop and FXAA for mobile optimization
+view.toneMappingExposure = 6;
 ```
 
 ## 雲エフェクトを追加する
 
-体積雲エフェクトを重ねると臨場感が向上します。まずはデフォルト設定で追加し、必要に応じて影や密度を調整します。
+`qualityPreset: "high"` で雲のディテールを高め、`lightShafts: true` で雲を透過する光芒を加えます。そこから影や密度を調整してください。
 
 ```typescript
 const clouds = view.addEffect<CloudsEffectDesc>({
-  clouds: {},
+  clouds: {
+    qualityPreset: "high",
+    lightShafts: true,
+  },
 });
 
-// Example: Enable cloud shadows
 clouds.update({ clouds: { shadows: true } });
 ```
 
@@ -126,66 +125,65 @@ clouds.update({ clouds: { shadows: true } });
 ### 3D雨粒パーティクル
 
 ```typescript
-// Enable the animation loop to keep rain animation running
+// アニメーションループを回し、雨が常に動くようにする
 view.animation = true;
 
-// Add rain object
 const rain = view.addMesh<RainMeshDesc>({
   rain: {
-    particleCount: 5000, // Number of raindrops
-    speed: 0.0015,             // Fall speed
-    opacity: 1.0,         // Opacity
-    width: 3,          // Raindrop width
-    height: 60.0,          // Raindrop length
-    areaWidth: 500,       // Rainfall area width (m)
-    areaHeight: 1000,      // Rainfall area height (m)
-    maxHeight: 10000,       // Maximum rainfall area height (m)
+    particleCount: 5000,
+    speed: 0.0015,
+    opacity: 1.0,
+    width: 3, // m
+    height: 60.0, // m
+    areaWidth: 500, // m
+    areaHeight: 1000, // m
+    maxHeight: 10000, // m。雪セクションの注記を参照
   },
 });
+
+view.setCamera({ lng: 139.7511, lat: 35.6736, height: 700, heading: -100, pitch: 3, roll: 0 });
 ```
 
 ### 画面水滴エフェクト
 
-雨天時にカメラレンズに付着する水滴を表現するポストエフェクトです。
+`dropSizeFactor` と `dropGridSize` は水滴の半径ではなく水滴グリッドの細かさを決める値です。そのため値を**小さく**すると水滴は大きくなります。水滴を大きくすると画面が寂しくなるので、`dropDensity` を上げて補います。
 
 ```typescript
 const rainDropEffect = view.addEffect<RainDropEffectDesc>({
   rainDrop: {
-    opacity: 0.8,           // Overall effect opacity
-    dropGridSize: 14,       // Water droplet grid size
-    dropDensity: 0.1,       // Water droplet density
-    dropSizeFactor: 0.025,  // Water droplet size factor
+    opacity: 0.8,
+    dropGridSize: 12,
+    dropDensity: 0.7,
+    dropSizeFactor: 0.018,
   },
 });
 ```
-
-:::tip[雨エフェクトの組み合わせ]
-`RainMeshDesc` と `RainDropEffectDesc` を同時に有効にすることで、より臨場感のある雨の表現が可能です。
-:::
 
 ![実行結果](@assets/tutorial/realistic-atmosphere-rain.png)
 
 ## 雪エフェクトを追加する
 
-雪の表現は `SnowMeshDesc` を使用します。 雨オブジェクトを消して追加してみましょう。
+雨オブジェクトを消して、代わりに `SnowMeshDesc` を追加します。
 
 ```typescript
-// Add snow object
 const snow = view.addMesh<SnowMeshDesc>({
   snow: {
-    particleCount: 5000,  // Number of snowflakes
-    speed: 0.00005,           // Fall speed
-    size: 10,              // Snowflake size
-    opacity: 1,         // Opacity
-    areaWidth: 500,       // Snowfall area width (m)
-    areaHeight: 1000,      // Snowfall area height (m)
-    maxHeight: 3000,       // Maximum snowfall area height (m)
-    // Wind-driven sway
-    movementStrength: { x: 50, y: 20, z: 50 }, // Sway amplitude for each axis
-    movementSpeed: { x: 0.0005, y: 0.0002, z: 0.0005 }, // Sway speed for each axis
+    particleCount: 10000,
+    speed: 0.00005,
+    size: 20,
+    opacity: 1,
+    areaWidth: 400,
+    areaHeight: 800,
+    maxHeight: 3000,
+    movementStrength: { x: 50, y: 20, z: 50 },
+    movementSpeed: { x: 0.0005, y: 0.0002, z: 0.0005 },
   },
 });
 ```
+
+:::note[雪はカメラ高度に応じてフェードアウトする]
+`maxHeight` は発生高度の上限ではなく、毎フレーム雪の不透明度を `1 - cameraHeight / maxHeight` で減衰させる値です。既定の `3000` では、カメラが 3km 以上にあると雪はまったく見えなくなります。カメラを天候の中（上の雨セクションで設定した 700m の視点）に置くか、撮影したい高度に合わせて `maxHeight` を上げてください。
+:::
 
 :::caution[パフォーマンスの注意]
 `particleCount` を増やすとリアルになりますが、モバイルデバイスではパフォーマンスに影響します。必要に応じて調整してください。
@@ -193,60 +191,47 @@ const snow = view.addMesh<SnowMeshDesc>({
 
 ![実行結果](@assets/tutorial/realistic-atmosphere-snow.png)
 
-## 水面マテリアルを追加する（国土地理院MVTデータ）
+## 水面を追加する（地形のウォーターマスク）
 
-国土地理院のベクトルタイル実験（experimental_bvmap）には河川・湖沼などの水域データが含まれています。`water: true` オプションを使用すると、波紋のある水面マテリアルを適用できます。
-
-:::caution[ThreeView 側で必須のオプション]
-水面マテリアルを利用するには、`ThreeView` の生成時に `waterTexture` を有効化する必要があります。これを設定しないと、レイヤー側の `water: true` は効果を持ちません。
+Cesium quantized-mesh タイルは、メッシュと一緒に**ウォーターマスク**を持つことができます。ソースに `requestWaterMask: true` を指定すると、マスクされたピクセルが水面としてシェーディングされます。太陽のグレアを受け、環境マップや [SSR](#ssrスクリーンスペース反射との組み合わせ) の反射も乗る、反射率が高くラフネスの低い面になります。追加のソースやレイヤーは不要です。
 
 ```typescript
-const view = new ThreeView<DefaultDescriptions>({
-  waterTexture: { enabled: true },
-  // ...other options
-});
-```
-:::
-
-```typescript
-// Add water area layer from GSI experimental vector tiles
-const waterSource = view.addSource({
-  // Credit: Geospatial Information Authority of Japan Vector Tile Experimental Service
-  // https://github.com/gsi-cyberjapan/gsimaps-vector-experiment
-  type: "vector-tile",
-  url: "https://cyberjapandata.gsi.go.jp/xyz/experimental_bvmap/{z}/{x}/{y}.pbf",
-  maxZoom: 16,
+const terrainSource = view.addSource({
+  type: "quantized-mesh",
+  url: "https://terrain.reearth.land/cesium-mesh/ellipsoid/{z}/{x}/{y}.terrain",
+  requestVertexNormals: true,
+  requestWaterMask: true,
+  maxZoom: 18,
 });
 view.addLayer({
-  type: "vector",
-  source: waterSource,
-  sourceLayers: ["waterarea"], // Use only the water area layer
-  polygon: {
-    color: new Color().setStyle("#001e0f"),
-    reflectivity: 0.2,    // Reflectivity
-    clampToGround: true,  // Clamp to terrain
-    water: true,          // Enable water surface material
-  },
+  type: "terrain",
+  source: terrainSource,
+  terrain: { castShadow: true, receiveShadow: true },
 });
 
-view.atmosphere.date = new Date("2026-01-01T16:00:00+09:00"); // January 1, 16:00 JST
-view.setCamera({ lng: 140.0372145462, lat: 35.6059411903, height: 3880, heading: -98.4184014976, pitch: -18.0000012192, roll: 0 });
+view.atmosphere.date = new Date("2026-01-01T16:15:00+09:00");
+view.toneMappingExposure = 12;
+
+view.setCamera({ lng: 139.88, lat: 35.42, height: 2800, heading: 250, pitch: -16, roll: 0 });
 ```
 
 ![実行結果](@assets/tutorial/realistic-atmosphere-water.png)
+
+:::note[ウォーターマスクのカバー範囲]
+マスクは海・湖・広い河川といった開けた水域を、タイル解像度で表現します。城の堀のような細い内陸の水域は解像度に満たず、マスクされないことがあります。
+:::
 
 ### SSR（スクリーンスペース反射）との組み合わせ
 
 `SSREffectDesc` を追加すると、建物などの反射がリアルタイムで水面に映り込みます。
 
 ```typescript
-// Add PLATEAU building models
 const plateauSource = view.addSource({
   // Credit:
-  // - 3D City Model (Project PLATEAU) Chiyoda Ward (FY2023) - MLIT PLATEAU
-  //   https://www.geospatial.jp/ckan/dataset/plateau-13101-chiyoda-ku-2023
+  // - 3D City Model (Project PLATEAU) Chuo Ward (FY2023) - MLIT PLATEAU
+  //   https://www.geospatial.jp/ckan/dataset/plateau-13102-chuo-ku-2023
   type: "3d-tiles",
-  url: "https://assets.cms.plateau.reearth.io/assets/db/070026-aa27-431b-8d53-7cc6b03244f8/13101_chiyoda-ku_pref_2023_citygml_1_op_bldg_3dtiles_13101_chiyoda-ku_lod2_no_texture/tileset.json",
+  url: "https://assets.cms.plateau.reearth.io/assets/4c/f2436a-e2be-40e2-83da-f1781f36e30b/13102_chuo-ku_pref_2023_citygml_1_op_bldg_3dtiles_13102_chuo-ku_lod2_no_texture/tileset.json",
 });
 view.addLayer({
   type: "3d-tiles",
@@ -256,25 +241,24 @@ view.addLayer({
     color: new Color().setStyle("#ffffff"),
     metalness: 0,
     roughness: 0.5,
-    height: -50, // Adjust ellipsoidal height
     castShadow: true,
     receiveShadow: true,
   },
 });
 
-// Add SSR effect
 view.addEffect<SSREffectDesc>({
   ssr: {},
 });
 
-view.atmosphere.date = new Date("2026-01-01T12:00:00+09:00"); // January 1, 12:00 JST
+view.toneMappingExposure = 6;
+view.atmosphere.date = new Date("2026-06-22T08:00:00+09:00");
 
 view.setCamera({
-  lng: 139.7511145474829,
-  lat: 35.67364356091717,
-  height: 902.0,
-  heading: 64.41840149763287,
-  pitch: -36.00000121921312,
+  lng: 139.7868,
+  lat: 35.6733,
+  height: 68,
+  heading: 240,
+  pitch: -10,
   roll: 0,
 });
 ```
@@ -283,10 +267,8 @@ view.setCamera({
 
 ## 完全な例
 
-以下は大気エフェクト、雨、水面マテリアルをすべて組み合わせた完全な例です。
-
 ```typescript
-import ThreeView, { Color, JAPAN_GSI_ELEVATION_DECODER } from "@navaramap/three";
+import ThreeView, { Color } from "@navaramap/three";
 import { type CloudsEffectDesc, type RainDropEffectDesc, type RainMeshDesc, type SnowMeshDesc, type SSREffectDesc, ToneMappingMode } from "@navaramap/three-default-descs";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
 
@@ -294,22 +276,19 @@ const plugin = new DefaultPlugin();
 const view = new ThreeView<DefaultDescriptions>({
   shadow: true,
   animation: true,
-  waterTexture: {
-    enabled: true
-  },
 });
 view.addPlugin(plugin);
 await view.init();
 
-// Set up a photorealistic scene in one call
 const layers = plugin.addDefaultPhotorealScene();
 
-// Adjust Aerial Perspective as needed
 layers.aerialPerspective.update({
   aerialPerspective: {
-    irradiance: true, // Deferred lighting (required for displaying cloud shadows)
+    irradiance: true,
   },
 });
+
+view.lit = false;
 
 const photoSource = view.addSource({
   // Credit:
@@ -317,7 +296,7 @@ const photoSource = view.addSource({
   //   https://maps.gsi.go.jp/development/ichiran.html
   type: "raster-tile",
   url: "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg",
-  maxZoom: 23,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "raster",
@@ -325,14 +304,11 @@ view.addLayer({
 });
 
 const terrainSource = view.addSource({
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  type: "raster-dem",
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
-  minZoom: 6,
-  maxZoom: 15,
+  type: "quantized-mesh",
+  url: "https://terrain.reearth.land/cesium-mesh/ellipsoid/{z}/{x}/{y}.terrain",
+  requestVertexNormals: true,
+  requestWaterMask: true,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "terrain",
@@ -343,76 +319,48 @@ view.addLayer({
   },
 });
 
-view.addLayer({
-  type: "raster",
-  source: terrainSource,
-  hillshade: {},
-});
+layers.sun.update({ sun: { castShadow: true } });
 
-layers.sun.update({ sun: { castShadow: true } }); // Cast shadows
-
-// Tone mapping
 layers.toneMapping.update({ toneMapping: { mode: ToneMappingMode.AGX } });
-view.toneMappingExposure = 10; // Adjust according to the scene
+view.toneMappingExposure = 6;
 
 const clouds = view.addEffect<CloudsEffectDesc>({
   clouds: {
-    qualityPreset: "high"
+    qualityPreset: "high",
+    lightShafts: true,
   },
 });
 
-// Enable cloud shadows
 clouds.update({ clouds: { shadows: true } });
 
 view.addMesh<RainMeshDesc>({
   rain: {
-    particleCount: 5000, // Number of raindrops
-    speed: 0.0015,             // Fall speed
-    opacity: 1.0,         // Opacity
-    width: 3,          // Raindrop width
-    height: 60.0,          // Raindrop length
-    areaWidth: 500,       // Rainfall area width (m)
-    areaHeight: 1000,      // Rainfall area height (m)
-    maxHeight: 10000,       // Maximum rainfall area height (m)
+    particleCount: 5000,
+    speed: 0.0015,
+    opacity: 1.0,
+    width: 3,
+    height: 60.0,
+    areaWidth: 500,
+    areaHeight: 1000,
+    maxHeight: 10000,
   },
 });
 
 view.addEffect<RainDropEffectDesc>({
   rainDrop: {
-    opacity: 0.8,           // Overall effect opacity
-    dropGridSize: 14,       // Water droplet grid size
-    dropDensity: 0.1,       // Water droplet density
-    dropSizeFactor: 0.025,  // Water droplet size factor
+    opacity: 0.8,
+    dropGridSize: 12,
+    dropDensity: 0.7,
+    dropSizeFactor: 0.018,
   },
 });
 
-// Add water area layer from GSI experimental vector tiles
-const waterSource = view.addSource({
-  // Credit: Geospatial Information Authority of Japan Vector Tile Experimental Service
-  // https://github.com/gsi-cyberjapan/gsimaps-vector-experiment
-  type: "vector-tile",
-  url: "https://cyberjapandata.gsi.go.jp/xyz/experimental_bvmap/{z}/{x}/{y}.pbf",
-  maxZoom: 16,
-});
-view.addLayer({
-  type: "vector",
-  source: waterSource,
-  sourceLayers: ["waterarea"], // Use only the water area layer
-  polygon: {
-    color: new Color().setStyle("#001e0f"),
-    reflectivity: 0.02,    // Reflectivity
-    clampToGround: true,  // Clamp to terrain
-    water: true,          // Enable water surface material
-  },
-});
-
-// Add PLATEAU building models
 const plateauSource = view.addSource({
   // Credit:
-  // - 3D City Model (Project PLATEAU) Chiyoda Ward (FY2023) - MLIT PLATEAU
-  //   https://www.geospatial.jp/ckan/dataset/plateau-13101-chiyoda-ku-2023
+  // - 3D City Model (Project PLATEAU) Chuo Ward (FY2023) - MLIT PLATEAU
+  //   https://www.geospatial.jp/ckan/dataset/plateau-13102-chuo-ku-2023
   type: "3d-tiles",
-  url: "https://assets.cms.plateau.reearth.io/assets/db/070026-aa27-431b-8d53-7cc6b03244f8/13101_chiyoda-ku_pref_2023_citygml_1_op_bldg_3dtiles_13101_chiyoda-ku_lod2_no_texture/tileset.json",
+  url: "https://assets.cms.plateau.reearth.io/assets/4c/f2436a-e2be-40e2-83da-f1781f36e30b/13102_chuo-ku_pref_2023_citygml_1_op_bldg_3dtiles_13102_chuo-ku_lod2_no_texture/tileset.json",
 });
 view.addLayer({
   type: "3d-tiles",
@@ -422,21 +370,20 @@ view.addLayer({
     color: new Color().setStyle("#ffffff"),
     metalness: 0,
     roughness: 0.5,
-    height: -50, // Adjust ellipsoidal height
     castShadow: true,
     receiveShadow: true,
   },
 });
 
-// Add SSR effect
 view.addEffect<SSREffectDesc>({
   ssr: {
   },
 });
 
-view.atmosphere.date = new Date("2026-01-01T16:00:00+09:00"); // January 1, 16:00 JST
+view.atmosphere.date = new Date("2026-01-01T16:15:00+09:00");
+view.toneMappingExposure = 12;
 
-view.setCamera({ lng: 140.0372145462, lat: 35.6059411903, height: 3880, heading: -98.4184014976, pitch: -18.0000012192, roll: 0 });
+view.setCamera({ lng: 139.88, lat: 35.42, height: 2800, heading: 250, pitch: -16, roll: 0 });
 ```
 
 :::tip[自然な見た目にするコツ]

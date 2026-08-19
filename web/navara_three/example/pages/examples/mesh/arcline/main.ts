@@ -63,11 +63,9 @@ dashButton.onclick = () => {
 };
 
 let gradation = 0;
-const animate = () => {
+view.on("preUpdate", () => {
   gradation = gradation - 5000;
   arcs.update({ arcLines: { dashOffset: gradation } });
-  requestAnimationFrame(animate);
-};
-animate();
+});
 
 initializeExample(view);

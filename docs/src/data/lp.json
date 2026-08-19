@@ -54,7 +54,7 @@
       "href": "/three/tutorial/arch-line-visualization/"
     },
     "tutorial-right": {
-      "src": "web/navara_three/example/public/screenshots/use-cases-interior-explore.avif",
+      "src": "docs/src/assets/tutorial/model-animation.png",
       "href": "/three/tutorial/interior-explore/"
     },
     "example-row1-left": {

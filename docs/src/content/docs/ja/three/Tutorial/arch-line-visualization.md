@@ -20,18 +20,22 @@ sidebar:
 
 ## 基本実装
 
-まずベースとなるビューを作成します。背景色を暗くし、星空と衛星写真タイルを追加します。
+まずベースとなるビューを作成します。
 
 ```typescript
 import ThreeView, { Color } from "@navaramap/three";
 import { ToneMappingMode } from "@navaramap/three-default-descs";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
+import { TileJsonPlugin } from "@navaramap/three-plugins";
 
 const plugin = new DefaultPlugin();
 const view = new ThreeView<DefaultDescriptions>({
   backgroundColor: new Color().setStyle("#0b0a0d"),
 });
 view.addPlugin(plugin);
+
+const tilejson = new TileJsonPlugin();
+view.addPlugin(tilejson);
 
 await view.init();
 
@@ -66,14 +70,9 @@ view.addEffect({
 });
 
 // ベースの衛星写真タイル
-const satelliteSource = view.addSource({
+const satelliteSource = await tilejson.addSource({
   type: "raster-tile",
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Latest Nationwide Photo (Seamless)
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  url: "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg",
-  maxZoom: 6,
-  minZoom: 2,
+  url: "https://papers.reearth.land/bluemarble/tilejson.json",
 });
 view.addLayer({
   type: "raster",
@@ -84,25 +83,15 @@ view.addLayer({
 view.setCamera({ lng: 140, lat: 20, height: 12_600_000, heading: 0, pitch: -90, roll: 0 });
 ```
 
-:::tip[ToneMappingMode の選択]
-- `ToneMappingMode.REINHARD2`: 自然な見た目で、暗いシーンに適しています
-- `ToneMappingMode.AGX`: よりシネマティックな表現が可能です
-- シーンの明るさに応じて `toneMappingExposure` も調整してください
-:::
-
 ## 夜景タイルを追加する
 
 より美しい夜の地球を表現するために、夜景タイル（NASA Earth at Night）を重ねます。
 
 ```typescript
 // 夜景タイルを追加（半透明で重ねる）
-const nightSource = view.addSource({
+const nightSource = await tilejson.addSource({
   type: "raster-tile",
-  // Credit:
-  // - NASA Earth at Night imagery (Converted as raster tiles)
-  url: "/data/blue-marble-night/{z}/{x}/{y}.webp",
-  maxZoom: 6,
-  minZoom: 1,
+  url: "https://papers.reearth.land/blackmarble/tilejson.json",
 });
 view.addLayer({
   type: "raster",
@@ -113,13 +102,11 @@ view.addLayer({
 });
 ```
 
-:::note[夜景タイルの準備]
-NASA の Earth at Night 画像を XYZ タイル形式に変換する必要があります。[NASA Earth Observatory](https://earthobservatory.nasa.gov/features/NightLights) からダウンロードし、`gdal` などで変換してください。
+:::note[夜景タイルについて]
+`blackmarble` は NASA Earth Observatory の [Earth at Night 2016](https://earthobservatory.nasa.gov/features/NightLights) を [Re:Earth Papers](https://papers.reearth.land) が XYZ タイルとして配信しているものです。
 :::
 
 ## グローエフェクトを追加する
-
-`GlowGlobeMeshDesc` を使うと、地球の周りに美しいグローエフェクトを追加できます。
 
 ```typescript
 import type { GlowGlobeMeshDesc } from "@navaramap/three-default-descs";
@@ -127,11 +114,11 @@ import type { GlowGlobeMeshDesc } from "@navaramap/three-default-descs";
 // 地球のグローエフェクトを追加
 view.addMesh<GlowGlobeMeshDesc>({
   glowGlobe: {
-    radiusScale: 1.2,  // グローの半径（地球半径に対する倍率）
-    coefficient: 0.43, // グローの強度係数
-    exponent: 40.0,    // グローの減衰率
+    radiusScale: 1.2,
+    coefficient: 0.43,
+    exponent: 40.0,
     glowColor: new Color().setStyle("#938cff"),
-    opacity: 0.5,      // 不透明度
+    opacity: 0.5,
   },
 });
 ```
@@ -147,7 +134,7 @@ view.addMesh<GlowGlobeMeshDesc>({
 
 ## GeoJSONデータを読み込む
 
-空港間の航空交通量データを GeoJSON 形式で読み込みます。ここでは国土数値情報の空港間流動量データを使用します。
+空港間の航空交通量データを GeoJSON 形式で読み込みます。
 
 ```typescript
 import type { FeatureCollection, MultiLineString } from "geojson";
@@ -167,12 +154,14 @@ type AirportTrafficData = FeatureCollection<
 >;
 
 // データを取得
-const response = await fetch("/data/airport-traffic-volume.geojson");
+const response = await fetch(
+  "https://assets.cms.reearth.io/assets/3b/63858d-9197-4b39-bbed-c17b6add52a4/airport-traffic-volume.geojson"
+);
 const data: AirportTrafficData = await response.json();
 ```
 
-:::note[データの準備]
-[国土数値情報の空港間流動量データ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S10b-2014.html)を GeoJSON 形式に変換して使用してください。
+:::note[データについて]
+[国土数値情報の空港間流動量データ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-S10b-2014.html)を GeoJSON 形式に変換し、[Re:Earth CMS](https://reearth.io/product/cms) でホストしたものです。
 :::
 
 ## ColorMapを使ってデータに基づく色分けをする
@@ -252,8 +241,6 @@ const arcLines = data.features.map((feature) => {
 
 ## アーチラインオブジェクトを追加する
 
-作成したアーチライン定義をメッシュとして追加します。
-
 ```typescript
 import type { ArclineMeshDesc } from "@navaramap/three-default-descs";
 
@@ -266,11 +253,11 @@ const arcLineHandle = view.addMesh<ArclineMeshDesc>({
 
 ## ダッシュアニメーションを追加する
 
-`requestAnimationFrame` を使ってダッシュオフセットを更新し、フローの方向性を表現します。距離に応じてアニメーション速度を調整すると、より自然な見た目になります。
+`view.on("preUpdate", ...)` でダッシュオフセットを毎フレーム更新し、フローの方向性を表現します。`preUpdate` はビューが 1 フレームの更新処理に入る直前に発火するため、ここで書き換えた値はそのままそのフレームの描画に反映されます。距離に応じてアニメーション速度を調整すると、より自然な見た目になります。
 
 ```typescript
-// ダッシュアニメーション - 出発地から目的地へ流れる
-const dashAnimFunc = () => {
+// ダッシュアニメーション（出発地から目的地へ流れる）
+view.on("preUpdate", () => {
   arcLines.forEach((arcLineDef) => {
     // 距離に基づいてアニメーション速度を計算
     const baseSpeed = 5000;
@@ -282,11 +269,7 @@ const dashAnimFunc = () => {
   });
 
   arcLineHandle.update({ arcLines });
-  requestAnimationFrame(dashAnimFunc);
-};
-
-// アニメーション開始
-dashAnimFunc();
+});
 ```
 
 :::note[アニメーション速度の調整]
@@ -296,8 +279,6 @@ dashAnimFunc();
 :::
 
 ## 完全な例
-
-以下は空港間航空交通量の可視化を行う完全な例です。
 
 ```typescript
 import ThreeView, {
@@ -312,6 +293,7 @@ import {
   type GlowGlobeMeshDesc,
 } from "@navaramap/three-default-descs";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
+import { TileJsonPlugin } from "@navaramap/three-plugins";
 import type { FeatureCollection, MultiLineString } from "geojson";
 
 // 航空交通量データの型定義
@@ -338,7 +320,9 @@ const PLASMA_COLORMAP = new ColorMap("sequential", "Plasma", [
 
 // データの構築
 const constructData = async () => {
-  const response = await fetch("/data/airport-traffic-volume.geojson");
+  const response = await fetch(
+    "https://assets.cms.reearth.io/assets/3b/63858d-9197-4b39-bbed-c17b6add52a4/airport-traffic-volume.geojson"
+  );
   const data: AirportTrafficData = await response.json();
 
   const maxTrafficLog = Math.max(
@@ -398,6 +382,9 @@ async function run() {
   });
   view.addPlugin(plugin);
 
+  const tilejson = new TileJsonPlugin();
+  view.addPlugin(tilejson);
+
   await view.init();
 
   view.atmosphere.date.setHours(8);
@@ -431,14 +418,9 @@ async function run() {
   });
 
   // 衛星写真タイル
-  const satelliteSource = view.addSource({
+  const satelliteSource = await tilejson.addSource({
     type: "raster-tile",
-    // Credit:
-    // - Geospatial Information Authority of Japan Tiles - Latest Nationwide Photo (Seamless)
-    //   https://maps.gsi.go.jp/development/ichiran.html
-    url: "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg",
-    maxZoom: 6,
-    minZoom: 2,
+    url: "https://papers.reearth.land/bluemarble/tilejson.json",
   });
   view.addLayer({
     type: "raster",
@@ -446,13 +428,9 @@ async function run() {
   });
 
   // 夜景タイル（オプション）
-  const nightSource = view.addSource({
+  const nightSource = await tilejson.addSource({
     type: "raster-tile",
-    // Credit:
-    // - NASA Earth at Night imagery (Converted as raster tiles)
-    url: "/data/blue-marble-night/{z}/{x}/{y}.webp",
-    maxZoom: 6,
-    minZoom: 1,
+    url: "https://papers.reearth.land/blackmarble/tilejson.json",
   });
   view.addLayer({
     type: "raster",
@@ -482,7 +460,7 @@ async function run() {
   });
 
   // ダッシュアニメーション
-  const dashAnimFunc = () => {
+  view.on("preUpdate", () => {
     arcLines.forEach((arcLineDef) => {
       const baseSpeed = 5000;
       const distance = arcLineDef.distance || 1;
@@ -493,9 +471,7 @@ async function run() {
     });
 
     arcLineHandle.update({ arcLines });
-    requestAnimationFrame(dashAnimFunc);
-  };
-  dashAnimFunc();
+  });
 
   // カメラ設定
   view.setCamera({ lng: 140, lat: 20, height: 12_600_000, heading: 0, pitch: -90, roll: 0 });

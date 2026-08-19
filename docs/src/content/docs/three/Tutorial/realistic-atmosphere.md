@@ -7,22 +7,20 @@ sidebar:
 
 ![Result](@assets/tutorial/realistic-atmosphere-result.png)
 
-Achieve more realistic visual rendering using atmospheric effects.
-
 **What you will learn in this tutorial:**
 - Adding Aerial Perspective effects
 - Configuring sky, sun, and star descriptors
 - Adding cloud effects
-- Setting up tone mapping and anti-aliasing
+- Setting up tone mapping
 - Adding rain and snow effects
-- Configuring water surface materials (using GSI MVT data)
+- Rendering water surfaces from the terrain water mask
 
 ## Adding the Aerial Perspective Effect
 
-Aerial Perspective applies a haze and atmospheric depth effect based on distance. Using `DefaultPlugin`, all default descriptors are registered, and `addDefaultPhotorealScene()` sets up a photorealistic scene in one call.
+Aerial Perspective applies a haze and atmospheric depth effect based on distance. Once `DefaultPlugin` is registered, `addDefaultPhotorealScene()` builds the whole photorealistic scene in one call. That covers the sky, sunlight, stars, skylight probe, atmospheric effects, tone mapping, and anti-aliasing.
 
 ```typescript
-import ThreeView, { JAPAN_GSI_ELEVATION_DECODER } from "@navaramap/three";
+import ThreeView from "@navaramap/three";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
 
 const plugin = new DefaultPlugin();
@@ -30,15 +28,15 @@ const view = new ThreeView<DefaultDescriptions>({ shadow: true });
 view.addPlugin(plugin);
 await view.init();
 
-// Set up a photorealistic scene in one call (sky, sunlight, stars, atmospheric effects, tone mapping, anti-aliasing, etc.)
 const layers = plugin.addDefaultPhotorealScene();
 
-// Adjust Aerial Perspective as needed
 layers.aerialPerspective.update({
   aerialPerspective: {
-    irradiance: true, // Deferred lighting (required for displaying cloud shadows)
+    irradiance: true,
   },
 });
+
+view.lit = false;
 
 const photoSource = view.addSource({
   // Credit:
@@ -46,7 +44,7 @@ const photoSource = view.addSource({
   //   https://maps.gsi.go.jp/development/ichiran.html
   type: "raster-tile",
   url: "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg",
-  maxZoom: 23,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "raster",
@@ -54,14 +52,11 @@ view.addLayer({
 });
 
 const terrainSource = view.addSource({
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  type: "raster-dem",
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
-  minZoom: 6,
-  maxZoom: 15,
+  type: "quantized-mesh",
+  url: "https://terrain.reearth.land/cesium-mesh/ellipsoid/{z}/{x}/{y}.terrain",
+  requestVertexNormals: true,
+  requestWaterMask: true,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "terrain",
@@ -72,48 +67,53 @@ view.addLayer({
   },
 });
 
-view.addLayer({
-  type: "raster",
-  source: terrainSource,
-  hillshade: {},
-});
+// A morning sun rakes the clouds from the side, so they read as volumes rather
+// than flat white patches.
+view.atmosphere.date = new Date("2026-06-22T08:00:00+09:00");
 
-view.setCamera({ lng: 139.7511, lat: 35.6736, height: 400, heading: -100, pitch: -20, roll: 0 });
+// Above the cloud tops: the whole cloud field is laid out over the city.
+view.setCamera({ lng: 139.7511, lat: 35.6736, height: 4200, heading: -100, pitch: -22, roll: 0 });
 ```
 
-With `addDefaultPhotorealScene()`, atmospheric descriptors such as sky, sunlight, stars, and skylight probe are also automatically added. To cast shadows, update the sunlight settings.
+Enable shadows on the sunlight:
 
 ```typescript
-layers.sun.update({ sun: { castShadow: true } }); // Cast shadows
+layers.sun.update({ sun: { castShadow: true } });
 ```
 
-:::caution[Notes on irradiance]
-Enabling `irradiance` may cause unstable rendering of transparent materials (such as glass). If you use many transparent objects, consider setting `irradiance: false`.
+The shadows in this tutorial's screenshots are **cloud** shadows. The sun's own shadow map keeps being rendered but is not applied while `view.lit = false`, so turn `castShadow` off if nothing else in the scene needs it.
+
+:::caution[irradiance is deferred lighting, so pair it with `view.lit = false`]
+`irradiance` does not add a light. It re-lights the G-buffer from the precomputed atmosphere **after** the geometry is drawn, which only works if the materials wrote plain albedo. That is what [`view.lit = false`](../../../three/api/threeview-properties/#lit) does. Left at its default `true`, the scene is lit twice (forward pass + atmosphere) and washes out.
+
+Two things the deferred pass does **not** cover:
+
+- **Cast shadows from `sun.castShadow`**, which the forward pass applies. Cloud shadows survive, because the effect samples those from the atmosphere. That is why `irradiance` is required for them.
+- **Transparent materials**, already blended into the colour buffer and so impossible to re-light.
+
+Close-up scenes that depend on either should keep `irradiance: false` and the default `view.lit`.
 :::
 
-## Setting Up Tone Mapping and Anti-Aliasing
+## Setting Up Tone Mapping
 
-Configure tone mapping, exposure, and anti-aliasing for a natural HDR look.
+Configure tone mapping's exposure for a natural HDR look. This scene is lit by the atmosphere through `irradiance`, which comes out brighter than a forward-lit scene, so it settles around `6` where a normally lit scene sits nearer `10`.
 
 ```typescript
-// Tone mapping
-layers.toneMapping.update({ toneMapping: { mode: ToneMappingMode.AGX } });
-view.toneMappingExposure = 10; // Adjust according to the scene
-
-// Anti-aliasing
-// addDefaultPhotorealScene() automatically selects SMAA for desktop and FXAA for mobile optimization
+view.toneMappingExposure = 6;
 ```
 
 ## Adding Cloud Effects
 
-Overlaying volumetric cloud effects enhances the sense of realism. Start with the default settings and adjust shadows and density as needed.
+`qualityPreset: "high"` sharpens the cloud detail and `lightShafts: true` adds god rays through the layer; adjust shadows and density from there.
 
 ```typescript
 const clouds = view.addEffect<CloudsEffectDesc>({
-  clouds: {},
+  clouds: {
+    qualityPreset: "high",
+    lightShafts: true,
+  },
 });
 
-// Example: Enable cloud shadows
 clouds.update({ clouds: { shadows: true } });
 ```
 
@@ -129,124 +129,110 @@ Rain effects use a combination of two objects. `RainMeshDesc` renders 3D raindro
 // Enable the animation loop to keep rain animation running
 view.animation = true;
 
-// Add rain object
 const rain = view.addMesh<RainMeshDesc>({
   rain: {
-    particleCount: 5000, // Number of raindrops
-    speed: 0.0015,             // Fall speed
-    opacity: 1.0,         // Opacity
-    width: 3,          // Raindrop width
-    height: 60.0,          // Raindrop length
-    areaWidth: 500,       // Rainfall area width (m)
-    areaHeight: 1000,      // Rainfall area height (m)
-    maxHeight: 10000,       // Maximum rainfall area height (m)
+    particleCount: 5000,
+    speed: 0.0015,
+    opacity: 1.0,
+    width: 3, // m
+    height: 60.0, // m
+    areaWidth: 500, // m
+    areaHeight: 1000, // m
+    maxHeight: 10000, // m. See the note under the snow section
   },
 });
+
+view.setCamera({ lng: 139.7511, lat: 35.6736, height: 700, heading: -100, pitch: 3, roll: 0 });
 ```
 
 ### Screen Water Droplet Effect
 
-A post-processing effect that simulates water droplets adhering to the camera lens during rainy weather.
+`dropSizeFactor` and `dropGridSize` set the frequency of the droplet grid, not the droplet radius, so **lower** values give bigger drops. Raise `dropDensity` to keep the screen from looking empty once the drops are large.
 
 ```typescript
 const rainDropEffect = view.addEffect<RainDropEffectDesc>({
   rainDrop: {
-    opacity: 0.8,           // Overall effect opacity
-    dropGridSize: 14,       // Water droplet grid size
-    dropDensity: 0.1,       // Water droplet density
-    dropSizeFactor: 0.025,  // Water droplet size factor
+    opacity: 0.8,
+    dropGridSize: 12,
+    dropDensity: 0.7,
+    dropSizeFactor: 0.018,
   },
 });
 ```
-
-:::tip[Combining Rain Effects]
-Enabling both `RainMeshDesc` and `RainDropEffectDesc` simultaneously allows for a more immersive rain effect.
-:::
 
 ![Result](@assets/tutorial/realistic-atmosphere-rain.png)
 
 ## Adding Snow Effects
 
-For snow effects, use `SnowMeshDesc`. Remove the rain object and add it instead.
+Remove the rain object and add `SnowMeshDesc` instead.
 
 ```typescript
-// Add snow object
 const snow = view.addMesh<SnowMeshDesc>({
   snow: {
-    particleCount: 5000,  // Number of snowflakes
-    speed: 0.00005,           // Fall speed
-    size: 10,              // Snowflake size
-    opacity: 1,         // Opacity
-    areaWidth: 500,       // Snowfall area width (m)
-    areaHeight: 1000,      // Snowfall area height (m)
-    maxHeight: 3000,       // Maximum snowfall area height (m)
-    // Wind-driven sway
-    movementStrength: { x: 50, y: 20, z: 50 }, // Sway amplitude for each axis
-    movementSpeed: { x: 0.0005, y: 0.0002, z: 0.0005 }, // Sway speed for each axis
+    particleCount: 10000,
+    speed: 0.00005,
+    size: 20,
+    opacity: 1,
+    areaWidth: 400,
+    areaHeight: 800,
+    maxHeight: 3000,
+    movementStrength: { x: 50, y: 20, z: 50 },
+    movementSpeed: { x: 0.0005, y: 0.0002, z: 0.0005 },
   },
 });
 ```
 
+:::note[Snow fades out with camera altitude]
+`maxHeight` is not a spawn ceiling. It scales the snow's opacity by `1 - cameraHeight / maxHeight` every frame. With the default `3000`, a camera at or above 3 km renders no visible snow at all. Keep the camera inside the weather (the 700 m view set in the rain section above), or raise `maxHeight` to match the altitude you are shooting from.
+:::
+
 :::caution[Performance Note]
-Increasing `particleCount` makes the effect more realistic, but may impact performance on mobile devices. Adjust as needed.
+Increasing `particleCount` makes the effect more realistic, but may impact performance on mobile devices.
 :::
 
 ![Result](@assets/tutorial/realistic-atmosphere-snow.png)
 
-## Adding Water Surface Materials (GSI MVT Data)
+## Adding Water Surfaces (Terrain Water Mask)
 
-The Geospatial Information Authority of Japan's experimental vector tiles (experimental_bvmap) include water area data such as rivers and lakes. Using the `water: true` option applies a water surface material with ripples.
-
-:::caution[Required ThreeView Option]
-To use the water surface material, you must enable `waterTexture` when constructing `ThreeView`. Without it, the `water: true` option on the layer will have no effect.
+Cesium quantized-mesh tiles can carry a **water mask** next to the mesh. Request it with `requestWaterMask: true` on the source and Navara shades the masked pixels as water. The result is a reflective, low-roughness surface that catches the sun glint and picks up environment and [SSR](#combining-with-ssr-screen-space-reflections) reflections. No extra source or layer is needed.
 
 ```typescript
-const view = new ThreeView<DefaultDescriptions>({
-  waterTexture: { enabled: true },
-  // ...other options
-});
-```
-:::
-
-```typescript
-// Add water area layer from GSI experimental vector tiles
-const waterSource = view.addSource({
-  // Credit: Geospatial Information Authority of Japan Vector Tile Experimental Service
-  // https://github.com/gsi-cyberjapan/gsimaps-vector-experiment
-  type: "vector-tile",
-  url: "https://cyberjapandata.gsi.go.jp/xyz/experimental_bvmap/{z}/{x}/{y}.pbf",
-  maxZoom: 16,
+const terrainSource = view.addSource({
+  type: "quantized-mesh",
+  url: "https://terrain.reearth.land/cesium-mesh/ellipsoid/{z}/{x}/{y}.terrain",
+  requestVertexNormals: true,
+  requestWaterMask: true,
+  maxZoom: 18,
 });
 view.addLayer({
-  type: "vector",
-  source: waterSource,
-  sourceLayers: ["waterarea"], // Use only the water area layer
-  polygon: {
-    color: new Color().setStyle("#001e0f"),
-    reflectivity: 0.2,    // Reflectivity
-    clampToGround: true,  // Clamp to terrain
-    water: true,          // Enable water surface material
-  },
+  type: "terrain",
+  source: terrainSource,
+  terrain: { castShadow: true, receiveShadow: true },
 });
 
-view.atmosphere.date = new Date("2026-01-01T16:00:00+09:00"); // January 1, 16:00 JST
-view.setCamera({ lng: 140.0372145462, lat: 35.6059411903, height: 3880, heading: -98.4184014976, pitch: -18.0000012192, roll: 0 });
+view.atmosphere.date = new Date("2026-01-01T16:15:00+09:00");
+view.toneMappingExposure = 12;
+
+view.setCamera({ lng: 139.88, lat: 35.42, height: 2800, heading: 250, pitch: -16, roll: 0 });
 ```
 
 ![Result](@assets/tutorial/realistic-atmosphere-water.png)
+
+:::note[Water mask coverage]
+The mask marks open water (seas, lakes, and wide rivers) at tile resolution. Narrow inland water such as a castle moat may fall below that resolution and stay unmasked.
+:::
 
 ### Combining with SSR (Screen Space Reflections)
 
 Adding `SSREffectDesc` enables real-time reflections of buildings and other objects on the water surface.
 
 ```typescript
-// Add PLATEAU building models
 const plateauSource = view.addSource({
   // Credit:
-  // - 3D City Model (Project PLATEAU) Chiyoda Ward (FY2023) - MLIT PLATEAU
-  //   https://www.geospatial.jp/ckan/dataset/plateau-13101-chiyoda-ku-2023
+  // - 3D City Model (Project PLATEAU) Chuo Ward (FY2023) - MLIT PLATEAU
+  //   https://www.geospatial.jp/ckan/dataset/plateau-13102-chuo-ku-2023
   type: "3d-tiles",
-  url: "https://assets.cms.plateau.reearth.io/assets/db/070026-aa27-431b-8d53-7cc6b03244f8/13101_chiyoda-ku_pref_2023_citygml_1_op_bldg_3dtiles_13101_chiyoda-ku_lod2_no_texture/tileset.json",
+  url: "https://assets.cms.plateau.reearth.io/assets/4c/f2436a-e2be-40e2-83da-f1781f36e30b/13102_chuo-ku_pref_2023_citygml_1_op_bldg_3dtiles_13102_chuo-ku_lod2_no_texture/tileset.json",
 });
 view.addLayer({
   type: "3d-tiles",
@@ -256,25 +242,24 @@ view.addLayer({
     color: new Color().setStyle("#ffffff"),
     metalness: 0,
     roughness: 0.5,
-    height: -50, // Adjust ellipsoidal height
     castShadow: true,
     receiveShadow: true,
   },
 });
 
-// Add SSR effect
 view.addEffect<SSREffectDesc>({
   ssr: {},
 });
 
-view.atmosphere.date = new Date("2026-01-01T12:00:00+09:00"); // January 1, 12:00 JST
+view.toneMappingExposure = 6;
+view.atmosphere.date = new Date("2026-06-22T08:00:00+09:00");
 
 view.setCamera({
-  lng: 139.7511145474829,
-  lat: 35.67364356091717,
-  height: 902.0,
-  heading: 64.41840149763287,
-  pitch: -36.00000121921312,
+  lng: 139.7868,
+  lat: 35.6733,
+  height: 68,
+  heading: 240,
+  pitch: -10,
   roll: 0,
 });
 ```
@@ -283,10 +268,8 @@ view.setCamera({
 
 ## Complete Example
 
-Below is a complete example combining atmospheric effects, rain, and water surface materials.
-
 ```typescript
-import ThreeView, { Color, JAPAN_GSI_ELEVATION_DECODER } from "@navaramap/three";
+import ThreeView, { Color } from "@navaramap/three";
 import { type CloudsEffectDesc, type RainDropEffectDesc, type RainMeshDesc, type SnowMeshDesc, type SSREffectDesc, ToneMappingMode } from "@navaramap/three-default-descs";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
 
@@ -294,22 +277,19 @@ const plugin = new DefaultPlugin();
 const view = new ThreeView<DefaultDescriptions>({
   shadow: true,
   animation: true,
-  waterTexture: {
-    enabled: true
-  },
 });
 view.addPlugin(plugin);
 await view.init();
 
-// Set up a photorealistic scene in one call
 const layers = plugin.addDefaultPhotorealScene();
 
-// Adjust Aerial Perspective as needed
 layers.aerialPerspective.update({
   aerialPerspective: {
-    irradiance: true, // Deferred lighting (required for displaying cloud shadows)
+    irradiance: true,
   },
 });
+
+view.lit = false;
 
 const photoSource = view.addSource({
   // Credit:
@@ -317,7 +297,7 @@ const photoSource = view.addSource({
   //   https://maps.gsi.go.jp/development/ichiran.html
   type: "raster-tile",
   url: "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg",
-  maxZoom: 23,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "raster",
@@ -325,14 +305,11 @@ view.addLayer({
 });
 
 const terrainSource = view.addSource({
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  type: "raster-dem",
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
-  minZoom: 6,
-  maxZoom: 15,
+  type: "quantized-mesh",
+  url: "https://terrain.reearth.land/cesium-mesh/ellipsoid/{z}/{x}/{y}.terrain",
+  requestVertexNormals: true,
+  requestWaterMask: true,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "terrain",
@@ -343,76 +320,48 @@ view.addLayer({
   },
 });
 
-view.addLayer({
-  type: "raster",
-  source: terrainSource,
-  hillshade: {},
-});
+layers.sun.update({ sun: { castShadow: true } });
 
-layers.sun.update({ sun: { castShadow: true } }); // Cast shadows
-
-// Tone mapping
 layers.toneMapping.update({ toneMapping: { mode: ToneMappingMode.AGX } });
-view.toneMappingExposure = 10; // Adjust according to the scene
+view.toneMappingExposure = 6;
 
 const clouds = view.addEffect<CloudsEffectDesc>({
   clouds: {
-    qualityPreset: "high"
+    qualityPreset: "high",
+    lightShafts: true,
   },
 });
 
-// Enable cloud shadows
 clouds.update({ clouds: { shadows: true } });
 
 view.addMesh<RainMeshDesc>({
   rain: {
-    particleCount: 5000, // Number of raindrops
-    speed: 0.0015,             // Fall speed
-    opacity: 1.0,         // Opacity
-    width: 3,          // Raindrop width
-    height: 60.0,          // Raindrop length
-    areaWidth: 500,       // Rainfall area width (m)
-    areaHeight: 1000,      // Rainfall area height (m)
-    maxHeight: 10000,       // Maximum rainfall area height (m)
+    particleCount: 5000,
+    speed: 0.0015,
+    opacity: 1.0,
+    width: 3,
+    height: 60.0,
+    areaWidth: 500,
+    areaHeight: 1000,
+    maxHeight: 10000,
   },
 });
 
 view.addEffect<RainDropEffectDesc>({
   rainDrop: {
-    opacity: 0.8,           // Overall effect opacity
-    dropGridSize: 14,       // Water droplet grid size
-    dropDensity: 0.1,       // Water droplet density
-    dropSizeFactor: 0.025,  // Water droplet size factor
+    opacity: 0.8,
+    dropGridSize: 12,
+    dropDensity: 0.7,
+    dropSizeFactor: 0.018,
   },
 });
 
-// Add water area layer from GSI experimental vector tiles
-const waterSource = view.addSource({
-  // Credit: Geospatial Information Authority of Japan Vector Tile Experimental Service
-  // https://github.com/gsi-cyberjapan/gsimaps-vector-experiment
-  type: "vector-tile",
-  url: "https://cyberjapandata.gsi.go.jp/xyz/experimental_bvmap/{z}/{x}/{y}.pbf",
-  maxZoom: 16,
-});
-view.addLayer({
-  type: "vector",
-  source: waterSource,
-  sourceLayers: ["waterarea"], // Use only the water area layer
-  polygon: {
-    color: new Color().setStyle("#001e0f"),
-    reflectivity: 0.02,    // Reflectivity
-    clampToGround: true,  // Clamp to terrain
-    water: true,          // Enable water surface material
-  },
-});
-
-// Add PLATEAU building models
 const plateauSource = view.addSource({
   // Credit:
-  // - 3D City Model (Project PLATEAU) Chiyoda Ward (FY2023) - MLIT PLATEAU
-  //   https://www.geospatial.jp/ckan/dataset/plateau-13101-chiyoda-ku-2023
+  // - 3D City Model (Project PLATEAU) Chuo Ward (FY2023) - MLIT PLATEAU
+  //   https://www.geospatial.jp/ckan/dataset/plateau-13102-chuo-ku-2023
   type: "3d-tiles",
-  url: "https://assets.cms.plateau.reearth.io/assets/db/070026-aa27-431b-8d53-7cc6b03244f8/13101_chiyoda-ku_pref_2023_citygml_1_op_bldg_3dtiles_13101_chiyoda-ku_lod2_no_texture/tileset.json",
+  url: "https://assets.cms.plateau.reearth.io/assets/4c/f2436a-e2be-40e2-83da-f1781f36e30b/13102_chuo-ku_pref_2023_citygml_1_op_bldg_3dtiles_13102_chuo-ku_lod2_no_texture/tileset.json",
 });
 view.addLayer({
   type: "3d-tiles",
@@ -422,21 +371,20 @@ view.addLayer({
     color: new Color().setStyle("#ffffff"),
     metalness: 0,
     roughness: 0.5,
-    height: -50, // Adjust ellipsoidal height
     castShadow: true,
     receiveShadow: true,
   },
 });
 
-// Add SSR effect
 view.addEffect<SSREffectDesc>({
   ssr: {
   },
 });
 
-view.atmosphere.date = new Date("2026-01-01T16:00:00+09:00"); // January 1, 16:00 JST
+view.atmosphere.date = new Date("2026-01-01T16:15:00+09:00");
+view.toneMappingExposure = 12;
 
-view.setCamera({ lng: 140.0372145462, lat: 35.6059411903, height: 3880, heading: -98.4184014976, pitch: -18.0000012192, roll: 0 });
+view.setCamera({ lng: 139.88, lat: 35.42, height: 2800, heading: 250, pitch: -16, roll: 0 });
 ```
 
 :::tip[Tips for a Natural Look]

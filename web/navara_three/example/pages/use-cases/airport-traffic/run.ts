@@ -188,7 +188,7 @@ export async function run() {
 
   // Dash animation - moves from src to dest
   // Speed is proportional to distance - longer routes animate faster
-  const dashAnimFunc = () => {
+  view.on("preUpdate", () => {
     arcLines.forEach((arcLineDef) => {
       // Calculate speed based on distance (normalized and scaled)
       const baseSpeed = 5000;
@@ -200,9 +200,7 @@ export async function run() {
     });
 
     arcLineLayer.update({ arcLines });
-    requestAnimationFrame(dashAnimFunc);
-  };
-  dashAnimFunc();
+  });
 
   attribution?.add([
     LOCAL_DATASETS.blueMarbleNight,

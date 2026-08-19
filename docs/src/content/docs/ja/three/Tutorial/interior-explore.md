@@ -7,7 +7,7 @@ sidebar:
 
 ![実行結果](@assets/tutorial/model-animation.png)
 
-`@navaramap/three-plugins` の [PersonViewPlugin](../../../three_plugins/personviewplugin/) を使って、3D Tiles の建物内をキャラクター操作で探索する方法を学びます。キャラクター操作処理をプラグインを使用することで簡単に実装できます。
+`@navaramap/three-plugins` の [PersonViewPlugin](../../../three_plugins/personviewplugin/) を使って、3D Tiles の建物内をキャラクター操作で探索するアプリケーション開発を学びます。キャラクター操作処理をプラグインを使用することで簡単に実装できます。
 
 **このチュートリアルで学べること:**
 
@@ -17,12 +17,12 @@ sidebar:
 - 三人称視点と一人称視点を切り替える
 - シーン変更時にキャラクターをテレポートさせる
 
-## 基本のシーンをセットアップする
+## 基本シーンをセットアップする
 
-まずは建物探索用のシーンを構築します。影と背景色を設定した `ThreeView` を作成します。
+影は `ThreeView` の構築時に有効化する必要があります。`shadow` はコンストラクタで一度だけ読まれ、後から有効にはできません。
 
 ```typescript
-import ThreeView, { Color, JAPAN_GSI_ELEVATION_DECODER } from "@navaramap/three";
+import ThreeView, { Color } from "@navaramap/three";
 import {
   DefaultPlugin,
   type DefaultDescriptions,
@@ -37,16 +37,16 @@ const view = new ThreeView<DefaultDescriptions>({
 view.addPlugin(plugin);
 ```
 
-次に `view.init()` の前で `PersonViewPlugin` を登録します。
+`PersonViewPlugin` も他のプラグインと同様、`view.init()` の前に登録します。
 
 ## PersonViewPlugin を追加する
 
-プラグインがキャラクター（モデル・アニメーション・移動）とカメラの面倒を見てくれます。`minAlt` を負の値にすると地下にも降りられます。建物内に収まるよう、`cameraDistance` は小さめに設定します。
+プラグインがキャラクター（モデル・アニメーション・移動）とカメラを自動的に扱います。`minAlt` を負の値にすると地下にも降りられます。建物内に収まるよう、`cameraDistance` は小さめに設定します。
 
 ```typescript
 const startLat = 35.6341630282;
 const startLng = 139.7420527162;
-const startHeight = 23.0;
+const startHeight = 59.05;
 const startHeading = Math.PI * 1.6;
 
 const personView = new PersonViewPlugin({
@@ -67,7 +67,8 @@ const personView = new PersonViewPlugin({
   moveSpeed: 5,
   altSpeed: 5,
   rotationSpeed: 2,
-  cameraDistance: 10,
+  cameraDistance: 8,
+  cameraPitch: 0.06,
   cameraLerpSpeed: 4,
   minAlt: -1000,
   maxAlt: 5000,
@@ -85,8 +86,12 @@ view.atmosphere.date.setHours(8);
 view.toneMappingExposure = 10;
 
 const layers = plugin.addDefaultPhotorealScene();
-layers.sun.update({ sun: { castShadow: true } });
+layers.sun.update({
+  sun: { castShadow: true, shadowFar: 1000, shadowLambda: 1 },
+});
 ```
+
+`sun.shadowFar` の既定値は 50km で、シャドウカスケードが広がりすぎて人物サイズの影は解像されません。`shadowFar`をキャラクターが歩く範囲まで寄せると、キャラクターの影が見えるようになります。
 
 :::note[モデルデータの準備]
 このチュートリアルでは Three.js 公式サンプルに含まれる `Soldier.glb` を使用します。[Three.js GitHub リポジトリ](https://github.com/mrdoob/three.js/tree/dev/examples/models/gltf/Soldier.glb) からダウンロードしてください。アニメーション付きの GLTF モデルであれば任意のものを使えます。その場合は `idleClip`、`walkClip`、 `dashClip` をモデルが持つクリップ名に合わせて変更してください。
@@ -98,14 +103,10 @@ layers.sun.update({ sun: { castShadow: true } });
 
 ```typescript
 const terrainSource = view.addSource({
-  type: "raster-dem",
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
-  minZoom: 6,
-  maxZoom: 15,
+  type: "quantized-mesh",
+  url: "https://terrain.reearth.land/cesium-mesh/ellipsoid/{z}/{x}/{y}.terrain",
+  requestVertexNormals: true,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "terrain",
@@ -115,22 +116,6 @@ view.addLayer({
     receiveShadow: true,
     skirt: false,
   },
-});
-
-const hillshadeSource = view.addSource({
-  type: "raster-dem",
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
-  minZoom: 6,
-  maxZoom: 15,
-});
-view.addLayer({
-  type: "raster",
-  source: hillshadeSource,
-  hillshade: {},
 });
 
 const photoSource = view.addSource({
@@ -166,18 +151,17 @@ view.addLayer({
     show: true,
     castShadow: true,
     receiveShadow: true,
-    height: -35, // Ellipsoidal height adjustment
   },
 });
 ```
 
-:::note[楕円体高の調整について]
-3D Tiles モデルは楕円体高（WGS84）を基準に配置されることがあります。日本では楕円体高とジオイド高の差があるため、`height` プロパティで調整が必要な場合があります。
+:::note[高さはすべて楕円体高]
+ここで使用している quantized-mesh 地形は WGS84 楕円体を基準に配信されており、3D Tiles も同じ基準です。他の地形データを使用する場合は、その基準の高さにモデルを合わせる必要があります。
 :::
 
 ## プラグインを開始する
 
-シーンの設定が終わったらプラグインを開始します。これで GLTF モデルがロードされ、毎フレームの更新ループが走り始めます。
+これで GLTF モデルがロードされ、キャラクターとカメラを駆動する毎フレームの更新ループが走り始めます。
 
 ```typescript
 personView.start();
@@ -217,17 +201,17 @@ unsubscribe();
 `teleport({ lng, lat, alt, heading? })` を使うと、メニューから別の建物を選んだ時などにキャラクターを瞬時に移動させられます。その場で向きだけを変えるには `setHeading()` を、カメラのピッチを調整するには `setCameraPitch()` / `setFpvPitch()` を使用します。
 
 ```typescript
-personView.teleport({ lng: 139.7397, lat: 35.6352, alt: 45 });
+personView.teleport({ lng: 139.7397, lat: 35.6352, alt: 84 });
 ```
 
 追従カメラも新しい位置にスナップし、状態リスナーが新しい位置で 1 回発火します。
 
 ## 完全な例
 
-3D Tiles 建物と組み合わせた完全な例です。入力・キャラクター・アニメーション・カメラをすべてプラグインが担うため、アプリ側のコードは短く保てます。
+入力・キャラクター・アニメーション・カメラをすべてプラグインが担うため、アプリ側のコードは短く保てます。
 
 ```typescript
-import ThreeView, { Color, JAPAN_GSI_ELEVATION_DECODER } from "@navaramap/three";
+import ThreeView, { Color } from "@navaramap/three";
 import {
   DefaultPlugin,
   type DefaultDescriptions,
@@ -242,7 +226,7 @@ const view = new ThreeView<DefaultDescriptions>({
 
 const startLat = 35.6341630282;
 const startLng = 139.7420527162;
-const startHeight = 23.0;
+const startHeight = 59.05;
 const startHeading = Math.PI * 1.6;
 
 const personView = new PersonViewPlugin({
@@ -263,7 +247,8 @@ const personView = new PersonViewPlugin({
   moveSpeed: 5,
   altSpeed: 5,
   rotationSpeed: 2,
-  cameraDistance: 10,
+  cameraDistance: 8,
+  cameraPitch: 0.06,
   cameraLerpSpeed: 4,
   minAlt: -1000,
   maxAlt: 5000,
@@ -282,17 +267,15 @@ view.atmosphere.date.setHours(8);
 view.toneMappingExposure = 10;
 
 const layers = plugin.addDefaultPhotorealScene();
-layers.sun.update({ sun: { castShadow: true } });
+layers.sun.update({
+  sun: { castShadow: true, shadowFar: 1000, shadowLambda: 1 },
+});
 
 const terrainSource = view.addSource({
-  type: "raster-dem",
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
-  minZoom: 6,
-  maxZoom: 15,
+  type: "quantized-mesh",
+  url: "https://terrain.reearth.land/cesium-mesh/ellipsoid/{z}/{x}/{y}.terrain",
+  requestVertexNormals: true,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "terrain",
@@ -302,22 +285,6 @@ view.addLayer({
     receiveShadow: true,
     skirt: false,
   },
-});
-
-const hillshadeSource = view.addSource({
-  type: "raster-dem",
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
-  minZoom: 6,
-  maxZoom: 15,
-});
-view.addLayer({
-  type: "raster",
-  source: hillshadeSource,
-  hillshade: {},
 });
 
 const photoSource = view.addSource({
@@ -347,7 +314,6 @@ view.addLayer({
     show: true,
     castShadow: true,
     receiveShadow: true,
-    height: -35,
   },
 });
 

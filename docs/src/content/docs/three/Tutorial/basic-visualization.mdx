@@ -7,8 +7,6 @@ sidebar:
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-This tutorial explains the basic methods for displaying maps using navara_three.
-
 ## Setup
 
 This tutorial assumes a TypeScript project with a bundler such as [Vite](https://vite.dev/). Install the Navara packages and their peer dependencies:
@@ -18,7 +16,7 @@ This tutorial assumes a TypeScript project with a bundler such as [Vite](https:/
 <TabItem label="npm">
 
 ```bash
-npm install @navaramap/three @navaramap/three-default-plugin three postprocessing
+npm install @navaramap/three @navaramap/three-default-plugin @navaramap/three-plugins three postprocessing
 ```
 
 </TabItem>
@@ -26,7 +24,7 @@ npm install @navaramap/three @navaramap/three-default-plugin three postprocessin
 <TabItem label="yarn">
 
 ```bash
-yarn add @navaramap/three @navaramap/three-default-plugin three postprocessing
+yarn add @navaramap/three @navaramap/three-default-plugin @navaramap/three-plugins three postprocessing
 ```
 
 </TabItem>
@@ -34,7 +32,7 @@ yarn add @navaramap/three @navaramap/three-default-plugin three postprocessing
 <TabItem label="pnpm">
 
 ```bash
-pnpm add @navaramap/three @navaramap/three-default-plugin three postprocessing
+pnpm add @navaramap/three @navaramap/three-default-plugin @navaramap/three-plugins three postprocessing
 ```
 
 </TabItem>
@@ -66,38 +64,38 @@ Next, create `src/main.ts` with the following content:
 ```typescript
 import ThreeView from "@navaramap/three";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
+import { TileJsonPlugin } from "@navaramap/three-plugins";
 
-// Create a ThreeView instance
 const plugin = new DefaultPlugin();
 const view = new ThreeView<DefaultDescriptions>({});
 view.addPlugin(plugin);
+
+const tilejson = new TileJsonPlugin();
+view.addPlugin(tilejson);
+
 await view.init();
 ```
 
-By adding `DefaultPlugin`, the default descriptors for meshes, effects, and lights become available.
+`view.init()` builds the 3D scene and camera, and plugins can only be registered **before** it, and `addPlugin()` throws afterwards. Registering `DefaultPlugin` is what makes built-in Descriptors such as `ambient` valid in the next step.
 
 Add the following code to `main.ts`:
 
 ```typescript
-// Add basic ambient light
 view.addLight({
   ambient: {},
 });
 
-// Add OpenStreetMap tile layer
-const osmSource = view.addSource({
+const basemapSource = await tilejson.addSource({
   type: "raster-tile",
-  // Credit:
-  // - © OpenStreetMap contributors
-  //   https://www.openstreetmap.org/copyright
-  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  maxZoom: 23,
+  url: "https://papers.reearth.land/styles/protomaps-light/tilejson.json",
 });
 view.addLayer({
   type: "raster",
-  source: osmSource,
+  source: basemapSource,
 });
 ```
+
+Ambient light alone is all a raster basemap needs. The basemap comes from a [Re:Earth Papers](https://papers.reearth.land) TileJSON document. `TileJsonPlugin.addSource()` fetches it and derives the tile URL template, zoom range, and attribution. See [TileJsonPlugin](../../../three_plugins/tilejsonplugin/) for the full mapping.
 
 ### Result
 
@@ -105,82 +103,37 @@ A base map will be displayed on the globe in the scene.
 
 ![Basic Map](@assets/tutorial/basemap.png)
 
-### Code Explanation
-
-**Initializing ThreeView**
-
-```typescript
-const plugin = new DefaultPlugin();
-const view = new ThreeView<DefaultDescriptions>({});
-view.addPlugin(plugin);
-await view.init();
-```
-
-Create a `ThreeView` instance, register default descriptors with `DefaultPlugin`, and then initialize. This sets up the 3D scene and camera.
-
-**Adding Light**
-
-```typescript
-view.addLight({
-  ambient: {},
-});
-```
-
-Add basic ambient light to illuminate the scene.
-
-**Adding a Raster Layer**
-
-```typescript
-const osmSource = view.addSource({
-  type: "raster-tile",
-  // Credit:
-  // - © OpenStreetMap contributors
-  //   https://www.openstreetmap.org/copyright
-  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  maxZoom: 23,
-});
-view.addLayer({
-  type: "raster",
-  source: osmSource,
-});
-```
-
-Add a map layer using OpenStreetMap raster tiles.
-
 ### Complete Code
 
 ```typescript
 import ThreeView from "@navaramap/three";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
+import { TileJsonPlugin } from "@navaramap/three-plugins";
 
-// Create a ThreeView instance
 const plugin = new DefaultPlugin();
 const view = new ThreeView<DefaultDescriptions>({});
 view.addPlugin(plugin);
+
+const tilejson = new TileJsonPlugin();
+view.addPlugin(tilejson);
+
 await view.init();
 
 view.addLight({
   ambient: {},
 });
 
-// Add OpenStreetMap tile layer
-const osmSource = view.addSource({
+const basemapSource = await tilejson.addSource({
   type: "raster-tile",
-  // Credit:
-  // - © OpenStreetMap contributors
-  //   https://www.openstreetmap.org/copyright
-  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  maxZoom: 23,
+  url: "https://papers.reearth.land/styles/protomaps-light/tilejson.json",
 });
 view.addLayer({
   type: "raster",
-  source: osmSource,
+  source: basemapSource,
 });
 ```
 
 ## Setting the Camera Position
-
-### Set the Camera Position
 
 To display the map at a specific location, set the camera position. Add the following to `main.ts`:
 
@@ -195,44 +148,41 @@ view.setCamera({
 });
 ```
 
+For the full parameter list, see [ThreeView Functions](../../../three/api/threeview-functions/).
+
 ### Result
 
 The camera position is set to the area around Tokyo.
 
 ![Camera Map](@assets/tutorial/camera.png)
 
-### Code Explanation
-
-You can set the camera position and orientation using the `view.setCamera()` method. For details on the parameters, see [ThreeView Functions](../../../three/api/threeview-functions/).
-
 ### Complete Code
 
 ```typescript
 import ThreeView from "@navaramap/three";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
+import { TileJsonPlugin } from "@navaramap/three-plugins";
 
-// Create a ThreeView instance
 const plugin = new DefaultPlugin();
 const view = new ThreeView<DefaultDescriptions>({});
 view.addPlugin(plugin);
+
+const tilejson = new TileJsonPlugin();
+view.addPlugin(tilejson);
+
 await view.init();
 
 view.addLight({
   ambient: {},
 });
 
-// Add OpenStreetMap tile layer
-const osmSource = view.addSource({
+const basemapSource = await tilejson.addSource({
   type: "raster-tile",
-  // Credit:
-  // - © OpenStreetMap contributors
-  //   https://www.openstreetmap.org/copyright
-  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  maxZoom: 23,
+  url: "https://papers.reearth.land/styles/protomaps-light/tilejson.json",
 });
 view.addLayer({
   type: "raster",
-  source: osmSource,
+  source: basemapSource,
 });
 
 view.setCamera({
@@ -247,47 +197,35 @@ view.setCamera({
 
 ## Displaying Terrain
 
-In this tutorial, you will learn how to add terrain data to the map created in the previous step.
-
 ### Adding a Terrain Layer
 
-Add a terrain layer to `src/main.ts`.
-
-First, import JAPAN_GSI_ELEVATION_DECODER to decode the terrain tiles.
-
-```typescript
-import ThreeView, { JAPAN_GSI_ELEVATION_DECODER } from "@navaramap/three";
-```
+Terrain comes from a `quantized-mesh` source: pre-meshed tiles that carry their own geometry, so there is no elevation encoding to decode. Requesting per-vertex normals lets the mesh be lit directly, which removes the need for a separate hillshade layer.
 
 Add the terrain layer **before** the raster tile layer (layers are rendered in the order they are added):
 
 ```typescript
-// Add terrain layer
-const demSource = view.addSource({
-  type: "raster-dem",
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  minZoom: 6,
-  maxZoom: 15,
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
+const terrainSource = view.addSource({
+  type: "quantized-mesh",
+  url: "https://terrain.reearth.land/cesium-mesh/ellipsoid/{z}/{x}/{y}.terrain",
+  requestVertexNormals: true,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "terrain",
-  source: demSource,
+  source: terrainSource,
   terrain: {
     castShadow: true,
     receiveShadow: true,
   },
 });
-
-view.addLayer({
-  type: "raster",
-  source: demSource,
-  hillshade: {},
-});
 ```
+
+The data is the global quantized-mesh dataset published by [Re:Earth Terrain](https://terrain.reearth.land/).
+
+- `requestVertexNormals` asks the server for vertex normals, which let the scene lighting shade the terrain. Add a `sun` light when you request them.
+- Fetch settings such as `maxZoom` live on the source; `terrain` holds only how the mesh is rendered (shadows, skirts).
+
+For details, see [Terrain Layer](../../../three/layer/terrain-layer/).
 
 ### Result
 
@@ -295,94 +233,48 @@ When you tilt the map, you can see the terrain relief.
 
 ![Terrain Map](@assets/tutorial/terrain.png)
 
-### Code Explanation
-
-**Terrain Data Source**
-
-```typescript
-// Credit:
-// - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-//   https://maps.gsi.go.jp/development/ichiran.html
-url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-```
-
-Here we use the elevation tiles from the Geospatial Information Authority of Japan.
-
-**Terrain Settings**
-
-```typescript
-source: view.addSource({
-  type: "raster-dem",
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  minZoom: 6,
-  maxZoom: 15,
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
-}),
-terrain: {
-  castShadow: true,
-  receiveShadow: true,
-},
-```
-
-- The maximum zoom level, minimum zoom level, and shadows for terrain tiles are configured here.
-- The elevationDecoder decodes the terrain data.
-
-For details, see [Terrain Layer](../../../three/layer/terrain-layer/).
-
 ### Complete Code
 
 ```typescript
-import ThreeView, { JAPAN_GSI_ELEVATION_DECODER } from "@navaramap/three";
+import ThreeView from "@navaramap/three";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
+import { TileJsonPlugin } from "@navaramap/three-plugins";
 
-// Create a ThreeView instance
 const plugin = new DefaultPlugin();
 const view = new ThreeView<DefaultDescriptions>({});
 view.addPlugin(plugin);
+
+const tilejson = new TileJsonPlugin();
+view.addPlugin(tilejson);
+
 await view.init();
 
 view.addLight({
   ambient: {},
 });
 
-// Add terrain layer
-const demSource = view.addSource({
-  type: "raster-dem",
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  minZoom: 6,
-  maxZoom: 15,
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
+const terrainSource = view.addSource({
+  type: "quantized-mesh",
+  url: "https://terrain.reearth.land/cesium-mesh/ellipsoid/{z}/{x}/{y}.terrain",
+  requestVertexNormals: true,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "terrain",
-  source: demSource,
+  source: terrainSource,
   terrain: {
     castShadow: true,
     receiveShadow: true,
   },
 });
 
-view.addLayer({
-  type: "raster",
-  source: demSource,
-  hillshade: {},
-});
-
-// Add OpenStreetMap tile layer
-const osmSource = view.addSource({
+const basemapSource = await tilejson.addSource({
   type: "raster-tile",
-  // Credit:
-  // - © OpenStreetMap contributors
-  //   https://www.openstreetmap.org/copyright
-  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  maxZoom: 23,
+  url: "https://papers.reearth.land/styles/protomaps-light/tilejson.json",
 });
 view.addLayer({
   type: "raster",
-  source: osmSource,
+  source: basemapSource,
 });
 
 view.setCamera({
@@ -397,14 +289,9 @@ view.setCamera({
 
 ## Displaying GeoJSON Data
 
-In this tutorial, you will learn how to display polygons on the map using GeoJSON data.
-
 ### Adding a GeoJSON Layer
 
-Add a GeoJSON layer to `src/main.ts`.
-
 ```typescript
-// Display polygon data
 const geojsonSource = view.addSource({
   type: "geojson",
   data: {
@@ -428,13 +315,15 @@ view.addLayer({
   type: "vector",
   source: geojsonSource,
   polygon: {
-    color: new Color().setHex(0x00ff00),
+    color: new Color().setHex(0xff3b30),
     height: 0,
-    opacity: 0.5,
+    opacity: 0.75,
     transparent: true,
   },
 });
 ```
+
+Register the GeoJSON as a source with `view.addSource({ type: "geojson", ... })`, then draw it with `view.addLayer({ type: "vector", source, ... })`. The `polygon` material carries the styling such as colour, height, and transparency. For details, see [Vector Layer](../../../three/layer/vector-layer/).
 
 ### Result
 
@@ -442,68 +331,50 @@ A polygon is displayed on the map.
 
 ![GeoJSON Map](@assets/tutorial/geojson.png)
 
-### Code Explanation
-
-Register the GeoJSON data as a source with `view.addSource({ type: "geojson", ... })`, then render it with `view.addLayer({ type: "vector", source, ... })`. You can also configure polygon styling (color, height, transparency, etc.) via the `polygon` material.
-
-For details, see [Vector Layer](../../../three/layer/vector-layer/).
-
 ### Complete Code
 
-A complete example combining everything:
-
 ```typescript
-import ThreeView, { Color, JAPAN_GSI_ELEVATION_DECODER } from "@navaramap/three";
+import ThreeView, { Color } from "@navaramap/three";
 import { DefaultPlugin, type DefaultDescriptions } from "@navaramap/three-default-plugin";
+import { TileJsonPlugin } from "@navaramap/three-plugins";
 
 const plugin = new DefaultPlugin();
 const view = new ThreeView<DefaultDescriptions>({});
 view.addPlugin(plugin);
+
+const tilejson = new TileJsonPlugin();
+view.addPlugin(tilejson);
+
 await view.init();
 
 view.addLight({
   ambient: {},
 });
 
-const demSource = view.addSource({
-  type: "raster-dem",
-  // Credit:
-  // - Geospatial Information Authority of Japan Tiles - Digital Elevation Map
-  //   https://maps.gsi.go.jp/development/ichiran.html
-  url: "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
-  minZoom: 6,
-  maxZoom: 15,
-  elevationDecoder: JAPAN_GSI_ELEVATION_DECODER(),
+const terrainSource = view.addSource({
+  type: "quantized-mesh",
+  url: "https://terrain.reearth.land/cesium-mesh/ellipsoid/{z}/{x}/{y}.terrain",
+  requestVertexNormals: true,
+  maxZoom: 18,
 });
 view.addLayer({
   type: "terrain",
-  source: demSource,
+  source: terrainSource,
   terrain: {
     castShadow: true,
     receiveShadow: true,
   },
 });
 
-view.addLayer({
-  type: "raster",
-  source: demSource,
-  hillshade: {},
-});
-
-const osmSource = view.addSource({
+const basemapSource = await tilejson.addSource({
   type: "raster-tile",
-  // Credit:
-  // - © OpenStreetMap contributors
-  //   https://www.openstreetmap.org/copyright
-  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  maxZoom: 23,
+  url: "https://papers.reearth.land/styles/protomaps-light/tilejson.json",
 });
 view.addLayer({
   type: "raster",
-  source: osmSource,
+  source: basemapSource,
 });
 
-// Polygon (area)
 const geojsonSource = view.addSource({
   type: "geojson",
   data: {
@@ -527,9 +398,9 @@ view.addLayer({
   type: "vector",
   source: geojsonSource,
   polygon: {
-    color: new Color().setHex(0x00ff00),
+    color: new Color().setHex(0xff3b30),
     height: 0,
-    opacity: 0.5,
+    opacity: 0.75,
     transparent: true,
   },
 });
