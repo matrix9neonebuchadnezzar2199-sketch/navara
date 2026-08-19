@@ -7,7 +7,7 @@ sidebar:
 
 ## Headless Architecture
 
-Navara is a headless 3D globe map engine. Its GIS core is written in Rust and compiled to WebAssembly, deliberately separated from any specific rendering technology. Currently, Navara provides a Three.js-based rendering backend (`@navaramap/three`), but the engine is designed so that other rendering engines — and even native platforms — can be supported in the future.
+Navara is a headless 3D map engine. Its GIS core is written in Rust and compiled to WebAssembly, deliberately separated from any specific rendering technology. Currently, Navara provides a Three.js-based rendering backend (`@navaramap/three`), but the engine is designed so that other rendering engines — and even native platforms — can be supported in the future.
 
 ```mermaid
 graph TD

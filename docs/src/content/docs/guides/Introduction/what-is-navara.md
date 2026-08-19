@@ -1,13 +1,13 @@
 ---
 title: What is Navara?
-description: Overview of Navara, a highly extensible, general-purpose 3D globe map engine.
+description: Overview of Navara, a highly extensible, general-purpose 3D map engine.
 sidebar:
   order: 1
 ---
 
 ## What is Navara?
 
-Web map engines have long forced a choice: engines with polished declarative APIs are easy to adopt but hard to extend beyond their built-in features, while engines that expose deep low-level control are powerful but demand steep expertise — and fully 3D globe applications usually leave no option but the latter. Navara is a highly extensible, general-purpose 3D globe map engine built to remove that trade-off. It streams real-world geospatial data — satellite imagery, terrain, 3D city models, and vector data — onto an interactive globe, and lets you present it the way your application needs: as a clean basemap for data visualization, styled per feature by attributes, or as a photorealistic scene with atmosphere, sunlight, and shadows.
+Web map engines have long forced a choice: engines with polished declarative APIs are easy to adopt but hard to extend beyond their built-in features, while engines that expose deep low-level control are powerful but demand steep expertise — and fully 3D globe applications usually leave no option but the latter. Navara is a highly extensible, general-purpose 3D map engine built to remove that trade-off. It streams real-world geospatial data — satellite imagery, terrain, 3D city models, and vector data — onto an interactive globe, and lets you present it the way your application needs: as a clean basemap for data visualization, styled per feature by attributes, or as a photorealistic scene with atmosphere, sunlight, and shadows.
 
 You use Navara through a library that wraps a rendering engine such as Three.js (e.g. `@navaramap/three`). All geospatial computation runs in a Rust/WASM GIS engine spread across Web Workers, so the map stays responsive even with large datasets. If you are curious how the pieces fit together, see [How Navara Works](../how-navara-works/).
 

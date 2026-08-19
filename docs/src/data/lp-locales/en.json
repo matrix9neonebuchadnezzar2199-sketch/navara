@@ -3,7 +3,7 @@
   "short": "EN",
   "htmlLang": "en",
   "meta": {
-    "title": "Navara – an open-source 3D globe map engine",
+    "title": "Navara – an open-source 3D map engine",
     "description": "Navara is a highly extensible 3D map engine. Load GIS data - satellite imagery, terrain, 3D city models, and vector data - and layer your own visualizations on top: declaratively, with plugins, or by implementing custom representations for your application's needs."
   },
   "nav": {
