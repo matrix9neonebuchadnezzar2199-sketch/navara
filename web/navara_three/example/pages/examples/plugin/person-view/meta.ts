@@ -2,7 +2,7 @@ import type { ExampleMeta } from "../../sections";
 
 export default {
   section: "interaction",
-  order: 2,
+  order: 6,
   title: { en: "Person view control", ja: "一人称操作" },
   description: {
     en: "Walk a character up the mountain in first- or third-person view, following the terrain surface.",

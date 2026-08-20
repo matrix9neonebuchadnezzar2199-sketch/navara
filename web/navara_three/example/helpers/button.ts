@@ -14,6 +14,7 @@ const BUTTON_BAR_CLASS = "example-button-bar";
 const BUTTON_CLASS = "example-button";
 const SLIDER_CLASS = "example-slider";
 const SWITCH_CLASS = "example-switch";
+const READOUT_CLASS = "example-readout";
 
 const BUTTON_CSS = `
 .${BUTTON_BAR_CLASS} {
@@ -93,6 +94,22 @@ const BUTTON_CSS = `
   background: #0091ff;
   cursor: default;
 }
+.${READOUT_CLASS} {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+  border: 1px solid #d4d7da;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.${READOUT_CLASS} .value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
 `;
 
 let buttonBar: HTMLDivElement | undefined;
@@ -160,6 +177,30 @@ export const addSwitch = (
   const bar = ensureButtonBar();
   bar.classList.toggle(`${BUTTON_BAR_CLASS}--right`, options.align === "right");
   bar.appendChild(wrapper);
+};
+
+/**
+ * Appends a labeled read-only value chip to the shared button bar and returns
+ * the value element. The example reflects state by assigning `textContent` to
+ * the returned element, so no formatting or DOM wiring leaks into main.ts.
+ */
+export const addReadout = (
+  label: string,
+  initialValue = "—",
+): HTMLSpanElement => {
+  const wrapper = document.createElement("div");
+  wrapper.className = READOUT_CLASS;
+
+  const name = document.createElement("span");
+  name.textContent = label;
+
+  const value = document.createElement("span");
+  value.className = "value";
+  value.textContent = initialValue;
+
+  wrapper.append(name, value);
+  ensureButtonBar().appendChild(wrapper);
+  return value;
 };
 
 /**
