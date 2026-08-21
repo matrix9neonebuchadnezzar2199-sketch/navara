@@ -36,14 +36,14 @@ layer.on("featureUpdated", ({ evaluator }) => {
 view.on("pick", (info) => info?.properties?.["gml:name"]);   // requires picking: true (default)
 const ecef = view.pickTerrainPosition(x, y);                  // terrain only
 const ecef2 = view.pickDepthPosition(x, y);                   // anything in the depth buffer
-const h = view.sampleTerrainHeight({ lat, lng, height: 0 });  // RADIANS in; height required by the type, ignored at runtime
+const h = view.sampleTerrainHeight({ lat, lng });             // RADIANS in
 const unobserve = view.observeTerrainHeightAt({ lat, lng }, (height) => { ... });
 const [g] = await view.sampleTerrainMostDetailed(terrainSource, [{ lat, lng }]); // fetches max-LOD tiles; g.height / g.level
 ```
 
 **Which terrain-height API:** `sampleTerrainHeight` reads only tiles already resident for rendering — from a distant camera it returns a coarse-LOD height (e.g. ~77 m off at z≈6) or `undefined`, and `observeTerrainHeightAt` fires only while tiles are (re)meshing (never on a static camera). For placing objects on the ground, use `await view.sampleTerrainMostDetailed(source, positions)` where `source` is the registered terrain source's handle or id (always explicit — there is no implicit "the view's terrain source"): it fetches the source's most detailed tiles over the network, independent of the camera. `height` is `undefined` on fetch failure; 401/403 rejects (bad token).
 
-Mouse events (`click`, `mousemove`, …) deliver `MapMouseEvent` with `.clientX/Y` and `.map` (ECEF coords). The `idle` event fires after `idleThreshold` ms without tile/data activity.
+Mouse events (`click`, `mousemove`, …) deliver `MapMouseEvent` with `.clientX/Y` and `.map` (ECEF coords). The `idle` event fires after `idleThreshold` ms without tile/data activity. `.map` does not follow the rendered terrain surface — from a tilted camera, clicks on ridgelines/slopes land wrong or not at all; for click-to-place on terrain use `view.pickTerrainPosition(event.clientX, event.clientY)` (returns `null` past the globe) and `vector3ToGeodetic` the result.
 
 ## Geodetic / ECEF math (exported from `@navaramap/three`; standalone in `@navaramap/three-api`)
 
@@ -76,6 +76,8 @@ view.addMesh<BoxMeshDesc>({
 const geodesic = new EllipsoidGeodesic(startLLE, endLLE);
 geodesic.distance; geodesic.interpolatePoints(64);
 ```
+
+Type note: `getPickRay` returns and `getRayPlaneIntersection` accepts the **Three.js** `Ray` (`import { type Ray } from "three"`), not the `Ray` type re-exported from `@navaramap/three` (a WASM-shaped type with `getPoint`) — annotating with the wrong one type-checks the other way around and fails.
 
 Pick the tangent-frame function by the axis orientation your mesh expects — all take an ECEF origin `Vector3` and return a `Matrix4`, all exported from `@navaramap/three`:
 
