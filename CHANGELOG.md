@@ -1,3 +1,23 @@
+## v0.0.7 - 2026-08-21
+
+### 🚀 Features
+
+- Add sampleTerrainMostDetailed (#774)
+
+### 🐛 Bug Fixes
+
+- Improve polygon outline jitter (#768)
+- SSR and FogLight order (#769)
+- Bump Overture tiles URL release (#770)
+- Mvt text flicker (#771)
+- Text material flicker (#772)
+- Lazy font face fetch (#773)
+- Improve pickTerrainPosition precision (#775)
+- Remove height from sampleTerrainHeight arg (#776)
+- Shadow error and horizon culling for polyline (#777)
+- Tiled geojson deletion (#778)
+- Tiled polygon and polyline on the geodesic path (#779)
+
 ## v0.0.6 - 2026-08-17
 
 ### 🚀 Features
