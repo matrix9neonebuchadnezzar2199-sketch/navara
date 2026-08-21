@@ -10,6 +10,11 @@ pub struct EllipsoidGeodesic {
     pub distance: f64,
     pub start_heading: f64,
     pub end_heading: f64,
+    /// Whether Vincenty's inverse iteration converged. `false` for
+    /// near-antipodal endpoints (or NaN input), where `distance` is only a
+    /// rough estimate and interpolation would follow an incorrect route, so
+    /// callers must not interpolate along a non-converged geodesic.
+    pub converged: bool,
     pub constants: VincentyDirectFormulaConstants,
 }
 
@@ -31,6 +36,7 @@ impl EllipsoidGeodesic {
             distance: inverse_formula_result.distance,
             start_heading: inverse_formula_result.start_heading,
             end_heading: inverse_formula_result.end_heading,
+            converged: inverse_formula_result.converged,
         }
     }
 
@@ -40,6 +46,7 @@ impl EllipsoidGeodesic {
         distance: f64,
         start_heading: f64,
         end_heading: f64,
+        converged: bool,
         constants: VincentyDirectFormulaConstants,
     ) -> Self {
         Self {
@@ -48,6 +55,7 @@ impl EllipsoidGeodesic {
             distance,
             start_heading,
             end_heading,
+            converged,
             constants,
         }
     }
@@ -134,6 +142,7 @@ struct VincentyInverseFormulaResult {
     end_heading: f64,
     u_squared: f64,
     eff: f64,
+    converged: bool,
 }
 
 // Ref: https://en.wikipedia.org/wiki/Vincenty%27s_formulae#Inverse%20problem:~:text=and%20the%20equator-,Inverse%20problem,-%5Bedit%5D
@@ -171,7 +180,14 @@ fn vincenty_inverse_formula(
     let mut cosine_squared_alpha: f64;
     let mut cosine_twice_sigma_midpoint: f64;
 
-    loop {
+    // Vincenty's inverse method oscillates without converging for
+    // near-antipodal endpoints, and a NaN lambda can never satisfy the
+    // epsilon check, then the loop must be bounded or it hangs. Past the cap the
+    // last estimate is still a usable approximation of the geodesic.
+    const MAX_ITERATIONS: u32 = 200;
+    let mut iterations = 0;
+
+    let converged = loop {
         cosine_lambda = lambda.cos();
         sine_lambda = lambda.sin();
 
@@ -210,9 +226,14 @@ fn vincenty_inverse_formula(
         );
 
         if ((lambda - lambda_dot).abs()) <= EPSILON12 {
-            break;
+            break true;
         }
-    }
+
+        iterations += 1;
+        if iterations >= MAX_ITERATIONS || !lambda.is_finite() {
+            break false;
+        }
+    };
 
     let u_squared = (cosine_squared_alpha * (a * a - b * b)) / (b * b);
 
@@ -246,6 +267,7 @@ fn vincenty_inverse_formula(
         end_heading,
         u_squared,
         eff,
+        converged,
     }
 }
 
@@ -465,5 +487,51 @@ mod test {
         assert_abs_diff_eq!(start.lat.val(), first.lat.val(), epsilon = EPSILON7);
         assert_abs_diff_eq!(end.lng.val(), last.lng.val(), epsilon = EPSILON7);
         assert_abs_diff_eq!(end.lat.val(), last.lat.val(), epsilon = EPSILON7);
+    }
+
+    // Vincenty's inverse method oscillates without ever converging for this
+    // near-antipodal pair (verified far beyond 100k iterations on the
+    // unbounded loop); the iteration bound must terminate it with a finite
+    // estimate instead of hanging.
+    #[test]
+    fn it_terminates_for_near_antipodal_points() {
+        let start = LLE {
+            lng: Angle::new(0.),
+            lat: Angle::new(0.5_f64.to_radians()),
+            height: Meters::new(0.),
+        };
+        let end = LLE {
+            lng: Angle::new(179.8_f64.to_radians()),
+            lat: Angle::new((-0.4_f64).to_radians()),
+            height: Meters::new(0.),
+        };
+        let g = EllipsoidGeodesic::new(start, end, &WGS84_64);
+
+        assert!(!g.converged);
+        assert!(g.distance.is_finite());
+        // Roughly half the circumference; the capped estimate only needs to
+        // be in the right ballpark.
+        assert!(
+            g.distance > 19_000_000. && g.distance < 21_000_000.,
+            "got {}",
+            g.distance
+        );
+    }
+
+    #[test]
+    fn it_reports_convergence_for_regular_points() {
+        let start = LLE {
+            lng: Angle::new(0.),
+            lat: Angle::new(0.),
+            height: Meters::new(0.),
+        };
+        let end = LLE {
+            lng: Angle::new(PI / 2.),
+            lat: Angle::new(0.),
+            height: Meters::new(0.),
+        };
+        let g = EllipsoidGeodesic::new(start, end, &WGS84_64);
+
+        assert!(g.converged);
     }
 }
