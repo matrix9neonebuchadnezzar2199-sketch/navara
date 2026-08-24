@@ -104,6 +104,30 @@
       "src": "web/navara_three/example/public/screenshots/effect/fog-light.avif",
       "href": "https://navara-preview.reearth.workers.dev/effect/fog-light"
     },
+    "showcase-1": {
+      "src": "docs/src/assets/showcases/sumidagawa-hanabi-navara.avif",
+      "href": "https://eukarya-biz.github.io/sumidagawa-hanabi-navara/"
+    },
+    "showcase-2": {
+      "src": "docs/src/assets/showcases/navara-hw-mykyta.avif",
+      "href": "https://eukarya-biz.github.io/navara-hw-mykyta/"
+    },
+    "showcase-3": {
+      "src": "docs/src/assets/showcases/navara-study-bill.avif",
+      "href": "https://eukarya-biz.github.io/navara-study-bill/?empire=roman&goods=grain%2CwineOil%2Cgarum%2CsilkSpice%2Cmetals%2Cmarble%2CtextileDye"
+    },
+    "showcase-4": {
+      "src": "docs/src/assets/showcases/earthquake-pulse.avif",
+      "href": "https://eukarya-biz.github.io/earthquake-pulse/"
+    },
+    "showcase-5": {
+      "src": "docs/src/assets/showcases/toon-navara.avif",
+      "href": "https://eukarya-biz.github.io/toon-navara/"
+    },
+    "showcase-6": {
+      "src": "docs/src/assets/showcases/navara-hw-yamasaki.avif",
+      "href": "https://eukarya-biz.github.io/navara-hw-yamasaki/"
+    },
     "maplibre-logo": {
       "src": "docs/src/assets/lp/maplibre-logo.svg"
     },

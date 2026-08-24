@@ -93,12 +93,13 @@
     "eyebrow": "GALLERY",
     "h2": "一枚の絵として成立する GIS。",
     "tutorial": {
-      "label": "TUTORIALS",
-      "link": "もっと見る"
+      "label": "TUTORIALS"
     },
     "example": {
-      "label": "EXAMPLES",
-      "link": "もっと見る"
+      "label": "EXAMPLES"
+    },
+    "showcase": {
+      "label": "SHOWCASES"
     },
     "mediaAttributionLabel": "データの帰属表示"
   },
@@ -147,6 +148,12 @@
     "example-row4-center-left": "選択ブルーム",
     "example-row4-center-right": "ガウシアンスプラット",
     "example-row4-right": "フォグライト",
+    "showcase-1": "隅田川花火大会 3Dシミュレーション",
+    "showcase-2": "日本の季節前線",
+    "showcase-3": "Pax Atlas",
+    "showcase-4": "Earthquake Pulse",
+    "showcase-5": "Toon Navara",
+    "showcase-6": "新宿・子ども目線迷子体験 — 地下街",
     "maplibre-logo": "MapLibre ロゴ",
     "maplibre-visual": "MapLibre スタイルで描いた地図"
   }

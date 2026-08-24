@@ -93,12 +93,13 @@
     "eyebrow": "GALLERY",
     "h2": "GIS that stands as a picture.",
     "tutorial": {
-      "label": "TUTORIALS",
-      "link": "See more"
+      "label": "TUTORIALS"
     },
     "example": {
-      "label": "EXAMPLES",
-      "link": "See more"
+      "label": "EXAMPLES"
+    },
+    "showcase": {
+      "label": "SHOWCASES"
     },
     "mediaAttributionLabel": "Data attribution"
   },
@@ -147,6 +148,12 @@
     "example-row4-center-left": "Selective Bloom",
     "example-row4-center-right": "Gaussian Splat",
     "example-row4-right": "Fog Light",
+    "showcase-1": "Sumida River Fireworks — 3D Simulation",
+    "showcase-2": "Japan's Seasonal Fronts",
+    "showcase-3": "Pax Atlas",
+    "showcase-4": "Earthquake Pulse",
+    "showcase-5": "Toon Navara",
+    "showcase-6": "Shinjuku Underground — A Child's-Eye Maze",
     "maplibre-logo": "MapLibre logo",
     "maplibre-visual": "A map rendered with a MapLibre style"
   }
