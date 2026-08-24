@@ -515,7 +515,7 @@ type FlyToEasing =
   - `maxHeight`: 飛行アーク中の最大高度（メートル）
   - `easing`: 飛行時間に適用するイージングのプリセット。省略時は `"quinticInOut"`、高度 11,500m 超からの下降時は `"cubicOut"` が使用されます。
 
-**Returns:** `Promise<boolean>` — 飛行が完了すると `true`、中断されると `false`。
+**Returns:** `Promise<boolean>`。飛行が完了すると `true`、中断されると `false`。
 
 **Example:**
 
@@ -708,7 +708,7 @@ sampleTerrainMostDetailed(
 
 **Parameters:**
 
-- `source`: 登録済みの `quantized-mesh` / `raster-dem` ソース — `addSource` が返す `Source` ハンドル、またはその id
+- `source`: 登録済みの `quantized-mesh` / `raster-dem` ソース。`addSource` が返す `Source` ハンドル、またはその id
 - `positions`: サンプリングする測地位置の配列
   - `lat`: 緯度（ラジアン）
   - `lng`: 経度（ラジアン）
@@ -1205,7 +1205,7 @@ if (stats) {
 
 ### workerMemoryStats()
 
-ワーカー側メモリのスナップショットを返します。タイルワーカーごとの WASM ヒープ（プールのタスク後プローブによるポイントインタイムのサンプル — このメソッド呼び出しでも新しいプローブが要求され、その結果は*次回*の呼び出しに反映されます）と、フォントワーカーのヒープ / キャッシュ内訳を含みます。`init()` 前は `undefined` を返します。
+ワーカー側メモリのスナップショットを返します。タイルワーカーごとの WASM ヒープ（プールのタスク後プローブによるポイントインタイムのサンプル。このメソッド呼び出しでも新しいプローブが要求され、その結果は*次回*の呼び出しに反映されます）と、フォントワーカーのヒープ / キャッシュ内訳を含みます。`init()` 前は `undefined` を返します。
 
 **Syntax:**
 

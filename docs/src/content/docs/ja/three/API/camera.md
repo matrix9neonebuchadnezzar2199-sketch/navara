@@ -346,5 +346,5 @@ view.camera.once("moveend", () => {
 
 ## 関連項目
 
-- [ThreeView プロパティ](../../../three/api/threeview-properties/) — `view.camera` やその他のビュープロパティ
-- [ThreeView 関数](../../../three/api/threeview-functions/) — `setCamera()`、`flyTo()`、`lookAt()` などのカメラ移動メソッド
+- [ThreeView プロパティ](../../../three/api/threeview-properties/): `view.camera` やその他のビュープロパティ
+- [ThreeView 関数](../../../three/api/threeview-functions/): `setCamera()`、`flyTo()`、`lookAt()` などのカメラ移動メソッド

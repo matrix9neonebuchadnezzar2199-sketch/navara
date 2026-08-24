@@ -28,7 +28,7 @@ const camera = view.camera;
 
 The underlying Three.js `PerspectiveCamera`. Use this for **read-only** integration with Three.js APIs, such as reading the camera matrix or world position.
 
-Do not write to `raw.fov` (or other frustum fields) directly — the engine synchronizes `raw.fov` from its internal frustum state, so direct writes will be overwritten and can leave the Rust-side culling state out of sync. Use the `fov` setter instead.
+Do not write to `raw.fov` (or other frustum fields) directly: the engine synchronizes `raw.fov` from its internal frustum state, so direct writes will be overwritten and can leave the Rust-side culling state out of sync. Use the `fov` setter instead.
 
 **Example:**
 
@@ -105,9 +105,9 @@ console.log(`Heading: ${heading}°, Pitch: ${pitch}°, Roll: ${roll}°`);
 
 **Type:** `number | undefined` (getter) / `number` (setter)
 
-The vertical field of view in degrees; the horizontal extent follows from the viewport aspect ratio.
+The vertical field of view in degrees. The horizontal extent follows from the viewport aspect ratio.
 
-Setting accepts the range `1`–`180`; values outside this range are ignored. Reading returns `undefined` if the engine is not yet initialized.
+Setting accepts the range `1`–`180`. Values outside this range are ignored. Reading returns `undefined` if the engine is not yet initialized.
 
 **Example:**
 
@@ -163,7 +163,7 @@ view.camera.far = 1e9;
 
 **Type:** `CameraOptions` (setter)
 
-Configures the camera's interactive control behavior. All fields are optional; only the specified fields are updated.
+Configures the camera's interactive control behavior. All fields are optional. Only the specified fields are updated.
 
 ```typescript
 type CameraOptions = {
@@ -346,5 +346,5 @@ view.camera.once("moveend", () => {
 
 ## See Also
 
-- [ThreeView Properties](../../../three/api/threeview-properties/) — `view.camera` and other view properties
-- [ThreeView Functions](../../../three/api/threeview-functions/) — `setCamera()`, `flyTo()`, `lookAt()`, and other camera movement methods
+- [ThreeView Properties](../../../three/api/threeview-properties/): `view.camera` and other view properties
+- [ThreeView Functions](../../../three/api/threeview-functions/): `setCamera()`, `flyTo()`, `lookAt()`, and other camera movement methods

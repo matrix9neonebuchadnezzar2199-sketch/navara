@@ -15,7 +15,7 @@ In addition to the properties below, all common properties from the base class (
 
 **Type:** `number`
 
-**Description:** Specifies the tension of the curve. 0 produces a straight line; higher values produce smoother curves.
+**Description:** Specifies the tension of the curve. 0 produces a straight line. Higher values produce smoother curves.
 
 **Default:** `0.5`
 

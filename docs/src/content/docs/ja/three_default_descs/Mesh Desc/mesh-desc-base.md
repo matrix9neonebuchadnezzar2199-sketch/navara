@@ -18,7 +18,7 @@ sidebar:
 | `scale`       | `{ x: number, y: number, z: number }` | -          | スケール、`matrix`/`matrixWorld` 設定時はローカルオフセット                                 |
 | `matrix`      | `Matrix4`                             | -          | ローカル変換行列。設定時は `position`/`rotation`/`scale` がこのフレーム内のオフセットになる |
 | `matrixWorld` | `Matrix4`                             | -          | ワールド変換行列。設定時は `position`/`rotation`/`scale` がこのフレーム内のオフセットになる |
-| `lit`         | `boolean`                             | -          | メッシュのすべてのマテリアルに適用するライティングの上書き。未設定なら `view.lit` に従う — [Lighting](#lighting-lit) を参照 |
+| `lit`         | `boolean`                             | -          | メッシュのすべてのマテリアルに適用するライティングの上書き。未設定なら `view.lit` に従う（[Lighting](#lighting-lit) を参照） |
 | `pickable`    | `boolean`                             | `false`    | GPU ベースのクリックピッキングを有効にする。ピッキング対応のメッシュ Descriptor が Descriptor ごとに定義するもので、基底の設定には存在しない |
 
 ## トランスフォーム合成
@@ -92,9 +92,9 @@ const box2 = view.addMesh<BoxMeshDesc>({
 `lit` はメッシュ配下の**すべて**のマテリアル（読み込んだモデルの子要素を含む）に適用される、3 状態のライティング上書きです。
 
 | 値 | 結果 |
-| -- | ---- |
+| --- | --- |
 | `true` | [`view.lit`](../../../three/api/threeview-properties/#lit) が `false` でも lit |
-| `false` | アルベドのみ — カラー出力でライティング計算がスキップされる |
+| `false` | アルベドのみ。カラー出力でライティング計算がスキップされる |
 | 未設定（`undefined`） | `view.lit` に従う（既定は `true`） |
 
 `lit: false` にしても lit パイプラインが止まるわけではありません。法線とシャドウ G-buffer は書き込まれ続けるため、後段のポストプロセスパスでアルベドを再ライティングできます。
@@ -193,7 +193,7 @@ type PickedFeature = {
 };
 ```
 
-カスタム Descriptor でのピッキング実装については、[Custom Descriptor — ピッキングの実装](../../../three/core/custom-desc/#カスタム-descriptor-でのピッキング実装) を参照してください。
+カスタム Descriptor でのピッキング実装については、[Custom Descriptor: ピッキングの実装](../../../three/core/custom-desc/#カスタム-descriptor-でのピッキング実装) を参照してください。
 
 ## 座標変換
 

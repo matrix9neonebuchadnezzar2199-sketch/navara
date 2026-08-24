@@ -57,5 +57,5 @@ Globe-level settings such as `maxSse` and `segments` are configured via the [Glo
 
 ## Related Resources
 
-- [Raster Layer](../../../three/layer/raster-layer/) — how to use this material
-- [Raster Tile Source](../../../three/source/raster-tile-source/) — the imagery source (URL, zoom, TMS)
+- [Raster Layer](../../../three/layer/raster-layer/): how to use this material
+- [Raster Tile Source](../../../three/source/raster-tile-source/): the imagery source (URL, zoom, TMS)

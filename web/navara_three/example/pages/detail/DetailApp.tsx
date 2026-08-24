@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Copy, ExternalLink } from "lucide-react";
+import { Check, Copy, ExternalLink } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createHighlighter } from "shiki";
 import type { Highlighter } from "shiki";
@@ -17,7 +17,6 @@ import "../index/theme.css";
 
 /** UI chrome strings for the detail page. */
 const UI = {
-  back: { en: "Gallery", ja: "ギャラリー" },
   source: { en: "Source", ja: "ソースコード" },
   copy: { en: "Copy", ja: "コピー" },
   copied: { en: "Copied", ja: "コピーしました" },
@@ -251,17 +250,6 @@ export const DetailApp = () => {
       <SiteHeader lang={lang} setLang={setLang} langLabel={t(UI.toggleLang)} />
       <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 sm:py-12">
         <header className="mb-8 flex min-w-0 flex-col gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="-ml-2 h-auto self-start px-2 py-1 text-muted-foreground"
-          >
-            <a href="/" className="flex items-center gap-1.5">
-              <ArrowLeft className="h-4 w-4" />
-              {t(UI.back)}
-            </a>
-          </Button>
           {meta && (
             <div className="min-w-0">
               <h1 className="text-lg font-semibold tracking-tight sm:text-xl">

@@ -386,6 +386,14 @@ const heroScenes = [
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{t.meta.title}</title>
     <meta name="description" content={t.meta.description} />
+    {/* Social thumbnail: the docs-wide promo poster crop (public/og.jpg). */}
+    <meta property="og:site_name" content="Navara" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={t.meta.title} />
+    <meta property="og:description" content={t.meta.description} />
+    <meta property="og:image" content="https://navara-docs.reearth.workers.dev/og.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://navara-docs.reearth.workers.dev/og.jpg" />
     {/* iOS Safari tints its toolbars with this (it samples the page background
         otherwise): black, so the closing band reads as continuing past the URL
         bar — the page itself can never paint that area. */}
@@ -483,7 +491,7 @@ const heroScenes = [
           <div class="lp-intro-right">
             <p class="lp-intro-copy" set:html={t.intro.copyHtml} />
             <div class="lp-cta-row">
-              <a class="lp-btn-primary" href={links.examples}>{t.intro.ctaShowcase}</a>
+              <a class="lp-btn-primary" href={links.examples}>{t.intro.ctaExamples}</a>
               <a class="lp-btn-outline" href={localizeHref(links.docs)}>{t.intro.ctaDocs}</a>
             </div>
             <p class="lp-getting-started">

@@ -59,5 +59,5 @@ const layer = view.addLayer({ type: "3d-tiles", source: tileset, model: { maxSse
 
 ## 関連リソース
 
-- [3D Tiles Source](../../../three/source/3d-tiles-source/) — 対応形式と拡張
-- [ModelMaterial](../../../three/material/model-material/) — モデルの詳細設定
+- [3D Tiles Source](../../../three/source/3d-tiles-source/): 対応形式と拡張
+- [ModelMaterial](../../../three/material/model-material/): モデルの詳細設定

@@ -5,7 +5,7 @@ sidebar:
   order: 99
 ---
 
-`MeshDesc` is the base class for all mesh Descriptors. It provides common configuration properties, transform composition, and picking support. Every mesh Descriptor — both built-in and custom — inherits from this class, so the features described here are available on all mesh Descriptors.
+`MeshDesc` is the base class for all mesh Descriptors. It provides common configuration properties, transform composition, and picking support. Every mesh Descriptor, both built-in and custom, inherits from this class, so the features described here are available on all mesh Descriptors.
 
 ## Common Properties
 
@@ -18,7 +18,7 @@ sidebar:
 | `scale`       | `{ x: number, y: number, z: number }`  | -              | Scale, or local offset when `matrix`/`matrixWorld` is set                                      |
 | `matrix`      | `Matrix4`                              | -              | Local transform matrix. When set, `position`/`rotation`/`scale` become offsets within this frame |
 | `matrixWorld` | `Matrix4`                              | -              | World transform matrix. When set, `position`/`rotation`/`scale` become offsets within this frame |
-| `lit`         | `boolean`                              | -              | Lighting override applied to every material of the mesh. Unset follows `view.lit` — see [Lighting](#lighting-lit) |
+| `lit`         | `boolean`                              | -              | Lighting override applied to every material of the mesh. Unset follows `view.lit`. See [Lighting](#lighting-lit) |
 | `pickable`    | `boolean`                              | `false`        | Enable GPU-based click picking. Defined per Descriptor by picking-capable mesh Descriptors, not on the base config |
 
 ## Transform Composition
@@ -27,7 +27,7 @@ sidebar:
 
 ### Standard Transforms
 
-When neither `matrix` nor `matrixWorld` is set, `position`, `rotation`, and `scale` are applied directly to the Three.js object in the ECEF coordinate system — the same way standard Three.js transforms work.
+When neither `matrix` nor `matrixWorld` is set, `position`, `rotation`, and `scale` are applied directly to the Three.js object in the ECEF coordinate system, the same way standard Three.js transforms work.
 
 ### Local Frame with `matrix`
 
@@ -94,7 +94,7 @@ const box2 = view.addMesh<BoxMeshDesc>({
 | Value | Result |
 | ----- | ------ |
 | `true` | Lit, even when [`view.lit`](../../../three/api/threeview-properties/#lit) is `false` |
-| `false` | Plain albedo — the lighting equation is skipped on the color output |
+| `false` | Plain albedo: the lighting equation is skipped on the color output |
 | unset (`undefined`) | Follows `view.lit` (default `true`) |
 
 Setting `lit: false` does not disable the lit pipeline: normals and the shadow G-buffer keep being written, which is what lets a post-processing pass re-light the albedo afterwards.
@@ -193,7 +193,7 @@ type PickedFeature = {
 };
 ```
 
-For implementing picking in custom Descriptors, see [Custom Descriptor — Implementing Picking](../../../three/core/custom-desc/#implementing-picking-in-custom-descriptors).
+For implementing picking in custom Descriptors, see [Custom Descriptor: Implementing Picking](../../../three/core/custom-desc/#implementing-picking-in-custom-descriptors).
 
 ## Coordinate Transformation
 
@@ -240,7 +240,7 @@ const sphereDesc = view.addMesh<SphereMeshDesc>({
 
 ### Using a Local Tangent Frame (ENU and others)
 
-The `position` property is Cartesian ECEF by default, so a bare `position` will not stand a mesh upright at a given longitude/latitude. For geographic placement, compute a local tangent frame at the origin and pass it as `matrixWorld`; `position`/`rotation`/`scale` are then interpreted as offsets within that frame.
+The `position` property is Cartesian ECEF by default, so a bare `position` will not stand a mesh upright at a given longitude/latitude. For geographic placement, compute a local tangent frame at the origin and pass it as `matrixWorld`. `position`/`rotation`/`scale` are then interpreted as offsets within that frame.
 
 Choose the frame function that matches the axis orientation your mesh expects. All take an ECEF origin (`Vector3`) and return a `Matrix4`, and all are exported from `@navaramap/three`:
 

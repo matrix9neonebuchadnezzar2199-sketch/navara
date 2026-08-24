@@ -57,5 +57,5 @@ import { Color } from "@navaramap/three";
 
 ## 関連リソース
 
-- [Raster Layer](../../../three/layer/raster-layer/) — このマテリアルの使い方
-- [Raster Tile Source](../../../three/source/raster-tile-source/) — 画像の Source（URL、ズーム、TMS）
+- [Raster Layer](../../../three/layer/raster-layer/): このマテリアルの使い方
+- [Raster Tile Source](../../../three/source/raster-tile-source/): 画像の Source（URL、ズーム、TMS）

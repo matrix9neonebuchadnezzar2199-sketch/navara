@@ -269,7 +269,7 @@ const skyDesc = skyHandle.ref;
 
 #### update()
 
-Updates Descriptor settings with a partial update. Only the specified properties are changed; others remain unchanged.
+Updates Descriptor settings with a partial update. Only the specified properties are changed. Others remain unchanged.
 
 **Syntax:**
 

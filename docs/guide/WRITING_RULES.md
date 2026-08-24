@@ -2,6 +2,23 @@
 
 Please follow these rules when you modify this repository.
 
+## Prose style: no dash decorations, no semicolons
+
+Do not decorate prose with em dashes, en dashes, or double hyphens (`—`, `–`, `--`), and do not join clauses with semicolons (`;`). Write full sentences instead, using commas, colons, parentheses, "because" / "for example", or by splitting into two sentences. This applies to both locales.
+
+- Definition bullets and table description cells use a colon: `**Label**: description` (not `**Label** — description`).
+- Two independent clauses become two sentences: "All fields are optional. An unset field keeps the default color." (not "All fields are optional; an unset field …").
+- Property metadata lines are separate paragraphs, never joined on one line:
+
+  ```markdown
+  **Type:** `boolean | undefined`
+
+  **Default:** `true`
+  ```
+
+- A table cell containing only `—` is a placeholder meaning "no default / not applicable". Keep those as-is.
+- Ordinary hyphens in words (built-in, level-of-detail), markdown table separator rows, and code (semicolons included) are unaffected.
+
 ## Terminology
 
 ### "Layer" vs "Object" vs "Descriptor"

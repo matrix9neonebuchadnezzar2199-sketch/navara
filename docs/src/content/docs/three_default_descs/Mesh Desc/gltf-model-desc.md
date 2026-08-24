@@ -202,7 +202,7 @@ console.log(clips); // ["Walk", "Run", "Jump"]
 
 ### getAnimationDetails(name?: string)
 
-**Description:** Gets detailed information about animations. If a name is specified, returns details for that specific animation; otherwise, returns details for all animations.
+**Description:** Gets detailed information about animations. If a name is specified, returns details for that specific animation. Otherwise, returns details for all animations.
 
 **Parameters:**
 

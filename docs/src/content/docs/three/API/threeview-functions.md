@@ -51,7 +51,7 @@ const layer = view.addLayer({
 
 ### addSource()
 
-Registers a data [source](../../../three/source/about/) and returns a `Source` handle. A source describes where data comes from and how it is fetched/decoded; reference it from a resource layer via the layer's `source` property (the handle or its `id`).
+Registers a data [source](../../../three/source/about/) and returns a `Source` handle. A source describes where data comes from and how it is fetched/decoded. Reference it from a resource layer via the layer's `source` property (the handle or its `id`).
 
 **Syntax:**
 
@@ -458,7 +458,7 @@ type CameraPosition = {
 |---|---|---|
 | `lng` | `number` | Longitude (degrees) |
 | `lat` | `number` | Latitude (degrees) |
-| `height` | `number` | Height above the ellipsoid (meters). When `distance` is also set, this is used as the **target point elevation** — the camera is placed `distance` meters from that elevated target. |
+| `height` | `number` | Height above the ellipsoid (meters). When `distance` is also set, this is used as the **target point elevation**: the camera is placed `distance` meters from that elevated target. |
 | `pitch` | `number` | Pitch angle (degrees) |
 | `heading` | `number` | Heading angle (degrees) |
 | `roll` | `number` | Roll angle (degrees) |
@@ -579,8 +579,8 @@ type FlyToEasing =
 **Parameters:**
 
 - `camPos`: Target position. `lng` and `lat` are required, plus either `height` or `distance`.
-  - `lng`: Longitude (degrees) — **required**
-  - `lat`: Latitude (degrees) — **required**
+  - `lng`: Longitude (degrees), **required**
+  - `lat`: Latitude (degrees), **required**
   - `height`: Height above the ellipsoid (meters). When `distance` is also set, this is used as the **target point elevation** rather than the camera's own altitude.
   - `pitch`: Pitch angle (degrees)
   - `heading`: Heading angle (degrees)
@@ -591,7 +591,7 @@ type FlyToEasing =
   - `maxHeight`: Maximum height during the flight arc (meters)
   - `easing`: Easing preset applied to the flight time. When omitted, `"quinticInOut"` is used, or `"cubicOut"` when descending from above 11,500 m.
 
-**Returns:** `Promise<boolean>` — `true` when the flight completed, `false` when it was interrupted.
+**Returns:** `Promise<boolean>`: `true` when the flight completed, `false` when it was interrupted.
 
 **Example:**
 
@@ -717,7 +717,7 @@ cameraFreeLook(enabled: boolean, target?: LatLngHeight): void
   - `lat`: Latitude (degrees)
   - `height`: Height (meters)
 
-When the target moves between calls (e.g. the player walks), the camera translates with it; orientation is preserved. Mouse wheel zoom is disabled in this mode (the camera is at zero distance from the pivot).
+When the target moves between calls (e.g. the player walks), the camera translates with it. Orientation is preserved. Mouse wheel zoom is disabled in this mode (the camera is at zero distance from the pivot).
 
 **Example:**
 
@@ -769,7 +769,7 @@ if (height !== undefined) {
 
 ### sampleTerrainMostDetailed()
 
-Asynchronously samples terrain heights at the most detailed zoom level the terrain source provides, fetching the needed tiles over the network. Unlike `sampleTerrainHeight()`, which reads only tiles already resident for rendering — and therefore returns coarse heights (or `undefined`) while the camera is far away — this resolves accurate ground heights regardless of what the camera has streamed in. Use it to place objects on the ground before flying there.
+Asynchronously samples terrain heights at the most detailed zoom level the terrain source provides, fetching the needed tiles over the network. Unlike `sampleTerrainHeight()`, which reads only tiles already resident for rendering, and therefore returns coarse heights (or `undefined`) while the camera is far away, this resolves accurate ground heights regardless of what the camera has streamed in. Use it to place objects on the ground before flying there.
 
 Positions are grouped by tile and each unique tile is fetched once. Sampling starts at the source's `maxZoom` and falls back to parent tiles on 404 until data is found, so sources whose real coverage is shallower than the configured `maxZoom` still resolve. A `401`/`403` response rejects the whole call (a token problem should not silently degrade into coarse heights), while server errors are retried and then yield `height: undefined` for the affected positions.
 
@@ -785,7 +785,7 @@ sampleTerrainMostDetailed(
 
 **Parameters:**
 
-- `source`: A registered `quantized-mesh` / `raster-dem` source — the `Source` handle returned by `addSource`, or its id
+- `source`: A registered `quantized-mesh` / `raster-dem` source: either the `Source` handle returned by `addSource`, or its id
 - `positions`: Geodetic positions to sample
   - `lat`: Latitude (radians)
   - `lng`: Longitude (radians)
@@ -1094,11 +1094,11 @@ await view.init();
 
 ### addFontFamily()
 
-Registers a font family composed of multiple faces. Each face covers a set of unicode ranges and points to a separate font file URL (ttf, otf, woff, or woff2). Once a family is registered, a text layer can reference it by its `family` name through [`material.font`](../../../three/material/text-material/#font); only the faces whose unicode ranges cover the characters in the label's `text` are downloaded.
+Registers a font family composed of multiple faces. Each face covers a set of unicode ranges and points to a separate font file URL (ttf, otf, woff, or woff2). Once a family is registered, a text layer can reference it by its `family` name through [`material.font`](../../../three/material/text-material/#font). Only the faces whose unicode ranges cover the characters in the label's `text` are downloaded.
 
 **Face priority and fallback:**
 
-- Faces are evaluated in the order they appear in `faces`. For each codepoint in `text`, the first face whose `unicodeRanges` contain the codepoint is used — so if ranges overlap, the earlier entry wins.
+- Faces are evaluated in the order they appear in `faces`. For each codepoint in `text`, the first face whose `unicodeRanges` contain the codepoint is used, so if ranges overlap, the earlier entry wins.
 - Codepoints that are not covered by any face fall back to the first face (`faces[0]`). This means the first face may also be downloaded for uncovered characters, even if its declared `unicodeRanges` do not include them.
 
 To make this behavior predictable, put the face you want used as the fallback at index `0`. Then order the remaining faces after it so that, when their ranges overlap, earlier entries have higher priority.
@@ -1198,7 +1198,7 @@ view.removeFontFamily("MapFont");
 
 ### setSseMultiplierRange()
 
-Updates the memory-pressure SSE degrade range at runtime. `min` is the resting multiplier applied even without budget pressure (a value greater than 1 coarsens far tiles at rest); `max` is the ceiling the dynamic degrade can climb to under memory pressure. The next traversal re-selects tile LODs with the new range. Setting `min = max = 1` fully disables the pressure degrade.
+Updates the memory-pressure SSE degrade range at runtime. `min` is the resting multiplier applied even without budget pressure (a value greater than 1 coarsens far tiles at rest). `max` is the ceiling the dynamic degrade can climb to under memory pressure. The next traversal re-selects tile LODs with the new range. Setting `min = max = 1` fully disables the pressure degrade.
 
 **Syntax:**
 
@@ -1282,7 +1282,7 @@ if (stats) {
 
 ### workerMemoryStats()
 
-Returns a snapshot of worker-side memory: per-tile-worker WASM heaps (point-in-time samples from the pool's post-task probes — this call also requests fresh probes, whose results show up on the *next* call) and the font worker's heap/cache breakdown. Returns `undefined` before `init()`.
+Returns a snapshot of worker-side memory: per-tile-worker WASM heaps (point-in-time samples from the pool's post-task probes. This call also requests fresh probes, whose results show up on the *next* call) and the font worker's heap/cache breakdown. Returns `undefined` before `init()`.
 
 **Syntax:**
 

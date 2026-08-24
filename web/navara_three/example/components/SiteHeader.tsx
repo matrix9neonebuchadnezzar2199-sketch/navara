@@ -1,9 +1,9 @@
+import { DOCS_URL } from "../pages/examples/sections";
 import type { Lang } from "../pages/examples/sections";
 
 import { LangSelect } from "@/components/LangSelect";
 
-/** External chrome links — same targets as the landing page header. */
-const DOCS_URL = "https://navara-docs.reearth.workers.dev/";
+/** GitHub link — same target as the landing page header. */
 const GITHUB_URL = "https://github.com/eukarya-inc/navara";
 
 type SiteHeaderProps = {

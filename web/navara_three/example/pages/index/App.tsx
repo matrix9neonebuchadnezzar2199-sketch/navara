@@ -22,7 +22,6 @@ import "./theme.css";
 
 /** UI chrome strings (the gallery's own labels, not example content). */
 const UI = {
-  title: { en: "Navara Three — Examples", ja: "Navara Three — Examples" },
   featured: { en: "Featured", ja: "注目の機能" },
   searchPlaceholder: { en: "Search examples…", ja: "Example を検索…" },
   toggleLang: { en: "Switch language", ja: "言語を切り替え" },
@@ -110,10 +109,7 @@ export const App = () => {
         langLabel={localize(UI.toggleLang, lang)}
       />
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
-        <header className="mb-12 flex flex-col gap-6">
-          <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
-            {localize(UI.title, lang)}
-          </h1>
+        <header className="mb-12">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input

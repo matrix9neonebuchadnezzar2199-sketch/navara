@@ -92,6 +92,23 @@ export default defineConfig({
             href: "https://fonts.googleapis.com/css2?family=Arsenal:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap",
           },
         },
+        // Social thumbnail. Starlight already emits per-page title/description
+        // (meta + og:*); og:image is site-wide — the promo poster crop
+        // (public/og.jpg, regenerate from public/promo/promo-poster.avif).
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:image",
+            content: "https://navara-docs.reearth.workers.dev/og.jpg",
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            name: "twitter:image",
+            content: "https://navara-docs.reearth.workers.dev/og.jpg",
+          },
+        },
         // TODO: Remove when Navara is released.
         {
           tag: "meta",
