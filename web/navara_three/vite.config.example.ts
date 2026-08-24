@@ -78,7 +78,7 @@ const examplePages = getExamplePages(resolve(__dirname, "example/pages"));
 const SITE_ORIGIN = "https://navara-preview.reearth.workers.dev";
 const SITE_TITLE = "Navara Examples";
 const SITE_DESCRIPTION =
-  "Interactive examples for Navara Three — a 3D map engine built on Rust + WebAssembly + Three.js.";
+  "Interactive examples for Navara, a highly extensible 3D map engine. See what it can do live in your browser, from declarative layers to plugins and custom shaders.";
 const OG_IMAGE = `${SITE_ORIGIN}/og.jpg`;
 
 type LocalizedText = Record<string, string>;
