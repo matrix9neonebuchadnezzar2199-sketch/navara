@@ -161,7 +161,7 @@ export class InstancedSpriteMesh
     const state = enhancer.states();
     const cx = Math.min(Math.max(state.center[0], -0.5), 0.5);
     const cy = Math.min(Math.max(state.center[1], -0.5), 0.5);
-    // Mirror of instancedSprite.vert.glsl:100-104 — aspect is per-instance
+    // Mirror of instancedSprite.vert.glsl:115-118 — aspect is per-instance
     // (from the atlas rect), not a material-level uniform; there is no
     // material-wide "aspect" state to read.
     const uvRect = state.billboard
@@ -181,9 +181,14 @@ export class InstancedSpriteMesh
 
       const override = overrides ? overrides[i] : Number.NaN;
       const rectH = uvRect ? uvRect.getW(i) : 0;
-      const aspect = uvRect && rectH > 0.0 ? uvRect.getZ(i) / rectH : 1.0;
+      const rectW = uvRect ? uvRect.getZ(i) : 0;
+      // Mirror of the shader's empty-rect cull: an instance with no image
+      // packed yet is not drawn, so it must not reserve declutter space and
+      // hide the labels around it.
+      if (uvRect && (rectW <= 0.0 || rectH <= 0.0)) continue;
+      const aspect = uvRect ? rectW / rectH : 1.0;
 
-      // Mirror of instancedSprite.vert.glsl:95-97 — the quad spans
+      // Mirror of instancedSprite.vert.glsl:122-125 — the quad spans
       // (position.xy - center) * vec2(aspect, 1) * size around the anchor.
       out.push({
         anchorX: anchors[i * 3],
@@ -490,8 +495,8 @@ export class InstancedSpriteMesh
 
     if (m instanceof NavaraBillboardMesh) {
       // instanceUvRect: vec4(x, y, w, h) — this instance's atlas sub-rect in
-      // pixels. Zeroed until an image is packed; a zero-height rect samples a
-      // transparent texel, so instances stay invisible rather than garbled.
+      // pixels. Zeroed until an image is packed; the vertex shader culls empty
+      // rects, so instances stay invisible rather than garbled.
       instancedGeometry.setAttribute(
         "instanceUvRect",
         new InstancedBufferAttribute(new Float32Array(instanceCount * 4), 4),
@@ -755,6 +760,20 @@ export class InstancedSpriteMesh
       rectAttr.setXYZW(i, rect.x, rect.y, rect.w, rect.h);
     }
     rectAttr.needsUpdate = true;
+    this._onAtlasRectsChanged();
+  }
+
+  /**
+   * An instance's atlas rect changed. The rect drives the quad's aspect and
+   * whether the instance draws at all, so the declutter bounds computed before
+   * the image landed are stale — and because packs resolve long after the
+   * frame that requested them, the view has usually gone idle by now. Without
+   * the render request the page keeps showing the pre-image state until the
+   * next camera move.
+   */
+  private _onAtlasRectsChanged(): void {
+    this.ctx.declutter?.markDirty();
+    this.ctx.renderFlag.forceUpdate = true;
   }
 
   onBeforePicking(): void {
@@ -922,6 +941,7 @@ export class InstancedSpriteMesh
         rect?.h ?? 0,
       );
       rectAttr.needsUpdate = true;
+      this._onAtlasRectsChanged();
       return;
     }
 
@@ -936,6 +956,7 @@ export class InstancedSpriteMesh
     this._syncAtlasUniforms();
     rectAttr.setXYZW(instanceId, rect.x, rect.y, rect.w, rect.h);
     rectAttr.needsUpdate = true;
+    this._onAtlasRectsChanged();
   }
 
   dispose(): void {
