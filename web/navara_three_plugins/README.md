@@ -2,10 +2,10 @@
 
 Optional feature plugins for `@navaramap/three`. Each plugin packages a self-contained capability on top of the core view:
 
-- **`PersonViewPlugin`** — first-person walk mode with a controllable character (GLTF model, animations, key bindings, teleport, view-mode switching).
-- **`OverlayPlugin`** — anchors DOM elements to geographic positions and keeps them projected to screen space as the camera moves.
-- **`CesiumIonPlugin`** — resolves a Cesium Ion asset endpoint and registers the asset as a quantized-mesh terrain layer via `addTerrain()`.
-- **`TileJsonPlugin`** — fetches a TileJSON 3.0.0 document and registers it as a Navara source, surfacing its attribution through the view's built-in credit UI.
+- **`PersonViewPlugin`**: first-person walk mode with a controllable character (GLTF model, animations, key bindings, teleport, view-mode switching).
+- **`OverlayPlugin`**: anchors DOM elements to geographic positions and keeps them projected to screen space as the camera moves.
+- **`CesiumIonPlugin`**: resolves a Cesium Ion asset endpoint and registers the asset as a quantized-mesh terrain layer via `addTerrain()`.
+- **`TileJsonPlugin`**: fetches a TileJSON 3.0.0 document and registers it as a Navara source, surfacing its attribution through the view's built-in credit UI.
 
 ## Usage
 
@@ -51,7 +51,7 @@ overlay.onUpdate(({ projected }) => {
 
 ## Documentation
 
-Each plugin's options and events are documented at https://navara-docs.reearth.workers.dev//.
+Each plugin's options and events are documented at https://navara-docs.reearth.workers.dev/.
 
 ## License
 

@@ -1,10 +1,10 @@
 # @navaramap/three-default-plugin
 
-The default plugin for `@navaramap/three`. It registers all built-in mesh, light, and effect descriptors from `@navaramap/three-default-descs` (boxes, GLTF models, sky, stars, sun, ambient light, SSAO, bloom, tone mapping, and so on) under their standard keys, so they can be used through `view.addMesh()`, `view.addLight()`, and `view.addEffect()`.
+The default plugin for `@navaramap/three`. It registers all built-in mesh, light, and effect Descriptors from `@navaramap/three-default-descs` (boxes, GLTF models, sky, stars, sun, ambient light, SSAO, bloom, tone mapping, and so on) under their standard keys, so they can be used through `view.addMesh()`, `view.addLight()`, and `view.addEffect()`.
 
 ## Usage
 
-Add the plugin before `view.init()`, and parameterize the view with `DefaultDescriptions` so descriptor keys are typed:
+Add the plugin before `view.init()`, and parameterize the view with `DefaultDescriptions` so Descriptor keys are typed:
 
 ```typescript
 import ThreeView, {
@@ -34,7 +34,7 @@ view.addMesh({
 });
 ```
 
-After `init()`, `addDefaultPhotorealScene()` sets up a photorealistic base scene in one call — sky, stars, sun, sky light probe, aerial perspective, lens flare, tone mapping, and antialiasing — and returns the handles so each piece can be updated or removed later. Combine it with terrain and satellite imagery (credited through the view's built-in attribution UI) for a realistic globe:
+After `init()`, `addDefaultPhotorealScene()` sets up a photorealistic base scene in one call (sky, stars, sun, sky light probe, aerial perspective, lens flare, tone mapping, and antialiasing) and returns the handles so each piece can be updated or removed later. Combine it with terrain and satellite imagery (credited through the view's built-in attribution UI) for a realistic globe:
 
 ```typescript
 const scene = defaultPlugin.addDefaultPhotorealScene();
@@ -80,11 +80,11 @@ view.attribution?.add([
 scene.sun.update({ sun: { castShadow: true } });
 ```
 
-The package also re-exports every descriptor class and config type from `@navaramap/three-default-descs`, so typed `addMesh<T>` / `addEffect<T>` / `addLight<T>` calls need only this one import.
+The package also re-exports every Descriptor class and config type from `@navaramap/three-default-descs`, so typed `addMesh<T>` / `addEffect<T>` / `addLight<T>` calls need only this one import.
 
 ## Documentation
 
-See https://navara-docs.reearth.workers.dev// for the full list of built-in descriptors and their options.
+See https://navara-docs.reearth.workers.dev/ for the full list of built-in Descriptors and their options.
 
 ## License
 

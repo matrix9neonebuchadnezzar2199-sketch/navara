@@ -1,8 +1,8 @@
 # @navaramap/three-default-descs
 
-The built-in mesh, light, and effect descriptors for `@navaramap/three`. Meshes range from primitives (box, sphere, cylinder, plane, tube, lines) to GLTF models, Gaussian splats, instanced variants, and atmosphere-related meshes (sky, stars). Lights cover the sun, ambient light, and light probes. Effects include aerial perspective, clouds, SSAO, SSR, selective bloom/outline, depth of field, tone mapping, and antialiasing (SMAA/FXAA).
+The built-in mesh, light, and effect Descriptors for `@navaramap/three`. Meshes range from primitives (box, sphere, cylinder, plane, tube, lines) to GLTF models, Gaussian splats, instanced variants, and atmosphere-related meshes (sky, stars). Lights cover the sun, ambient light, and light probes. Effects include aerial perspective, clouds, SSAO, SSR, selective bloom/outline, depth of field, tone mapping, and antialiasing (SMAA/FXAA).
 
-Most applications don't depend on this package directly: `@navaramap/three-default-plugin` registers everything here under standard keys and re-exports all classes and config types. Depend on this package directly when you want to register only a subset of descriptors yourself, or when you need the descriptor classes and config types without the plugin:
+Most applications don't depend on this package directly: `@navaramap/three-default-plugin` registers everything here under standard keys and re-exports all classes and config types. Depend on this package directly when you want to register only a subset of Descriptors yourself, or when you need the Descriptor classes and config types without the plugin:
 
 ```typescript
 import ThreeView, {
@@ -31,11 +31,11 @@ view.addMesh({
 });
 ```
 
-These descriptors are also reference implementations for writing custom descriptors on top of the `MeshDesc` / `LightDesc` / `EffectDesc` base classes from `@navaramap/three`.
+These Descriptors are also reference implementations for writing custom Descriptors on top of the `MeshDesc` / `LightDesc` / `EffectDesc` base classes from `@navaramap/three`.
 
 ## Documentation
 
-Every descriptor and its options are documented at https://navara-docs.reearth.workers.dev//.
+Every Descriptor and its options are documented at https://navara-docs.reearth.workers.dev/.
 
 ## License
 

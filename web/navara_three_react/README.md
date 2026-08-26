@@ -132,8 +132,12 @@ export function AppWithCanvas() {
 
 ## Notes
 
-- This package is client-side only; if using SSR, render these components on the client.
+- This package is client-side only. If using SSR, render these components on the client.
 - Types are included.
+
+## Documentation
+
+The underlying `ThreeView` API, including every source/layer/material option, is documented at https://navara-docs.reearth.workers.dev/.
 
 ## License
 

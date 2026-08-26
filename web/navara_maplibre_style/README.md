@@ -16,7 +16,7 @@ Only the properties listed below are actually implemented and functional. Other 
 #### ✅ `fill-extrusion`
 
 - **Paint:** `fill-extrusion-color`, `fill-extrusion-opacity`, `fill-extrusion-height`, `fill-extrusion-base`
-- **Note:** Vertical height values only; no translation or pattern support
+- **Note:** Vertical height values only (no translation or pattern support)
 
 #### ✅ `line`
 
@@ -51,8 +51,8 @@ Only the properties listed below are actually implemented and functional. Other 
 
 #### ❌ Not Supported
 
-- `background`, `sky` - No source, not applicable
-- `heatmap` - Not implemented
+- `background`, `sky`: No source, not applicable
+- `heatmap`: Not implemented
 
 ### Source Types
 
@@ -83,7 +83,7 @@ or
 }
 ```
 
-- **Note:** Only `tiles` array is supported; `url` (TileJSON) is not
+- **Note:** Only the `tiles` array is supported. `url` (TileJSON) is not.
 
 #### ✅ `raster`
 
@@ -110,7 +110,7 @@ or
 
 #### ❌ Not Supported
 
-- `image`, `video`, `canvas` - Not implemented
+- `image`, `video`, `canvas`: Not implemented
 
 ### Expression Support
 
@@ -152,8 +152,8 @@ view.attribution?.add([
 
 Style parsing and expression evaluation are delegated to a `StyleEngine`:
 
-- **`RustStyleEngine`** (default) - Evaluates styles in WASM for better performance, powered by the `maplibre-expr` Rust crate
-- **`JsStyleEngine`** - Pure TypeScript implementation based on `@maplibre/maplibre-gl-style-spec`, useful as a reference and for comparison
+- **`RustStyleEngine`** (default): Evaluates styles in WASM for better performance, powered by the `maplibre-expr` Rust crate
+- **`JsStyleEngine`**: Pure TypeScript implementation based on `@maplibre/maplibre-gl-style-spec`, useful as a reference and for comparison
 
 A custom engine can be passed as the second constructor argument:
 
@@ -168,7 +168,7 @@ view.addPlugin(plugin);
 
 ### Sources
 
-- **No TileJSON support** - The `url` field (which points to TileJSON documents) is not supported. Use the `tiles` array with direct tile template URLs instead.
+- **No TileJSON support**: The `url` field (which points to TileJSON documents) is not supported. Use the `tiles` array with direct tile template URLs instead.
   ```json
   // ❌ Not supported
   { "type": "vector", "url": "https://example.com/tiles.json" }
@@ -179,28 +179,32 @@ view.addPlugin(plugin);
 
 ### Layers
 
-- **Limited property support** - Many MapLibre Style Spec properties are not implemented (see layer types section above for supported properties)
-- **No patterns or sprites** - `fill-pattern`, `line-pattern`, sprite-based icons not supported
-- **No advanced line styling** - Dasharray, gradient, caps, joins not implemented
-- **Limited raster support** - Raster layers have basic support but may not render identically to MapLibre GL JS
-- **No heatmap layers** - Not yet implemented
-- **No background/sky layers** - These don't have sources and aren't supported
+- **Limited property support**: Many MapLibre Style Spec properties are not implemented (see layer types section above for supported properties)
+- **No patterns or sprites**: `fill-pattern`, `line-pattern`, sprite-based icons not supported
+- **No advanced line styling**: Dasharray, gradient, caps, joins not implemented
+- **Limited raster support**: Raster layers have basic support but may not render identically to MapLibre GL JS
+- **No heatmap layers**: Not yet implemented
+- **No background/sky layers**: These don't have sources and aren't supported
 
 ### Expressions
 
-- **Zoom not fully implemented** - The `zoom` expression always returns 0, so zoom-dependent styles (e.g., `["interpolate", ["zoom"], ...]`) won't work as expected
-- **Camera expressions not supported** - `pitch`, `distance-from-center`, etc. are not available
+- **Zoom not fully implemented**: The `zoom` expression always returns 0, so zoom-dependent styles (e.g., `["interpolate", ["zoom"], ...]`) won't work as expected
+- **Camera expressions not supported**: `pitch`, `distance-from-center`, etc. are not available
 
 ### Symbol Layers
 
-- **Text rendering** - Uses SDF (signed distance field) text rendering, which may differ slightly from MapLibre GL JS
-- **Icon/text collision** - No collision detection between symbols
-- **Text rotation** - Limited support for rotated text
-- **No symbol sorting** - z-order not controlled by `symbol-sort-key`
+- **Text rendering**: Uses SDF (signed distance field) text rendering, which may differ slightly from MapLibre GL JS
+- **Icon/text collision**: No collision detection between symbols
+- **Text rotation**: Limited support for rotated text
+- **No symbol sorting**: z-order not controlled by `symbol-sort-key`
 
 ### Performance
 
-- **Large feature counts** - Symbol layers with thousands of features may have performance implications on lower-end devices
+- **Large feature counts**: Symbol layers with thousands of features may have performance implications on lower-end devices
+
+## Documentation
+
+See https://navara-docs.reearth.workers.dev/ for the full Navara documentation.
 
 ## License
 
