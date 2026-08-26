@@ -1,3 +1,28 @@
+## v0.0.8 - 2026-08-26
+
+### 🚀 Features
+
+- Add easing to fly to API ([#784](https://github.com/reearth/navara/pull/784))
+- Update npm dependencies (minor) ([#789](https://github.com/reearth/navara/pull/789))
+- Add mesh API - geodetic frame   ([#785](https://github.com/reearth/navara/pull/785))
+
+### 🐛 Bug Fixes
+
+- Repair broken sibling links and stale repo URLs in the docs ([#780](https://github.com/reearth/navara/pull/780))
+- Fix review
+- Picking tolerance ([#781](https://github.com/reearth/navara/pull/781))
+- Camera fov/fovy getters and vertical fov handling ([#782](https://github.com/reearth/navara/pull/782))
+- Billboard color space ([#795](https://github.com/reearth/navara/pull/795))
+
+### 🧹 Miscellaneous
+
+- Update dependency node to v24.19.0 ([#790](https://github.com/reearth/navara/pull/790))
+- Update actions/checkout action to v7 ([#791](https://github.com/reearth/navara/pull/791))
+- Pin step-security/harden-runner action to v2.21.0 ([#786](https://github.com/reearth/navara/pull/786))
+- Update cargo dependencies (minor) ([#788](https://github.com/reearth/navara/pull/788))
+- Update actions/setup-node action to v7 ([#792](https://github.com/reearth/navara/pull/792))
+- Update pnpm/action-setup action to v6 ([#793](https://github.com/reearth/navara/pull/793))
+
 ## v0.0.7 - 2026-08-21
 
 ### 🚀 Features
