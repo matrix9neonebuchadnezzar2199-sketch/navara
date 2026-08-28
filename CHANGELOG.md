@@ -1,3 +1,26 @@
+## v0.1.0 - 2026-08-28
+
+We finally released the beta version 🎉  
+Please check out [our website](https://navara-docs.reearth.workers.dev/lp/) as well.  
+We'd love to hear your feedback!
+
+### 🚀 Features
+
+- Add resolveStartHeight API to fix the terrain height until stable ([#796](https://github.com/reearth/navara/pull/796))
+- **BREAKING:** Unify public API to use dgree ([#799](https://github.com/reearth/navara/pull/799))
+- Support geometryTypes ([#801](https://github.com/reearth/navara/pull/801))
+- **BREAKING:** Replace pick event with feature mouse events ([#802](https://github.com/reearth/navara/pull/802))
+
+### 🐛 Bug Fixes
+
+- Support missing url field from billboard material ([#794](https://github.com/reearth/navara/pull/794))
+- Support multi point feature evaluation ([#800](https://github.com/reearth/navara/pull/800))
+- Draw polyline based on texel ([#803](https://github.com/reearth/navara/pull/803))
+
+### 🧹 Miscellaneous
+
+- Update rust to v1.98.0 ([#798](https://github.com/reearth/navara/pull/798))
+
 ## v0.0.8 - 2026-08-26
 
 ### 🚀 Features
