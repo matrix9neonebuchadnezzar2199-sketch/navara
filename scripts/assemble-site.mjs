@@ -62,8 +62,14 @@ for (const file of ["favicon.png", "og.jpg", "404.html"]) {
 
 cpSync(examplesDist, resolve(out, "examples"), { recursive: true });
 
-// The old LP URLs (parked under /lp pre-release) 301 to the site root.
-const redirects = ["/lp/ / 301", "/ja/lp/ /ja/ 301"];
+// The old LP URLs (parked under /lp pre-release) 301 to the site root, with
+// and without the trailing slash (_redirects matches paths exactly).
+const redirects = [
+  "/lp / 301",
+  "/lp/ / 301",
+  "/ja/lp /ja/ 301",
+  "/ja/lp/ /ja/ 301",
+];
 writeFileSync(resolve(out, "_redirects"), redirects.join("\n") + "\n");
 
 console.log(`Assembled ${out}`);

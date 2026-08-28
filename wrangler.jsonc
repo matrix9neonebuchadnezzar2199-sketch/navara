@@ -1,14 +1,23 @@
 // The unified navara.world site: LP at /, docs under /docs, examples under
 // /examples — one static-asset tree assembled by scripts/assemble-site.mjs.
 // Deploys onto the existing "navara-docs" Workers project, whose custom
-// domain is navara.world. Build + deploy with `pnpm deploy:site`; preview
-// locally with `wrangler dev`.
+// domain is navara.world; workers/site.js redirects the legacy
+// navara-docs.<account>.workers.dev host to the custom domain. Build +
+// deploy with `pnpm deploy:site`; preview locally with `wrangler dev`.
 {
   "name": "navara-docs",
+  "main": "workers/site.js",
   "compatibility_date": "2026-07-29",
+  // Keep the workers.dev host live so workers/site.js can 301 the legacy
+  // navara-docs.<account>.workers.dev URLs to the custom domain.
+  "workers_dev": true,
   "routes": [{ "pattern": "navara.world", "custom_domain": true }],
   "assets": {
     "directory": "./site-dist",
+    "binding": "ASSETS",
+    // Route every request through workers/site.js so the workers.dev host
+    // can be redirected before an asset is served.
+    "run_worker_first": true,
     // Serve the nearest 404.html: site-dist/docs/404.html covers /docs/*,
     // the root copy covers everything else.
     "not_found_handling": "404-page"
