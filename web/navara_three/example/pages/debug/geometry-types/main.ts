@@ -279,7 +279,7 @@ const isPickedFeature = (info: FeatureInfo): boolean => {
   return picked.batchId >= 0 && info.batchId === picked.batchId;
 };
 
-view.on("pick", (info) => {
+view.on("featureClick", (info) => {
   const key = info ? featureKey(info.properties) : undefined;
   picked.key = key ?? "";
   picked.batchId = info?.batchId ?? -1;
