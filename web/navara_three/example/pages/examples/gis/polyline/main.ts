@@ -34,9 +34,8 @@ view.addLayer({
   source,
   polyline: {
     color: new Color().setStyle("#0091ff"),
-    width: 7,
+    width: 6,
     height: 1,
-    clampToGround: true,
   },
 });
 

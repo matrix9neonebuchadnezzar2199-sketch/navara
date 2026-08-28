@@ -26,8 +26,6 @@ defaultPlugin.addDefaultPhotorealScene();
 
 view.atmosphere.date = new Date("2024-06-21T09:00:00Z");
 
-// Close-up on the tree line: aim above the meadow floor so the trees, not
-// the grass, fill the frame.
 view.setCamera({
   lng: CENTER.lng,
   lat: CENTER.lat,

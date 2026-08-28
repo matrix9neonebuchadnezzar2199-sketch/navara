@@ -44,10 +44,7 @@ const addLayer = () =>
     },
     polyline: {
       color: new Color().setStyle("#0091ff"),
-      width: 4,
-      height: 1,
-      clampToGround: false,
-      lit: false,
+      width: 12,
       geometryTypes: boundaries ? ["line", "polygon"] : ["line"],
     },
     ...(vertices && {
@@ -55,7 +52,8 @@ const addLayer = () =>
         color: new Color().setStyle("#ff6b2c"),
         size: 22,
         sizeInMeters: false,
-        clampToGround: true,
+        declutter: false,
+        depthTest: false,
         geometryTypes: ["point", "line", "polygon"],
       },
     }),

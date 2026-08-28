@@ -41,7 +41,7 @@ view.addLayer({
   billboard: {
     url: "/example.png",
     color: new Color().setStyle("#ffffff"),
-    size: 240,
+    size: 160,
     sizeInMeters: false,
     center: { x: 0, y: -0.5 },
     transparent: true,

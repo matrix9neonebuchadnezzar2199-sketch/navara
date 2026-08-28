@@ -23,11 +23,13 @@ await view.init();
 
 view.atmosphere.date = new Date("2026-07-16T03:00:00Z");
 view.addLight({ ambient: { intensity: 0.6 } });
-view.addLight({ sun: { intensity: 1.8, castShadow: true, shadowFar: 1000 } });
+view.addLight({
+  sun: { intensity: 1.8, castShadow: true, shadowFar: 1000, applyColor: true },
+});
 
 view.setCamera({
   lng: 86.82918,
-  lat: 27.98082,
+  lat: 27.9808,
   distance: 52,
   heading: 25,
   pitch: -35,
@@ -51,6 +53,7 @@ view.addLayer({
     extrudedHeight: 5,
     clampToGround: false,
     castShadow: true,
+    height: 0,
   },
 });
 

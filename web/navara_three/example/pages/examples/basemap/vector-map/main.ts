@@ -60,8 +60,6 @@ view.addLayer({
   polyline: {
     color: new Color().setStyle("#dddddd"),
     width: 2,
-    height: 1,
-    clampToGround: true,
   },
 });
 

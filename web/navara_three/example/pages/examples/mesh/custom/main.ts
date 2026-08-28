@@ -80,8 +80,8 @@ const createHatchingMaterial = (): ShaderMaterial => {
   return material;
 };
 
-// Rebuild the marching-cubes field from a set of moving metaballs at `time`
-// (seconds). Ref: https://github.com/mrdoob/three.js/blob/master/examples/webgl_marchingcubes.html
+// Rebuild the marching-cubes field from a set of moving metaballs at `time` (seconds).
+// Ref: https://github.com/mrdoob/three.js/blob/master/examples/webgl_marchingcubes.html
 const animateMetaballs = (surface: MarchingCubes, time: number): void => {
   surface.reset();
 

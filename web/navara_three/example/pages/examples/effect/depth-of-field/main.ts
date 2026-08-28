@@ -55,7 +55,7 @@ view.addLayer({ type: "terrain", ellipsoid: {} });
 
 const buildings = view.addSource({
   type: "vector-tile",
-  url: "https://tiles.overturemaps.org/2026-06-17.0/buildings.pmtiles",
+  url: "https://tiles.overturemaps.org/2026-07-22.0/buildings.pmtiles",
   maxZoom: 14,
 });
 

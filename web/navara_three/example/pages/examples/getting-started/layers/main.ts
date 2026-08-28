@@ -52,9 +52,8 @@ const addLayer = (color: string) => {
     },
     polyline: {
       color: new Color().setStyle(color),
-      width: 3,
+      width: 4,
       height: 1,
-      clampToGround: false,
     },
     polygon: { color: new Color().setStyle(color), clampToGround: false },
   });
