@@ -1,7 +1,6 @@
 import { Check, Copy, ExternalLink } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createHighlighter } from "shiki";
-import type { Highlighter } from "shiki";
+import type { HighlighterCore } from "shiki/core";
 
 import { withBase } from "../../helpers/base";
 import { SCENE_LOADED_MESSAGE } from "../../helpers/initialize";
@@ -42,30 +41,55 @@ const META = keyBy(
 
 type SourceLang = "ts" | "tsx";
 type CodeEntry = { source: string; lang: SourceLang };
+type CodeLoader = { load: () => Promise<string>; lang: SourceLang };
 
-const CODE: Record<string, CodeEntry> = {};
-for (const [key, source] of Object.entries(
+/**
+ * Raw example sources, as lazy per-example loaders (non-eager glob): bundling
+ * every example's source into the page chunk would make the embedded demo
+ * wait on parsing all of them; only the displayed example's source is fetched.
+ */
+const CODE_LOADERS: Record<string, CodeLoader> = {};
+for (const [key, load] of Object.entries(
   import.meta.glob<string>("../examples/**/main.{ts,tsx}", {
     query: "?raw",
     import: "default",
-    eager: true,
   }),
 )) {
   const lang: SourceLang = key.endsWith(".tsx") ? "tsx" : "ts";
   const path = key
     .replace(/^\.\.\/examples\//, "")
     .replace(/\/main\.(ts|tsx)$/, "");
-  CODE[path] = { source, lang };
+  CODE_LOADERS[path] = { load, lang };
 }
 
-/** Lazily created, shared Shiki highlighter for the example sources. */
-let highlighterPromise: Promise<Highlighter> | null = null;
-function getHighlighter(): Promise<Highlighter> {
+/**
+ * Lazily created, shared Shiki highlighter for the example sources.
+ *
+ * Fine-grained core, dynamically imported: keeps Shiki (and its grammar/theme
+ * data) out of the page's initial bundle so parsing it cannot delay the demo
+ * iframe's startup, and uses the JavaScript regex engine instead of the
+ * oniguruma WASM one — compiling a second WASM module while the embedded demo
+ * compiles the engine's WASM is exactly the main-thread contention the
+ * deferred highlighting is meant to avoid.
+ */
+let highlighterPromise: Promise<HighlighterCore> | null = null;
+function getHighlighter(): Promise<HighlighterCore> {
   if (!highlighterPromise) {
-    highlighterPromise = createHighlighter({
-      themes: ["github-light", "github-dark"],
-      langs: ["ts", "tsx"],
-    });
+    highlighterPromise = (async () => {
+      const [core, engine, ts, tsx, light, dark] = await Promise.all([
+        import("shiki/core"),
+        import("shiki/engine/javascript"),
+        import("shiki/dist/langs/typescript.mjs"),
+        import("shiki/dist/langs/tsx.mjs"),
+        import("shiki/dist/themes/github-light.mjs"),
+        import("shiki/dist/themes/github-dark.mjs"),
+      ]);
+      return core.createHighlighterCore({
+        themes: [light.default, dark.default],
+        langs: [ts.default, tsx.default],
+        engine: engine.createJavaScriptRegexEngine(),
+      });
+    })();
   }
   return highlighterPromise;
 }
@@ -83,6 +107,55 @@ function keyBy<M, T>(
   return out;
 }
 
+/**
+ * Loading screen over the demo iframe. Scene loading has no measurable
+ * progress (tiles stream until the engine settles), so a pseudo-progress
+ * eases toward 90% over time, snaps to 100% on `done`, and the overlay fades
+ * once 100% has been visible.
+ *
+ * Isolated in its own component so its periodic progress updates re-render
+ * only this small subtree. Re-rendering the whole page during load is
+ * main-thread work that, on iOS, the embedded demo's process has to share.
+ * The interval is deliberately coarse (not requestAnimationFrame). The bar's
+ * CSS width transition keeps it smooth between ticks.
+ */
+const DemoLoadingOverlay = ({ done }: { done: boolean }) => {
+  const [gone, setGone] = useState(false);
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    if (done) {
+      const timer = window.setTimeout(() => setGone(true), 450);
+      return () => window.clearTimeout(timer);
+    }
+    const start = performance.now();
+    const interval = window.setInterval(() => {
+      const elapsed = (performance.now() - start) / 1000;
+      setProgress(0.9 * (1 - Math.exp(-elapsed / 3)));
+    }, 200);
+    return () => window.clearInterval(interval);
+  }, [done]);
+  const shown = done ? 1 : progress;
+
+  return (
+    <div
+      aria-hidden
+      className={`pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-lg border bg-background transition-opacity duration-500 ${
+        gone ? "opacity-0" : "opacity-100"
+      }`}
+    >
+      <div className="h-1 w-[220px] overflow-hidden rounded-full bg-foreground/15">
+        <div
+          className="h-full rounded-full bg-foreground/85 transition-[width] duration-200 ease-linear"
+          style={{ width: `${Math.round(shown * 100)}%` }}
+        />
+      </div>
+      <span className="mt-3 text-xs tabular-nums text-foreground/70">
+        {Math.round(shown * 100)}%
+      </span>
+    </div>
+  );
+};
+
 /** Current example path from the URL, e.g. "/examples/getting-started/hello-world" -> "getting-started/hello-world". */
 function currentPath(): string {
   return window.location.pathname
@@ -98,15 +171,40 @@ export const DetailApp = () => {
 
   const path = useMemo(() => currentPath(), []);
   const meta = META[path];
-  const code = CODE[path];
+  const codeLoader = CODE_LOADERS[path];
   const demoSrc = withBase(`demo/${path}`);
 
-  // Shiki-highlighted markup for the source. Falls back to plain text while the
-  // highlighter loads or if highlighting fails.
+  // Whether the embedded demo has finished loading (scene-loaded message or
+  // failsafe). Drives the loading overlay.
+  const [demoLoaded, setDemoLoaded] = useState(false);
+
+  // The displayed example's raw source. Loaded as its own chunk (see
+  // CODE_LOADERS) so the page bundle stays free of every other example's
+  // source; the card appears once it arrives.
+  const [code, setCode] = useState<CodeEntry | null>(null);
+  useEffect(() => {
+    if (!codeLoader) {
+      return;
+    }
+    let cancelled = false;
+    codeLoader
+      .load()
+      .then((source) => {
+        if (!cancelled) setCode({ source, lang: codeLoader.lang });
+      })
+      .catch(() => {
+        // Leave the card hidden if the source chunk fails to load.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [codeLoader]);
+
+  // Shiki-highlighted markup for the source. Falls back to plain text while
+  // the highlighter (dynamically imported, see getHighlighter) loads or if
+  // highlighting fails.
   const [highlighted, setHighlighted] = useState<string | null>(null);
   useEffect(() => {
-    // `code` is derived from the page path and never changes at runtime, so
-    // there is no stale `highlighted` value to reset here.
     if (!code) {
       return;
     }
@@ -143,12 +241,10 @@ export const DetailApp = () => {
   //     shield lifts and, if the pointer is still over the demo, we engage.
   const demoRef = useRef<HTMLIFrameElement>(null);
 
-  // Loading screen over the demo. This page owns the overlay so it also covers
-  // the time before the iframe document loads; the demo posts
-  // SCENE_LOADED_MESSAGE from its view's first `idle` event to dismiss it.
-  const [demoLoaded, setDemoLoaded] = useState(false);
-  const [overlayGone, setOverlayGone] = useState(false);
-  const [progress, setProgress] = useState(0);
+  // Loading screen over the demo (see DemoLoadingOverlay). This page owns the
+  // overlay so it also covers the time before the iframe document loads; the
+  // demo posts SCENE_LOADED_MESSAGE from its view's first `idle` event to
+  // dismiss it (`demoLoaded`, declared above the source-loading effect).
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (
@@ -160,30 +256,15 @@ export const DetailApp = () => {
       }
     };
     window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
-  }, []);
-
-  // Scene loading has no measurable progress (tiles stream until the engine
-  // settles), so ease a pseudo-progress toward 90% over time, snap to 100% on
-  // the demo's signal (derived below), and fade the overlay once 100% has
-  // been visible.
-  useEffect(() => {
-    if (demoLoaded) {
-      const timer = window.setTimeout(() => setOverlayGone(true), 450);
-      return () => window.clearTimeout(timer);
-    }
-    let raf = 0;
-    let start: number | undefined;
-    const tick = (time: number) => {
-      if (start === undefined) start = time;
-      const elapsed = (time - start) / 1000;
-      setProgress(0.9 * (1 - Math.exp(-elapsed / 3)));
-      raf = requestAnimationFrame(tick);
+    // Failsafe: if the scene-loaded message never arrives (lost postMessage,
+    // demo init failure, iOS quirks), lift the opaque overlay anyway instead
+    // of hiding the demo forever.
+    const failsafe = window.setTimeout(() => setDemoLoaded(true), 15000);
+    return () => {
+      window.removeEventListener("message", onMessage);
+      window.clearTimeout(failsafe);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [demoLoaded]);
-  const shownProgress = demoLoaded ? 1 : progress;
+  }, []);
 
   const pointerInsideRef = useRef(false);
   const scrollIdleTimer = useRef<number | null>(null);
@@ -316,30 +397,17 @@ export const DetailApp = () => {
                 ref={demoRef}
                 src={demoSrc}
                 title={t(meta.title)}
-                loading="lazy"
                 onPointerEnter={onDemoPointerEnter}
                 onPointerLeave={onDemoPointerLeave}
                 onTouchStart={onDemoPointerEnter}
                 onTouchEnd={onDemoPointerLeave}
                 onTouchCancel={onDemoPointerLeave}
-                className="block h-full w-full rounded-lg border bg-muted"
+                // Absolutely positioned (not in-flow h-full) so iOS Safari's
+                // iframe-expands-to-content sizing cannot grow the frame and
+                // feed a canvas resize loop in the embedded demo.
+                className="absolute inset-0 block h-full w-full rounded-lg border bg-muted"
               />
-              <div
-                aria-hidden
-                className={`pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-lg border bg-background transition-opacity duration-500 ${
-                  overlayGone ? "opacity-0" : "opacity-100"
-                }`}
-              >
-                <div className="h-1 w-[220px] overflow-hidden rounded-full bg-foreground/15">
-                  <div
-                    className="h-full rounded-full bg-foreground/85 transition-[width] duration-200 ease-linear"
-                    style={{ width: `${Math.round(shownProgress * 100)}%` }}
-                  />
-                </div>
-                <span className="mt-3 text-xs tabular-nums text-foreground/70">
-                  {Math.round(shownProgress * 100)}%
-                </span>
-              </div>
+              <DemoLoadingOverlay done={demoLoaded} />
               {scrolling && (
                 // Transparent shield: while the page is scrolling, it catches the
                 // wheel so the gesture keeps scrolling the document instead of
