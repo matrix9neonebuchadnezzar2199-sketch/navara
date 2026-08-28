@@ -5,6 +5,7 @@ import ThreeView, {
 import { DefaultPlugin } from "@navaramap/three-default-plugin";
 import { Pane } from "tweakpane";
 
+import { withBase } from "../../../helpers/base";
 import {
   LOCAL_DATASETS,
   TERRAIN_DATASETS,
@@ -86,7 +87,7 @@ const run = async () => {
         sizeInMeters: false,
         clampToGround: true,
         depthTest: true,
-        url: "/example.png",
+        url: withBase("example.png"),
         transparent: true,
         center: { x: 0.0, y: -0.5 },
       },

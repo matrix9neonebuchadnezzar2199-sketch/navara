@@ -3,6 +3,8 @@ import { TileJsonPlugin } from "@navaramap/three-plugins";
 
 import { initializeExample } from "../../../../helpers/initialize";
 
+const ASSETS = import.meta.env.BASE_URL; // "/examples/" on navara.world
+
 const EVEREST = { lng: 86.925, lat: 27.9881 };
 
 const view = new ThreeView();
@@ -39,7 +41,7 @@ view.addLayer({
   type: "vector",
   source,
   billboard: {
-    url: "/example.png",
+    url: `${ASSETS}example.png`,
     color: new Color().setStyle("#ffffff"),
     size: 160,
     sizeInMeters: false,

@@ -9,6 +9,7 @@ import {
 } from "@navaramap/three-default-plugin";
 import { Pane } from "tweakpane";
 
+import { withBase } from "../../../helpers/base";
 import {
   MVT_DATASETS,
   TERRAIN_DATASETS,
@@ -31,7 +32,7 @@ export async function run() {
 
   // Add the MapLibre Style plugin
   const maplibrePlugin = new MapLibreStylePlugin(
-    "/maplibre-style.json",
+    withBase("maplibre-style.json"),
     new RustStyleEngine(),
   );
   view.addPlugin(maplibrePlugin);

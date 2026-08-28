@@ -21,24 +21,24 @@ Under the hood, Navara is a headless GIS core, independent of the rendering engi
 <table>
   <tr>
     <td width="50%">
-      <a href="https://navara-preview.reearth.workers.dev/weather/clouds">
+      <a href="https://navara.world/examples/weather/clouds">
         <img src="./web/navara_three/example/public/screenshots/weather/clouds.avif" alt="Clouds drifting over mountain terrain">
       </a>
     </td>
     <td width="50%">
-      <a href="https://navara-preview.reearth.workers.dev/effect/fog-light">
+      <a href="https://navara.world/examples/effect/fog-light">
         <img src="./web/navara_three/example/public/screenshots/effect/fog-light.avif" alt="Night hillside lit by fog lights, drawn with a custom shader">
       </a>
     </td>
   </tr>
   <tr>
     <td width="50%">
-      <a href="https://navara-preview.reearth.workers.dev/terrain/elevation-heatmap">
+      <a href="https://navara.world/examples/terrain/elevation-heatmap">
         <img src="./web/navara_three/example/public/screenshots/terrain/elevation-heatmap.avif" alt="Terrain elevation visualized as a heatmap">
       </a>
     </td>
     <td width="50%">
-      <a href="https://navara-preview.reearth.workers.dev/effect/ssr">
+      <a href="https://navara.world/examples/effect/ssr">
         <img src="./web/navara_three/example/public/screenshots/effect/ssr.avif" alt="City buildings reflected on water with screen-space reflections">
       </a>
     </td>
@@ -49,12 +49,12 @@ Under the hood, Navara is a headless GIS core, independent of the rendering engi
   <sub><i>Imagery: <a href="https://mapterhorn.com/attribution">© Mapterhorn</a> · <a href="https://maps.gsi.go.jp/development/ichiran.html">Geospatial Information Authority of Japan Tiles - Latest Nationwide Photo (Seamless)</a> · <a href="https://terrain.reearth.land/">© Re:Earth Terrain</a> · <a href="https://www.geospatial.jp/ckan/dataset/plateau-13102-chuo-ku-2023">3D City Model (Project PLATEAU) Chuo Ward (FY2023) - MLIT PLATEAU</a></i></sub>
 </p>
 
-- 📖 **Documentation**: https://navara-docs.reearth.workers.dev/
-- 🌏 **Live examples**: https://navara-preview.reearth.workers.dev/
+- 📖 **Documentation**: https://navara.world/docs/
+- 🌏 **Live examples**: https://navara.world/examples/
 
 ## Usage
 
-See [What is Navara?](https://navara-docs.reearth.workers.dev/guides/introduction/what-is-navara/) for an overview and [Getting Started](https://navara-docs.reearth.workers.dev/guides/introduction/getting-started/) to build your first 3D map.
+See [What is Navara?](https://navara.world/docs/guides/introduction/what-is-navara/) for an overview and [Getting Started](https://navara.world/docs/guides/introduction/getting-started/) to build your first 3D map.
 
 ## Architecture
 

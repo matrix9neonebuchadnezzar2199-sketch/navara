@@ -9,6 +9,8 @@ import { initializeExample } from "../../../../helpers/initialize";
 
 import { createControlsHelp } from "./controls";
 
+const ASSETS = import.meta.env.BASE_URL; // "/examples/" on navara.world
+
 const START = {
   lng: 137.64724,
   lat: 36.25439,
@@ -30,7 +32,7 @@ view.addPlugin(tilejson);
 
 const personView = new PersonViewPlugin({
   character: {
-    modelUrl: "/glTF/Fox/Fox.glb",
+    modelUrl: `${ASSETS}glTF/Fox/Fox.glb`,
     animation: {
       idleClip: "Survey",
       walkClip: "Walk",

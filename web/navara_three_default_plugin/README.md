@@ -75,7 +75,7 @@ The package also re-exports every Descriptor class and config type from `@navara
 
 ## Documentation
 
-See https://navara-docs.reearth.workers.dev/ for the full list of built-in Descriptors and their options.
+See https://navara.world/docs/ for the full list of built-in Descriptors and their options.
 
 ## License
 

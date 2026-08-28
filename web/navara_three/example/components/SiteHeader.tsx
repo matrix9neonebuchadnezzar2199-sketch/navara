@@ -1,3 +1,4 @@
+import { withBase } from "../helpers/base";
 import { DOCS_URL } from "../pages/examples/sections";
 import type { Lang } from "../pages/examples/sections";
 
@@ -26,9 +27,9 @@ export const SiteHeader = ({ lang, setLang, langLabel }: SiteHeaderProps) => {
           the right, with the LP's 48/28/20px gutters — no centered
           max-width container. */}
       <div className="flex items-center justify-between px-12 py-5 max-[960px]:px-7 max-[960px]:py-[18px] max-[640px]:px-5 max-[640px]:py-3.5">
-        <a href="/" className="block">
+        <a href={withBase("/")} className="block">
           <img
-            src="/logo/white/white_Navara_Horizontal_logo_260819.svg"
+            src={withBase("logo/white/white_Navara_Horizontal_logo_260819.svg")}
             alt="Navara"
             className="block h-6 w-auto max-[640px]:h-[21px]"
           />
@@ -42,7 +43,7 @@ export const SiteHeader = ({ lang, setLang, langLabel }: SiteHeaderProps) => {
           </a>
           <a
             className="text-foreground no-underline hover:text-primary max-[640px]:hidden"
-            href="/"
+            href={withBase("/")}
           >
             Examples
           </a>

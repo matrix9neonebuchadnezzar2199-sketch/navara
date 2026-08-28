@@ -2,6 +2,7 @@ import ThreeView, { Color, fetchFontFamilyFromCss } from "@navaramap/three";
 import { DefaultPlugin } from "@navaramap/three-default-plugin";
 import { Pane } from "tweakpane";
 
+import { withBase } from "../../../helpers/base";
 import { GEOJSON_DATASETS, TILE_DATASETS } from "../../../helpers/constants";
 import { addDateControl } from "../../../helpers/control";
 
@@ -9,7 +10,7 @@ import { addDateControl } from "../../../helpers/control";
 // Noto Sans JP/SC/KR subsets), declared as @font-face rules with
 // unicode-range. Only the CSS is fetched up front; each face file is
 // downloaded lazily when a label first needs one of its codepoints.
-const WORLD_FONT_CSS_URL = "/fonts/woff2/world-cities.css";
+const WORLD_FONT_CSS_URL = withBase("fonts/woff2/world-cities.css");
 
 const run = async () => {
   const view = new ThreeView({

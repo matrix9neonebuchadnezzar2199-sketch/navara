@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createHighlighter } from "shiki";
 import type { Highlighter } from "shiki";
 
+import { withBase } from "../../helpers/base";
 import { SCENE_LOADED_MESSAGE } from "../../helpers/initialize";
 import { docsUrl, localize, SECTION_LABELS } from "../examples/sections";
 import type { ExampleMeta, Lang, Localized } from "../examples/sections";
@@ -82,9 +83,10 @@ function keyBy<M, T>(
   return out;
 }
 
-/** Current example path from the URL, e.g. "/getting-started/hello-world" -> "getting-started/hello-world". */
+/** Current example path from the URL, e.g. "/examples/getting-started/hello-world" -> "getting-started/hello-world". */
 function currentPath(): string {
   return window.location.pathname
+    .replace(withBase("/"), "")
     .replace(/^\//, "")
     .replace(/\.html$/, "")
     .replace(/\/$/, "");
@@ -97,7 +99,7 @@ export const DetailApp = () => {
   const path = useMemo(() => currentPath(), []);
   const meta = META[path];
   const code = CODE[path];
-  const demoSrc = `/demo/${path}`;
+  const demoSrc = withBase(`demo/${path}`);
 
   // Shiki-highlighted markup for the source. Falls back to plain text while the
   // highlighter loads or if highlighting fails.

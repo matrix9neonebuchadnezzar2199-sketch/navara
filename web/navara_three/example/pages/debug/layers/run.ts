@@ -10,6 +10,7 @@ import {
 import { Vector3 } from "three";
 import { Pane } from "tweakpane";
 
+import { withBase } from "../../../helpers/base";
 import {
   TERRAIN_DATASETS,
   TILE_DATASETS,
@@ -152,7 +153,7 @@ const createGeoLayersDef = (
       clampToGround: true,
       depthTest: true,
       transparent: true,
-      url: "/example.png",
+      url: withBase("example.png"),
       offsetDepth: true,
       center: { x: 0.0, y: -0.5 },
     },

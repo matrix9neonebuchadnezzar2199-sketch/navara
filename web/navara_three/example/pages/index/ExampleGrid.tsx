@@ -1,5 +1,6 @@
 import { Star } from "lucide-react";
 
+import { withBase } from "../../helpers/base";
 import { localize, type ExampleEntry, type Lang } from "../examples/sections";
 
 type ExampleGridProps = {
@@ -13,8 +14,8 @@ export const ExampleGrid = ({ entries, lang }: ExampleGridProps) => {
       {entries.map((entry) => {
         // Detail page and screenshot both key off the clean nested path,
         // mirroring the demo URL (/demo/<path>) the screenshot is captured from.
-        const href = `/${entry.path}`;
-        const src = `/screenshots/${entry.path}.avif`;
+        const href = withBase(entry.path);
+        const src = withBase(`screenshots/${entry.path}.avif`);
         const title = localize(entry.title, lang);
         const description = localize(entry.description, lang);
         return (

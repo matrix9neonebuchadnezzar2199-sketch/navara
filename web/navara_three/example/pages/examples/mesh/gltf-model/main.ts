@@ -8,6 +8,8 @@ import { TileJsonPlugin } from "@navaramap/three-plugins";
 
 import { initializeExample } from "../../../../helpers/initialize";
 
+const ASSETS = import.meta.env.BASE_URL; // "/examples/" on navara.world
+
 const CAR = { lng: 138.036142, lat: 36.085621, height: 1 };
 const ROAD_BEARING = 321;
 
@@ -44,7 +46,7 @@ const basemap = await tilejson.addSource({
 view.addLayer({ type: "raster", source: basemap });
 
 const car = view.addMesh<GLTFModelDesc>({
-  gltfModel: { url: "/glTF/car/scene.gltf" },
+  gltfModel: { url: `${ASSETS}glTF/car/scene.gltf` },
   // `heading` is the bearing the model's front faces; the West-Up-North frame
   // `geodetic` builds matches glTF's own Y-up axes, so no up-axis correction.
   geodetic: { ...CAR, heading: ROAD_BEARING },

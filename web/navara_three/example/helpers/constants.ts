@@ -1,5 +1,7 @@
 import type { AttributionChild } from "@navaramap/three";
 
+import { withBase } from "./base";
+
 /** A tile/asset data source used by the examples, with its attribution fields. */
 export type Dataset = {
   url: string;
@@ -141,7 +143,7 @@ export const TERRAIN_DATASETS = {
     url: "https://api.cesium.com/v1/assets",
     attribution: "© Cesium Ion",
     attributionUrl: "https://cesium.com/legal/terms-of-service/",
-    logo: "/credits/CesiumIon.png",
+    logo: withBase("credits/CesiumIon.png"),
   },
   mapbox: {
     url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.webp?access_token=${
@@ -298,7 +300,7 @@ export const TILES_3D_DATASETS = {
     url: `https://tile.googleapis.com/v1/3dtiles/root.json`, // API key should be appended via query parameter, e.g. "https://tile.googleapis.com/v1/3dtiles/root.json?key=YOUR_API_KEY"
     attribution: "Google Maps Photorealistic 3D Tiles",
     attributionUrl: "https://www.google.com/permissions/geoguidelines/",
-    logo: "/credits/GoogleMaps.png",
+    logo: withBase("credits/GoogleMaps.png"),
   },
 } satisfies Record<string, Dataset>;
 
@@ -339,7 +341,7 @@ export const MVT_DATASETS = {
  */
 export const GEOJSON_DATASETS = {
   worldCities: {
-    url: "/world-cities.geojson",
+    url: withBase("world-cities.geojson"),
     attribution: "World Major Cities",
   },
   calderdaleDefibrillators: {
@@ -389,38 +391,38 @@ export const LOCAL_DATASETS = {
       "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N05-2024.html",
   },
   steelDrumGLTF: {
-    url: "/glTF/steel_drum/scene.gltf",
+    url: withBase("glTF/steel_drum/scene.gltf"),
     attribution:
       "themaayur - SKETCHFAB Standard(https://sketchfab.com/licenses)",
-    attributionUrl: "/glTF/steel_drum/license.txt",
+    attributionUrl: withBase("glTF/steel_drum/license.txt"),
   },
   soldierGLTF: {
-    url: "/glTF/Soldier/Soldier.glb",
+    url: withBase("glTF/Soldier/Soldier.glb"),
     attribution:
       "https://github.com/mrdoob/three.js/blob/dev/examples/models/gltf/Soldier.glb",
   },
   animatedBirdPigeonGLTF: {
-    url: "/glTF/animated_bird_pigeon/scene.gltf",
+    url: withBase("glTF/animated_bird_pigeon/scene.gltf"),
     attribution: "Animated Bird Pigeon by dudecon - CC BY 4.0",
     attributionUrl:
       "https://sketchfab.com/3d-models/animated-bird-pigeon-797d27b68af3453e865149435df6aa30",
   },
   globeGeoJSON: {
-    url: "/globe.geojson",
+    url: withBase("globe.geojson"),
     attribution: "GeoJSON Maps of the globe",
     attributionUrl: "https://geojson-maps.kyd.au/",
   },
   streetLightGeoJSON: {
-    url: "/street_light.geojson",
+    url: withBase("street_light.geojson"),
   },
   takanawaPointLightGeoJSON: {
-    url: "/takanawa_point_light.geojson",
+    url: withBase("takanawa_point_light.geojson"),
   },
   tokyoPoints100GeoJSON: {
-    url: "/tokyo_points_100.geojson",
+    url: withBase("tokyo_points_100.geojson"),
   },
   interiorGeoJSON: {
-    url: "/interior.geojson",
+    url: withBase("interior.geojson"),
   },
 } satisfies Record<string, Dataset>;
 
@@ -429,12 +431,14 @@ export const LOCAL_DATASETS = {
  */
 export const SPLAT_DATASETS = {
   quechua: {
-    url: "/splat/QUECHUA%20-%20Webviewer/webviewer.spz",
+    url: withBase("splat/QUECHUA%20-%20Webviewer/webviewer.spz"),
     attribution: "QUECHUA - Webviewer by Christoph SCHINDELAR - CC BY 4.0",
     attributionUrl: "https://superspl.at/scene/f83d530f",
   },
   pencilSharpener: {
-    url: "/splat/Pencil%20sharpener%20shaped%20like%20a%20duck/duck.spz",
+    url: withBase(
+      "splat/Pencil%20sharpener%20shaped%20like%20a%20duck/duck.spz",
+    ),
     attribution:
       "Pencil sharpener shaped like a duck by Alfred Duemlein - CC BY 4.0",
     attributionUrl: "https://superspl.at/scene/d34e7de1",
@@ -497,17 +501,17 @@ export const LUT_DATASETS = {
 
 export const FONT_DATASETS = {
   LineSeedJP: {
-    url: "/fonts/lineseedjp/LINESeedJP-Bold.ttf",
+    url: withBase("fonts/lineseedjp/LINESeedJP-Bold.ttf"),
     attribution: "LINE Seed JP - Google Fonts",
     attributionUrl: "https://fonts.google.com/specimen/LINE+Seed+JP",
   },
   Roboto: {
-    url: "/fonts/roboto/Roboto[wdth,wght].ttf",
+    url: withBase("fonts/roboto/Roboto[wdth,wght].ttf"),
     attribution: "Roboto - Google Fonts",
     attributionUrl: "https://fonts.google.com/specimen/Roboto",
   },
   Borel: {
-    url: "/fonts/borel/Borel-Regular.ttf",
+    url: withBase("fonts/borel/Borel-Regular.ttf"),
     attribution: "Borel - Google Fonts",
     attributionUrl: "https://fonts.google.com/specimen/Borel",
   },
@@ -518,109 +522,109 @@ export const FONT_DATASETS = {
   },
   // Roboto WOFF2 splits by unicode range (from Google Fonts CSS2 API)
   RobotoLatin: {
-    url: "/fonts/woff2/roboto/roboto-latin.woff2",
+    url: withBase("fonts/woff2/roboto/roboto-latin.woff2"),
     attribution: "Roboto - Google Fonts",
     attributionUrl: "https://fonts.google.com/specimen/Roboto",
   },
   RobotoLatinExt: {
-    url: "/fonts/woff2/roboto/roboto-latin-ext.woff2",
+    url: withBase("fonts/woff2/roboto/roboto-latin-ext.woff2"),
     attribution: "Roboto - Google Fonts",
     attributionUrl: "https://fonts.google.com/specimen/Roboto",
   },
   RobotoCyrillic: {
-    url: "/fonts/woff2/roboto/roboto-cyrillic.woff2",
+    url: withBase("fonts/woff2/roboto/roboto-cyrillic.woff2"),
     attribution: "Roboto - Google Fonts",
     attributionUrl: "https://fonts.google.com/specimen/Roboto",
   },
   RobotoCyrillicExt: {
-    url: "/fonts/woff2/roboto/roboto-cyrillic-ext.woff2",
+    url: withBase("fonts/woff2/roboto/roboto-cyrillic-ext.woff2"),
     attribution: "Roboto - Google Fonts",
     attributionUrl: "https://fonts.google.com/specimen/Roboto",
   },
   RobotoGreek: {
-    url: "/fonts/woff2/roboto/roboto-greek.woff2",
+    url: withBase("fonts/woff2/roboto/roboto-greek.woff2"),
     attribution: "Roboto - Google Fonts",
     attributionUrl: "https://fonts.google.com/specimen/Roboto",
   },
   RobotoVietnamese: {
-    url: "/fonts/woff2/roboto/roboto-vietnamese.woff2",
+    url: withBase("fonts/woff2/roboto/roboto-vietnamese.woff2"),
     attribution: "Roboto - Google Fonts",
     attributionUrl: "https://fonts.google.com/specimen/Roboto",
   },
   // Noto Sans script-specific subsets (from Google Fonts CSS2 API)
   NotoSansJP: {
-    url: "/fonts/woff2/noto-sans/noto-sans-jp.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-jp.woff2"),
     attribution: "Noto Sans JP - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+JP",
   },
   NotoSansSC: {
-    url: "/fonts/woff2/noto-sans/noto-sans-sc.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-sc.woff2"),
     attribution: "Noto Sans SC - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+SC",
   },
   NotoSansKR: {
-    url: "/fonts/woff2/noto-sans/noto-sans-kr.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-kr.woff2"),
     attribution: "Noto Sans KR - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+KR",
   },
   NotoSansArabic: {
-    url: "/fonts/woff2/noto-sans/noto-sans-arabic.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-arabic.woff2"),
     attribution: "Noto Sans Arabic - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+Arabic",
   },
   NotoSansThai: {
-    url: "/fonts/woff2/noto-sans/noto-sans-thai.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-thai.woff2"),
     attribution: "Noto Sans Thai - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+Thai",
   },
   NotoSansDevanagari: {
-    url: "/fonts/woff2/noto-sans/noto-sans-devanagari.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-devanagari.woff2"),
     attribution: "Noto Sans Devanagari - Google Fonts",
     attributionUrl:
       "https://fonts.google.com/noto/specimen/Noto+Sans+Devanagari",
   },
   NotoSansHebrew: {
-    url: "/fonts/woff2/noto-sans/noto-sans-hebrew.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-hebrew.woff2"),
     attribution: "Noto Sans Hebrew - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+Hebrew",
   },
   NotoSansGeorgian: {
-    url: "/fonts/woff2/noto-sans/noto-sans-georgian.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-georgian.woff2"),
     attribution: "Noto Sans Georgian - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+Georgian",
   },
   NotoSansBengali: {
-    url: "/fonts/woff2/noto-sans/noto-sans-bengali.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-bengali.woff2"),
     attribution: "Noto Sans Bengali - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+Bengali",
   },
   NotoSansTamil: {
-    url: "/fonts/woff2/noto-sans/noto-sans-tamil.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-tamil.woff2"),
     attribution: "Noto Sans Tamil - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+Tamil",
   },
   NotoSansTelugu: {
-    url: "/fonts/woff2/noto-sans/noto-sans-telugu.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-telugu.woff2"),
     attribution: "Noto Sans Telugu - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+Telugu",
   },
   NotoSansKannada: {
-    url: "/fonts/woff2/noto-sans/noto-sans-kannada.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-kannada.woff2"),
     attribution: "Noto Sans Kannada - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+Kannada",
   },
   NotoSansArmenian: {
-    url: "/fonts/woff2/noto-sans/noto-sans-armenian.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-armenian.woff2"),
     attribution: "Noto Sans Armenian - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+Armenian",
   },
   NotoSansMyanmar: {
-    url: "/fonts/woff2/noto-sans/noto-sans-myanmar.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-myanmar.woff2"),
     attribution: "Noto Sans Myanmar - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+Myanmar",
   },
   NotoSansLao: {
-    url: "/fonts/woff2/noto-sans/noto-sans-lao.woff2",
+    url: withBase("fonts/woff2/noto-sans/noto-sans-lao.woff2"),
     attribution: "Noto Sans Lao - Google Fonts",
     attributionUrl: "https://fonts.google.com/noto/specimen/Noto+Sans+Lao",
   },

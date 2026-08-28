@@ -7,6 +7,8 @@ import {
 import { initializeExample } from "../../../../helpers/initialize";
 import { GOOGLE_MAPS_API_KEY } from "../../../../helpers/keys";
 
+const ASSETS = import.meta.env.BASE_URL; // "/examples/" on navara.world
+
 const view = new ThreeView<DefaultDescriptions>();
 
 const defaultPlugin = new DefaultPlugin();
@@ -43,7 +45,7 @@ view.attribution?.add([
   {
     attribution: "Google Maps Photorealistic 3D Tiles",
     attributionUrl: "https://www.google.com/permissions/geoguidelines/",
-    logo: "/credits/GoogleMaps.png",
+    logo: `${ASSETS}credits/GoogleMaps.png`,
     creditLayerId: tiles.id,
   },
 ]);

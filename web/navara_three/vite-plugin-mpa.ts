@@ -119,13 +119,23 @@ export function createMpaPlugin({ templatePath, pages }: Options): Plugin {
       });
 
       server.middlewares.use((req, res, next) => {
-        const [urlPath, query] = (req.url ?? "").split("?", 2);
+        // This middleware runs before Vite's internal base middleware, so the
+        // configured base (e.g. "/examples/") is still present in req.url.
+        const base = server.config.base;
+        const [rawPath, query] = (req.url ?? "").split("?", 2);
+        let urlPath = rawPath;
+        if (base !== "/") {
+          if (urlPath + "/" === base) urlPath = "/";
+          else if (urlPath.startsWith(base))
+            urlPath = "/" + urlPath.slice(base.length);
+          else return next();
+        }
         let filename = urlPath.startsWith("/") ? urlPath.slice(1) : urlPath;
 
         // Rewrite root to index.html
         if (filename === "") {
           filename = "index.html";
-          req.url = "/index.html" + (query ? `?${query}` : "");
+          req.url = base + "index.html" + (query ? `?${query}` : "");
         }
 
         // Allow accessing pages without .html extension (e.g., /globe -> /globe.html)

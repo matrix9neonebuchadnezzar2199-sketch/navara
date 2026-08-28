@@ -44,7 +44,7 @@ overlay.onUpdate(({ projected }) => {
 });
 ```
 
-Plugin docs: https://navara-docs.reearth.workers.dev//three_plugins/about/ — runnable references in the Navara repo: `example/pages/plugins/overlay-marker/`, `example/pages/use-cases/interior-explore/` (PersonViewPlugin walkthrough of building interiors).
+Plugin docs: https://navara.world/docs/three_plugins/about/ — runnable references in the Navara repo: `example/pages/plugins/overlay-marker/`, `example/pages/use-cases/interior-explore/` (PersonViewPlugin walkthrough of building interiors).
 
 ## Writing your own plugin
 

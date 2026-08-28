@@ -104,4 +104,4 @@ view.camera.fov = 50;                                           // use setters, 
 view.camera.fov;                                                // degrees; vertical fov
 ```
 
-Full reference: https://navara-docs.reearth.workers.dev//three/source/about/ · /three/layer/about/ · /three/material/about/
+Full reference: https://navara.world/docs/three/source/about/ · /three/layer/about/ · /three/material/about/

@@ -53,10 +53,15 @@ const { locale } = Astro.props;
 const t = locales[locale];
 if (!t) throw new Error(`LP locale strings not found: ${locale}`);
 
-// Prefix internal links with the locale path segment (root locale has none).
+// The docs deploy base ("/docs" on navara.world — see astro.config.mjs).
+const DOCS_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+// Prefix docs-internal links with the deploy base and the locale path
+// segment (root locale has none). Site-root links (/examples) are used raw.
 function localizeHref(href: string): string {
-  if (!href.startsWith("/") || locale === ROOT_LOCALE) return href;
-  return `/${locale}${href}`;
+  if (!href.startsWith("/")) return href;
+  const localeSeg = locale === ROOT_LOCALE ? "" : `/${locale}`;
+  return `${DOCS_BASE}${localeSeg}${href}`;
 }
 const imageModules = import.meta.glob<{ default: ImageMetadata }>(
   [
@@ -391,16 +396,16 @@ const heroScenes = [
     <meta property="og:type" content="website" />
     <meta property="og:title" content={t.meta.title} />
     <meta property="og:description" content={t.meta.description} />
-    <meta property="og:image" content="https://navara-docs.reearth.workers.dev/og.jpg" />
+    <meta property="og:image" content="https://navara.world/og.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://navara-docs.reearth.workers.dev/og.jpg" />
+    <meta name="twitter:image" content="https://navara.world/og.jpg" />
     {/* iOS Safari tints its toolbars with this (it samples the page background
         otherwise): black, so the closing band reads as continuing past the URL
         bar — the page itself can never paint that area. */}
     <meta name="theme-color" content="#000000" />
     {/* TODO: Remove when Navara is released. */}
     <meta name="robots" content="noindex,nofollow" />
-    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="icon" href={`${DOCS_BASE}/favicon.png`} type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -430,8 +435,12 @@ const heroScenes = [
              simply stays. -->
         <div class="lp-hero">
           <picture>
-            <source media="(max-width: 640px)" srcset="/promo/promo-poster-sp.avif" type="image/avif" />
-            <img src="/promo/promo-poster.avif" alt={t.hero.posterAlt} />
+            <source
+              media="(max-width: 640px)"
+              srcset={`${DOCS_BASE}/promo/promo-poster-sp.avif`}
+              type="image/avif"
+            />
+            <img src={`${DOCS_BASE}/promo/promo-poster.avif`} alt={t.hero.posterAlt} />
           </picture>
           <video
             class="lp-hero-video"
@@ -440,8 +449,8 @@ const heroScenes = [
             playsinline
             preload="auto"
             aria-hidden="true"
-            data-src="/promo/navara-promo.mp4"
-            data-src-sp="/promo/navara-promo-sp.mp4"
+            data-src={`${DOCS_BASE}/promo/navara-promo.mp4`}
+            data-src-sp={`${DOCS_BASE}/promo/navara-promo-sp.mp4`}
           ></video>
           <!-- Brand lockup centered over the video; the intro panel slides up
                over it, at which point the header's own logo takes over. -->

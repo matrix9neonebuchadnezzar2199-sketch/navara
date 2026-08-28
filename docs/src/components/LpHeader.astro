@@ -44,24 +44,31 @@ const { colors, links } = lp;
 const logoSvg = (raw: string, className: string): string =>
   raw.replace("<svg ", `<svg class="${className}" role="img" aria-label="Navara" `);
 
-// Prefix internal links with the locale path segment (root locale has none).
+// The docs deploy base ("/docs" on navara.world — see astro.config.mjs).
+// Docs-internal links carry it; site-root links (the LP, /examples) do not.
+const DOCS_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+// Prefix docs-internal links with the deploy base and the locale path
+// segment (root locale has none).
 function localizeHref(href: string): string {
-  if (!href.startsWith("/") || locale === ROOT_LOCALE) return href;
-  return `/${locale}${href}`;
+  if (!href.startsWith("/")) return href;
+  const localeSeg = locale === ROOT_LOCALE ? "" : `/${locale}`;
+  return `${DOCS_BASE}${localeSeg}${href}`;
 }
 
 // Where the language switcher sends each locale. On the LP that is the
-// locale's landing page (pre-release parked under /lp — see astro.config.mjs);
+// locale's landing page (served at the site root — see astro.config.mjs);
 // on docs it is the current page in the target locale (every docs page exists
 // in all locales, ja/ mirrors the root tree).
 const pathForLocale = (code: string): string => {
-  if (variant === "lp") return code === ROOT_LOCALE ? "/lp/" : `/${code}/lp/`;
+  if (variant === "lp") return code === ROOT_LOCALE ? "/" : `/${code}/`;
   let path = Astro.url.pathname;
+  if (path.startsWith(DOCS_BASE)) path = path.slice(DOCS_BASE.length) || "/";
   if (locale !== ROOT_LOCALE) {
     if (path === `/${locale}` || path === `/${locale}/`) path = "/";
     else if (path.startsWith(`/${locale}/`)) path = path.slice(locale.length + 1);
   }
-  return code === ROOT_LOCALE ? path : `/${code}${path}`;
+  return DOCS_BASE + (code === ROOT_LOCALE ? path : `/${code}${path}`);
 };
 
 // Theme candidates (primary/sub/accent sets) for the LP's `?color` preview
@@ -87,7 +94,7 @@ const themeVariants: [string, ThemeVariant][] =
 <header class:list={["lp-header", `lp-header--${variant}`]}>
   {
     variant === "docs" ? (
-      <a class="lp-brand-home" href={locale === ROOT_LOCALE ? "/" : `/${locale}/`}>
+      <a class="lp-brand-home" href={locale === ROOT_LOCALE ? `${DOCS_BASE}/` : `${DOCS_BASE}/${locale}/`}>
         <Fragment set:html={logoSvg(logoHorizontal, "lp-brand")} />
       </a>
     ) : (

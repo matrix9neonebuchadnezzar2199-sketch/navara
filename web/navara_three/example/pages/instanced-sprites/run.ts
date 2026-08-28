@@ -6,6 +6,7 @@ import {
 } from "@navaramap/three-default-plugin";
 import { Pane } from "tweakpane";
 
+import { withBase } from "../../helpers/base";
 import { TILE_DATASETS, VECTOR_DATASETS } from "../../helpers/constants";
 import { addCameraControl, addDateControl } from "../../helpers/control";
 import { addCtrlPanel, type MaterialDesc } from "../../helpers/panel";
@@ -99,7 +100,7 @@ const createLayers = (view: ThreeView<DefaultDescriptions>): MaterialDesc[] => {
         alphaTest: 0.5,
         center: { x: 0.0, y: -0.5 },
         transparent: true,
-        url: "/example.png",
+        url: withBase("example.png"),
         offsetDepth: true,
       },
     },
@@ -177,7 +178,7 @@ export const run = async (view: ThreeView<DefaultDescriptions>) => {
     evaluator.evaluate(
       ({ properties }) => {
         const icon = properties?.["icon"] as string | undefined;
-        return { image: icon ? `/icons/${icon}.svg` : null };
+        return { image: icon ? withBase(`icons/${icon}.svg`) : null };
       },
       { filters: ["icon"] },
     );

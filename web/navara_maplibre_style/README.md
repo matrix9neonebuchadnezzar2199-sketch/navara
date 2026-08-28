@@ -204,7 +204,7 @@ view.addPlugin(plugin);
 
 ## Documentation
 
-See https://navara-docs.reearth.workers.dev/ for the full Navara documentation.
+See https://navara.world/docs/ for the full Navara documentation.
 
 ## License
 

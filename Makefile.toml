@@ -58,6 +58,9 @@ run_task = { name = ["build-dev-all", "build-web"] }
 [tasks.build-example]
 run_task = { name = ["build-all", "build-web-example"] }
 
+[tasks.deploy-site]
+run_task = { name = ["build-example", "deploy-web-site"] }
+
 [tasks.test]
 run_task = { name = ["test-rust", "test-web"], parallel = true }
 

@@ -9,6 +9,8 @@ import { TileJsonPlugin } from "@navaramap/three-plugins";
 import { addButton } from "../../../../helpers/button";
 import { initializeExample } from "../../../../helpers/initialize";
 
+const ASSETS = import.meta.env.BASE_URL; // "/examples/" on navara.world
+
 const FOX = { lng: 137.6479, lat: 36.2517 };
 const FOX_HEADING = 280;
 
@@ -48,7 +50,7 @@ view.addLayer({ type: "raster", source: basemap });
 
 const fox = view.addMesh<GLTFModelDesc>({
   gltfModel: {
-    url: "/glTF/Fox/Fox.glb",
+    url: `${ASSETS}glTF/Fox/Fox.glb`,
     animationEnabled: true,
     animationActiveClip: "Walk",
     animationLoop: true,

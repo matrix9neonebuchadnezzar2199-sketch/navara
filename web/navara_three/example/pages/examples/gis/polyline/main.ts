@@ -3,6 +3,8 @@ import { TileJsonPlugin } from "@navaramap/three-plugins";
 
 import { initializeExample } from "../../../../helpers/initialize";
 
+const ASSETS = import.meta.env.BASE_URL; // "/examples/" on navara.world
+
 const view = new ThreeView();
 
 const tilejson = new TileJsonPlugin();
@@ -27,7 +29,7 @@ view.addLayer({ type: "raster", source: basemap });
 
 const source = view.addSource({
   type: "geojson",
-  url: "/venice_canals.geojson",
+  url: `${ASSETS}venice_canals.geojson`,
 });
 view.addLayer({
   type: "vector",

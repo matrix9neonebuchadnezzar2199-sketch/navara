@@ -1,7 +1,16 @@
+// The unified navara.world site: LP at /, docs under /docs, examples under
+// /examples — one static-asset tree assembled by scripts/assemble-site.mjs.
+// Deploys onto the existing "navara-docs" Workers project, whose custom
+// domain is navara.world. Build + deploy with `pnpm deploy:site`; preview
+// locally with `wrangler dev`.
 {
-  "name": "navara-preview",
+  "name": "navara-docs",
   "compatibility_date": "2026-07-29",
+  "routes": [{ "pattern": "navara.world", "custom_domain": true }],
   "assets": {
-    "directory": "./web/navara_three/dist-example"
+    "directory": "./site-dist",
+    // Serve the nearest 404.html: site-dist/docs/404.html covers /docs/*,
+    // the root copy covers everything else.
+    "not_found_handling": "404-page"
   }
 }

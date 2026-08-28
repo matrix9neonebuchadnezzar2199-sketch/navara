@@ -1,7 +1,7 @@
 ## v0.1.0 - 2026-08-28
 
 We finally released the beta version 🎉  
-Please check out [our website](https://navara-docs.reearth.workers.dev/lp/) as well.  
+Please check out [our website](https://navara.world/) as well.  
 We'd love to hear your feedback!
 
 ### 🚀 Features

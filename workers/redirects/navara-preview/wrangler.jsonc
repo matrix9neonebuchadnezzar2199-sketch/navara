@@ -1,0 +1,10 @@
+// Redirect-only worker that replaces the old examples deployment: every
+// request to navara-preview.<account>.workers.dev 301s to the same path under
+// https://navara.world/examples/. Deploy with `pnpm deploy:redirects`.
+{
+  "name": "navara-preview",
+  "compatibility_date": "2026-07-29",
+  "assets": {
+    "directory": "./public"
+  }
+}

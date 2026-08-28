@@ -9,6 +9,7 @@ allowBuilds:
   msw: false
   sharp: true
   unrs-resolver: false
+  workerd: true
 
 # Overrides to patch transitive dependencies flagged by `pnpm audit`.
 # Each entry targets a specific vulnerable range so non-vulnerable majors

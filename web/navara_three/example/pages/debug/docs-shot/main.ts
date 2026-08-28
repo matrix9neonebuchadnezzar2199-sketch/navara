@@ -20,6 +20,8 @@ import {
   type DefaultDescriptions,
 } from "@navaramap/three-default-plugin";
 
+import { withBase } from "../../../helpers/base";
+
 const q = new URLSearchParams(location.search);
 const MODE = q.get("m") ?? "clouds";
 const expOverride = q.get("exp");
@@ -59,7 +61,7 @@ if (MODE === "interior") {
 
   const personView = new PersonViewPlugin({
     character: {
-      modelUrl: "/glTF/Soldier/Soldier.glb",
+      modelUrl: withBase("glTF/Soldier/Soldier.glb"),
       animation: {
         idleClip: "Idle",
         walkClip: "Walk",

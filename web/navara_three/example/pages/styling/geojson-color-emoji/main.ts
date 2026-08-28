@@ -2,6 +2,7 @@ import ThreeView, { Color, fetchFontFamilyFromCss } from "@navaramap/three";
 import { DefaultPlugin } from "@navaramap/three-default-plugin";
 import { Pane } from "tweakpane";
 
+import { withBase } from "../../../helpers/base";
 import { GEOJSON_DATASETS, TILE_DATASETS } from "../../../helpers/constants";
 import { addDateControl } from "../../../helpers/control";
 
@@ -12,7 +13,7 @@ const FAMILY_NAME = "CityWithEmoji";
 // Color Emoji subsets straight from the @infolektuell/noto-color-emoji
 // package's own stylesheet on jsDelivr.
 const FONT_CSS_URLS = [
-  "/fonts/woff2/world-cities.css",
+  withBase("fonts/woff2/world-cities.css"),
   "https://cdn.jsdelivr.net/npm/@infolektuell/noto-color-emoji@0.2.0/index.css",
 ];
 

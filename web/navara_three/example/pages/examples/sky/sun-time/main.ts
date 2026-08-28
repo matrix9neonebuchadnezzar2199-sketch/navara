@@ -9,6 +9,8 @@ import { initializeExample } from "../../../../helpers/initialize";
 import { GOOGLE_MAPS_API_KEY } from "../../../../helpers/keys";
 import { addPlayer } from "../../../../helpers/player";
 
+const ASSETS = import.meta.env.BASE_URL; // "/examples/" on navara.world
+
 const CITIES = [
   { name: "Tokyo", lng: 139.767, lat: 35.681 },
   { name: "Dubai", lng: 55.274, lat: 25.197 },
@@ -111,7 +113,7 @@ view.attribution?.add([
   {
     attribution: "Google Maps Photorealistic 3D Tiles",
     attributionUrl: "https://www.google.com/permissions/geoguidelines/",
-    logo: "/credits/GoogleMaps.png",
+    logo: `${ASSETS}credits/GoogleMaps.png`,
     creditLayerId: tiles.id,
   },
 ]);

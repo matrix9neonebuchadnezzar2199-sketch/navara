@@ -26,7 +26,7 @@ These Descriptors are also reference implementations for writing custom Descript
 
 ## Documentation
 
-Every Descriptor and its options are documented at https://navara-docs.reearth.workers.dev/.
+Every Descriptor and its options are documented at https://navara.world/docs/.
 
 ## License
 

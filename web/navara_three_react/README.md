@@ -137,7 +137,7 @@ export function AppWithCanvas() {
 
 ## Documentation
 
-The underlying `ThreeView` API, including every source/layer/material option, is documented at https://navara-docs.reearth.workers.dev/.
+The underlying `ThreeView` API, including every source/layer/material option, is documented at https://navara.world/docs/.
 
 ## License
 

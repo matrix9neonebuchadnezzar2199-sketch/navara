@@ -115,8 +115,8 @@ pnpm --filter @navaramap/three dev
 
 Your example is now available at:
 
-- Categorized: `http://localhost:5173/<category>-<example-name>`
-- Uncategorized: `http://localhost:5173/<example-name>`
+- Categorized: `http://localhost:5173/examples/<category>-<example-name>`
+- Uncategorized: `http://localhost:5173/examples/<example-name>`
 
 ### Step 5: Generate Screenshot (Optional)
 
@@ -238,8 +238,8 @@ The index page shows a card grid using screenshots from `example/public/screensh
 
 Notes:
 
-- The screenshot tool expects the dev server at `http://localhost:5173` by default. If yours runs elsewhere, override it:
-  - `SERVER_URL=http://localhost:5174 pnpm run screenshots`
+- The screenshot tool expects the dev server at `http://localhost:5173/examples` by default. If yours runs elsewhere, override it (keep the `/examples` base):
+  - `SERVER_URL=http://localhost:5174/examples pnpm run screenshots`
 - On first use, you may need Playwright browsers installed:
   - `pnpm exec playwright install`
 - Output files are saved to `web/navara_three/example/public/screenshots/` and are picked up by the index automatically.

@@ -75,7 +75,7 @@ const examplePages = getExamplePages(resolve(__dirname, "example/pages"));
 // site OG image for every page — the gallery screenshots carry no baked data
 // credits, so they can't be used as social thumbnails (public/og.jpg is the
 // credited docs/public/og.jpg, copied verbatim).
-const SITE_ORIGIN = "https://navara-preview.reearth.workers.dev";
+const SITE_ORIGIN = "https://navara.world/examples";
 const SITE_TITLE = "Navara Examples";
 const SITE_DESCRIPTION =
   "Interactive examples for Navara, a highly extensible 3D map engine. See what it can do live in your browser, from declarative layers to plugins and custom shaders.";
@@ -191,6 +191,10 @@ export default defineConfig(async (env) => {
   ).flat();
   return {
     ...common,
+    // The examples deploy under https://navara.world/examples/ (see
+    // scripts/assemble-site.mjs at the repo root); the dev server mirrors the
+    // prefix so root-absolute path regressions surface locally.
+    base: "/examples/",
     envPrefix: "NAVARA",
     plugins: [
       glsl(),

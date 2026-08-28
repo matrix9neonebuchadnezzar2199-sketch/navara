@@ -27,11 +27,15 @@ node_modules
 dist
 dist-example
 dist-ssr
+site-dist
 *.local
 !web/**/example/pages/debug
 
 # Docs (Astro)
 .astro/
+
+# Wrangler local dev state
+.wrangler/
 
 # Packed externals for internal distribution
 externals
@@ -47,3 +51,4 @@ externals
 *.sln
 *.sw?
 
+promo-captures/*

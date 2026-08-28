@@ -3,6 +3,8 @@ import type ThreeView from "@navaramap/three";
 import type { MeshConfig } from "@navaramap/three";
 import type { DefaultDescriptions } from "@navaramap/three-default-plugin";
 
+import { withBase } from "../../../helpers/base";
+
 /**
  * Every descriptor config `view.addMesh` accepts for this page's descriptor
  * set. Derived from the method rather than re-listed, so a new built-in
@@ -210,7 +212,10 @@ export const SUBJECTS: Subject[] = [
     path: "rte",
     lift: 0,
     placementUpdatable: true,
-    config: (t) => ({ ...t, gltfModel: { url: "/glTF/car/scene.gltf" } }),
+    config: (t) => ({
+      ...t,
+      gltfModel: { url: withBase("glTF/car/scene.gltf") },
+    }),
   },
   {
     key: "gltfModels",
@@ -220,7 +225,7 @@ export const SUBJECTS: Subject[] = [
     config: (t) => ({
       ...t,
       gltfModels: {
-        url: "/glTF/Lantern/Lantern.glb",
+        url: withBase("glTF/Lantern/Lantern.glb"),
         emissiveColor: new Color().setStyle("#ffcc66"),
         emissiveIntensity: 3,
         children: BLOCK.map((position) => ({

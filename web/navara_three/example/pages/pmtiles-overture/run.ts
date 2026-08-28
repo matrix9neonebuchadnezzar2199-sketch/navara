@@ -11,6 +11,7 @@ import {
 import { SphericalHarmonics3 } from "three";
 import { Pane } from "tweakpane";
 
+import { withBase } from "../../helpers/base";
 import { PMTILES_DATASETS } from "../../helpers/constants";
 import { SH_COEFFICIENTS } from "../../helpers/sh";
 
@@ -249,12 +250,12 @@ const LAND_COVER_COLORS: Record<string, string> = {
 };
 
 const POI_CATEGORIES = [
-  { key: "Restaurants", icon: "/icons/restaurant.svg" },
-  { key: "Cafés", icon: "/icons/cafe.svg" },
-  { key: "Hotels", icon: "/icons/hotel.svg" },
-  { key: "Schools", icon: "/icons/school.svg" },
-  { key: "Hospitals", icon: "/icons/hospital.svg" },
-  { key: "Shopping", icon: "/icons/shopping.svg" },
+  { key: "Restaurants", icon: withBase("icons/restaurant.svg") },
+  { key: "Cafés", icon: withBase("icons/cafe.svg") },
+  { key: "Hotels", icon: withBase("icons/hotel.svg") },
+  { key: "Schools", icon: withBase("icons/school.svg") },
+  { key: "Hospitals", icon: withBase("icons/hospital.svg") },
+  { key: "Shopping", icon: withBase("icons/shopping.svg") },
 ] as const;
 
 type PoiKey = (typeof POI_CATEGORIES)[number]["key"];

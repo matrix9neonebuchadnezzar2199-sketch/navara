@@ -54,7 +54,7 @@ view.addLayer({
 view.attribution?.add([{ attributionHtml: `Imagery courtesy of <a href="https://earthdata.nasa.gov/gibs">NASA EOSDIS GIBS</a> · Blue Marble: Next Generation (public domain)` }]);
 ```
 
-Want to try it yourself? [Getting Started](../getting-started/) walks you through setting up a project, and the [Examples](https://navara-preview.reearth.workers.dev/) gallery shows what Navara can do live in your browser.
+Want to try it yourself? [Getting Started](../getting-started/) walks you through setting up a project, and the [Examples](https://navara.world/examples/) gallery shows what Navara can do live in your browser.
 
 ## What You Can Build
 

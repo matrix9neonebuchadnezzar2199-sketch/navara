@@ -1,3 +1,5 @@
+import { withBase } from "../../helpers/base";
+
 type PageListProps = {
   pages: PageInfo[];
 };
@@ -9,8 +11,8 @@ export const PageList = ({ pages }: PageListProps) => {
         // Convert nested path to URL-safe format: "styling/geojson-billboard" -> "styling-geojson-billboard".
         // A trailing "/index" collapses to its parent so "dev/index" -> "dev" (kept in sync with vite.config.example.ts).
         const urlName = page.name.replace(/\/index$/, "").replace(/\//g, "-");
-        const href = `/${urlName}`;
-        const src = `/screenshots/${urlName}.avif`;
+        const href = withBase(urlName);
+        const src = withBase(`screenshots/${urlName}.avif`);
         const title = page.displayName.replace(/-/g, " ");
         return (
           <a

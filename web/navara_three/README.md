@@ -11,8 +11,8 @@ Navara's answer to the trade-off is a tiered API. Capabilities are organized int
 
 Under the hood, Navara is a headless GIS core, independent of the rendering engine. The complex but reusable GIS logic (data parsing, geometry construction, and more) lives in Rust / WebAssembly, and drawing is delegated to libraries specialized in CG rendering. This package is the Three.js-based binding and the main entry point for building Navara applications. Its public API is `ThreeView` plus a declarative Source/Layer/Descriptor model.
 
-- 📖 **Documentation**: https://navara-docs.reearth.workers.dev/
-- 🌏 **Live examples**: https://navara-preview.reearth.workers.dev/
+- 📖 **Documentation**: https://navara.world/docs/
+- 🌏 **Live examples**: https://navara.world/examples/
 
 ## Install
 
@@ -64,7 +64,7 @@ view.attribution?.add([
 ]);
 ```
 
-See [What is Navara?](https://navara-docs.reearth.workers.dev/guides/introduction/what-is-navara/) for an overview and [Getting Started](https://navara-docs.reearth.workers.dev/guides/introduction/getting-started/) to build your first 3D map.
+See [What is Navara?](https://navara.world/docs/guides/introduction/what-is-navara/) for an overview and [Getting Started](https://navara.world/docs/guides/introduction/getting-started/) to build your first 3D map.
 
 ## Related packages
 
@@ -75,7 +75,7 @@ See [What is Navara?](https://navara-docs.reearth.workers.dev/guides/introductio
 
 ## Documentation
 
-Full documentation, including every source/layer/material option and runnable examples, is at https://navara-docs.reearth.workers.dev/.
+Full documentation, including every source/layer/material option and runnable examples, is at https://navara.world/docs/.
 
 ## License
 

@@ -40,12 +40,12 @@ const sidebar = await autogenSections();
 
 // https://astro.build/config
 export default defineConfig({
-  // Until release the docs top pages live at / and /<locale>/ while the
-  // landing page is parked at /lp and /<locale>/lp. At release, swap back:
-  // git mv src/pages/lp.astro src/pages/index.astro (and the ja variant),
-  // git mv src/content/docs/index.mdx src/content/docs/home.mdx (and ja),
-  // then point lp.json's docs/roadmap links at /home/ and restore lpPathOf
-  // in LandingPage.astro to locale roots.
+  // The whole Astro build ships under https://navara.world/docs. The landing
+  // page builds at /docs/lp/ and /docs/<locale>/lp/, then the repo-root
+  // scripts/assemble-site.mjs relocates it to the site root (/ and
+  // /<locale>/), where its /docs/_astro/... asset URLs still resolve.
+  site: "https://navara.world",
+  base: "/docs",
   markdown: {
     rehypePlugins: [[rehypeMermaid, { strategy: "inline-svg" }]],
   },
@@ -99,14 +99,14 @@ export default defineConfig({
           tag: "meta",
           attrs: {
             property: "og:image",
-            content: "https://navara-docs.reearth.workers.dev/og.jpg",
+            content: "https://navara.world/og.jpg",
           },
         },
         {
           tag: "meta",
           attrs: {
             name: "twitter:image",
-            content: "https://navara-docs.reearth.workers.dev/og.jpg",
+            content: "https://navara.world/og.jpg",
           },
         },
         // TODO: Remove when Navara is released.

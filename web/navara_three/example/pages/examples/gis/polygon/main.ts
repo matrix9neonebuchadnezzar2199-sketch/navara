@@ -2,6 +2,8 @@ import ThreeView, { Color } from "@navaramap/three";
 
 import { initializeExample } from "../../../../helpers/initialize";
 
+const ASSETS = import.meta.env.BASE_URL; // "/examples/" on navara.world
+
 const view = new ThreeView();
 
 await view.init();
@@ -18,7 +20,10 @@ view.setCamera({
 view.addLayer({ type: "terrain", ellipsoid: {} });
 view.globe.color = new Color().setStyle("#0b1420");
 
-const source = view.addSource({ type: "geojson", url: "/globe.geojson" });
+const source = view.addSource({
+  type: "geojson",
+  url: `${ASSETS}globe.geojson`,
+});
 view.addLayer({
   type: "vector",
   source,

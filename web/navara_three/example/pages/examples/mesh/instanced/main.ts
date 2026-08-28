@@ -12,6 +12,8 @@ import { TileJsonPlugin } from "@navaramap/three-plugins";
 import { addButton } from "../../../../helpers/button";
 import { initializeExample } from "../../../../helpers/initialize";
 
+const ASSETS = import.meta.env.BASE_URL; // "/examples/" on navara.world
+
 const CITY = { lng: 139.7671, lat: 35.6812 };
 const FIELD_RADIUS = 1000; // meters
 const LANTERN_SCALE = 0.6;
@@ -63,7 +65,7 @@ let density = DENSITIES[0];
 
 const lanterns = view.addMesh<InstancedGltfModelMeshDesc>({
   gltfModels: {
-    url: "/glTF/Lantern/Lantern.glb",
+    url: `${ASSETS}glTF/Lantern/Lantern.glb`,
     emissiveColor: new Color().setStyle("#ffcc66"),
     emissiveIntensity: 3,
     children: generateLanterns(density),

@@ -88,7 +88,7 @@ const SHARED_ENTRY_DIRS = new Set(["detail"]);
 const DEFAULT_CONFIG: ScreenshotConfig = {
   viewport: { width: 400 * 3, height: 250 * 3 },
   outputDir: path.join(__dirname, "../example/public/screenshots"),
-  serverUrl: process.env.SERVER_URL || "http://localhost:5173",
+  serverUrl: process.env.SERVER_URL || "http://localhost:5173/examples",
   timeout: 300000,
   retries: 2,
   parallel: 1,
@@ -597,7 +597,7 @@ A target is either a legacy page name or a curated example's demo path:
   pnpm run screenshots getting-started/hello-world        # same, path shorthand
 
 Environment variables:
-  SERVER_URL=http://localhost:5173       # Override dev server URL
+  SERVER_URL=http://localhost:5173/examples  # Override dev server URL (including the /examples base)
     `);
     process.exit(0);
   }

@@ -9,6 +9,7 @@ import {
   moveOverlayElement,
 } from "@navaramap/three-plugins";
 
+import { withBase } from "../../../helpers/base";
 import { LOCAL_DATASETS, TILES_3D_DATASETS } from "../../../helpers/constants";
 import { atZoneTime } from "../../../helpers/control";
 import { GOOGLE_MAPS_API_KEY } from "../../../helpers/keys";
@@ -29,7 +30,7 @@ export const run = async (view: ThreeView<CustomDescriptions>) => {
   const defaultPlugin = new DefaultPlugin();
   const personViewPlugin = new PersonViewPlugin({
     character: {
-      modelUrl: "/glTF/animated_bird_pigeon/scene.gltf",
+      modelUrl: withBase("glTF/animated_bird_pigeon/scene.gltf"),
       animation: {
         idleClip: "BirdRig|Gliding",
         dashClip: "BirdRig|Flapping",

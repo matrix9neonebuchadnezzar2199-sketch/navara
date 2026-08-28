@@ -51,7 +51,7 @@ overlay.onUpdate(({ projected }) => {
 
 ## Documentation
 
-Each plugin's options and events are documented at https://navara-docs.reearth.workers.dev/.
+Each plugin's options and events are documented at https://navara.world/docs/.
 
 ## License
 

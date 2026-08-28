@@ -25,7 +25,7 @@ All of these utilities are also re-exported by `@navaramap/three`, so applicatio
 
 ## Documentation
 
-Every function is documented at https://navara-docs.reearth.workers.dev/.
+Every function is documented at https://navara.world/docs/.
 
 ## License
 

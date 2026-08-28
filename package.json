@@ -28,6 +28,11 @@
     "dev:docs": "pnpm -C docs dev",
     "build:docs": "pnpm -C docs build",
     "preview:docs": "pnpm -C docs preview",
+    "assemble:site": "node scripts/assemble-site.mjs",
+    "build:site": "pnpm build:example && pnpm build:docs && pnpm assemble:site",
+    "preview:site": "wrangler dev",
+    "deploy:site": "pnpm assemble:site && wrangler deploy",
+    "deploy:redirects": "wrangler deploy -c workers/redirects/navara-preview/wrangler.jsonc",
     "pack:externals": "pnpm pack -r --pack-destination externals --filter './web/**' --filter '!./web/integration-tests/**'"
   },
   "license": "MIT OR Apache-2.0",
@@ -61,6 +66,7 @@
     "vite-plugin-top-level-await": "1.6.0",
     "vite-plugin-wasm": "3.6.0",
     "vite-tsconfig-paths": "6.1.1",
-    "vitest": "4.1.10"
+    "vitest": "4.1.10",
+    "wrangler": "^4.127.0"
   }
 }

@@ -47,15 +47,15 @@ export const localize = (text: Localized | undefined, lang: Lang): string => {
   return text[lang] ?? text[DEFAULT_LANG] ?? Object.values(text)[0] ?? "";
 };
 
-/** Base URL of the developer docs site. */
-export const DOCS_URL = "https://navara-docs.reearth.workers.dev/";
+/** Base path of the developer docs site (same origin as the examples). */
+export const DOCS_URL = "/docs";
 
 /**
  * Resolve an example's `docs` value to a full URL. An absolute URL passes
  * through unchanged; otherwise it is treated as a docs-site path and prefixed
  * with {@link DOCS_URL} and the language segment (docs are localized under /ja).
  * e.g. docsUrl("three/tutorial/basic-visualization", "ja")
- *   -> "https://navara-docs.reearth.workers.dev//ja/three/tutorial/basic-visualization"
+ *   -> "/docs/ja/three/tutorial/basic-visualization"
  */
 export const docsUrl = (docs: string, lang: Lang): string => {
   if (/^https?:\/\//.test(docs)) return docs;

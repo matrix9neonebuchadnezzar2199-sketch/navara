@@ -18,6 +18,14 @@ pnpm build:example
 ''']
 dependencies = ["install-deps-web"]
 
+[tasks.deploy-web-site]
+description = "Build docs, assemble site-dist/, and deploy the navara.world worker"
+script = ['''
+pnpm build:docs
+pnpm deploy:site
+''']
+dependencies = ["install-deps-web"]
+
 [tasks.build-web-integration]
 description = "Build integration test examples (tests library from user perspective)"
 script = ['''

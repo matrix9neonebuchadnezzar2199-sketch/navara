@@ -11,6 +11,7 @@ import {
 } from "@navaramap/three-default-plugin";
 import { Pane } from "tweakpane";
 
+import { withBase } from "../../helpers/base";
 import {
   TILE_DATASETS,
   TILES_3D_DATASETS,
@@ -179,7 +180,7 @@ function createRaster(view: ThreeView) {
 function createGeojson(view: ThreeView) {
   gGeojsonSource = view.addSource(
     gGeojsonUsesWorld
-      ? { type: "geojson", url: "/globe.geojson" }
+      ? { type: "geojson", url: withBase("globe.geojson") }
       : { type: "geojson", data: FUJI_POLYGON },
   );
   gGeojsonLayer = view.addLayer({
@@ -527,7 +528,10 @@ function addGeojsonLayerFolder(view: ThreeView, pane: Pane) {
     .on("change", (v) => {
       gGeojsonUsesWorld = v.value === "world";
       if (gGeojsonUsesWorld) {
-        gGeojsonSource.update({ type: "geojson", url: "/globe.geojson" });
+        gGeojsonSource.update({
+          type: "geojson",
+          url: withBase("globe.geojson"),
+        });
         flyTo(view, { lat: 20, lng: 0, distance: 25_000_000, pitch: -89 });
       } else {
         gGeojsonSource.update({ type: "geojson", data: FUJI_POLYGON });
