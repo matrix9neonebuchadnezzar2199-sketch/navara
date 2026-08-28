@@ -51,14 +51,17 @@ for (const [from, to] of [
   rmSync(dirname(src), { recursive: true });
 }
 
-// Root-level shared files: default favicon requests, the site og image
-// (referenced as https://navara.world/og.jpg), and the 404 page that covers
-// everything outside /docs (Workers assets serves the nearest 404.html).
-for (const file of ["favicon.png", "og.jpg", "404.html"]) {
+// Root-level shared files: default favicon requests and the site og image
+// (referenced as https://navara.world/og.jpg).
+for (const file of ["favicon.png", "og.jpg"]) {
   const src = resolve(out, "docs", file);
   if (!existsSync(src)) throw new Error(`Expected file missing in docs build: ${file}`);
   cpSync(src, resolve(out, file));
 }
+
+// Site-wide 404 page, covering everything outside /docs (Workers assets
+// serves the nearest 404.html; /docs/* keeps Starlight's own 404).
+cpSync(resolve(root, "site/404.html"), resolve(out, "404.html"));
 
 cpSync(examplesDist, resolve(out, "examples"), { recursive: true });
 
