@@ -15,6 +15,7 @@ const BUTTON_CLASS = "example-button";
 const SLIDER_CLASS = "example-slider";
 const SWITCH_CLASS = "example-switch";
 const READOUT_CLASS = "example-readout";
+const CHECKBOX_CLASS = "example-checkbox";
 
 const BUTTON_CSS = `
 .${BUTTON_BAR_CLASS} {
@@ -110,6 +111,23 @@ const BUTTON_CSS = `
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
+.${CHECKBOX_CLASS} {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+  border: 1px solid #d4d7da;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+}
+.${CHECKBOX_CLASS} input[type="checkbox"] {
+  accent-color: #0091ff;
+  cursor: pointer;
+}
 `;
 
 let buttonBar: HTMLDivElement | undefined;
@@ -201,6 +219,32 @@ export const addReadout = (
   wrapper.append(name, value);
   ensureButtonBar().appendChild(wrapper);
   return value;
+};
+
+/**
+ * Appends a labeled checkbox to the shared button bar and returns the input.
+ * `onChange` fires with the new checked state, so the example only states what
+ * the toggle does — not the DOM wiring.
+ */
+export const addCheckbox = (
+  label: string,
+  checked: boolean,
+  onChange: (checked: boolean) => void,
+): HTMLInputElement => {
+  const wrapper = document.createElement("label");
+  wrapper.className = CHECKBOX_CLASS;
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.checked = checked;
+  input.onchange = () => onChange(input.checked);
+
+  const name = document.createElement("span");
+  name.textContent = label;
+
+  wrapper.append(input, name);
+  ensureButtonBar().appendChild(wrapper);
+  return input;
 };
 
 /**
