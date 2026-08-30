@@ -1,3 +1,20 @@
+## v0.1.1 - 2026-08-30
+
+### 🚀 Features
+
+- Support async onCreate in BaseMesh ([#804](https://github.com/reearth/navara/pull/804))
+
+### 🐛 Bug Fixes
+
+- Run forceUpdate when deleted and added ([#805](https://github.com/reearth/navara/pull/805))
+- **BREAKING:** Support touch operation and unify mouse related event to pointer ([#806](https://github.com/reearth/navara/pull/806))
+- Avoid batch id interpolation ([#807](https://github.com/reearth/navara/pull/807))
+
+### 🧹 Miscellaneous
+
+- Add 404
+- Improve example page performance for mobile
+
 ## v0.1.0 - 2026-08-28
 
 We finally released the beta version 🎉  
