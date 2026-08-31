@@ -154,6 +154,23 @@ export const createFeatureKit = (deps: {
     });
   };
 
+  /**
+   * 雲の暗さは aerialPerspective と雲オーバーレイの両方。visible=false だけでは
+   * オーバーレイが残るので、OFF では両方外して元の明るさに戻す。
+   */
+  const setCloudSky = (on: boolean) => {
+    if (on) {
+      ensureAerialPerspective();
+      if (aerialFx) aerialFx.visible = true;
+      return;
+    }
+    view.atmosphere.overlay.value = null;
+    view.atmosphere.shadow.value = null;
+    view.atmosphere.shadowLength.value = null;
+    view.atmosphere.onUpdate();
+    if (aerialFx) aerialFx.visible = false;
+  };
+
   const setPlateauShow = (show: boolean) => {
     for (const { source, layer } of deps.plateau) {
       layer.update({
@@ -319,7 +336,7 @@ export const createFeatureKit = (deps: {
         }
         case "clouds": {
           if (on) {
-            ensureAerialPerspective();
+            setCloudSky(true);
             if (!cloudsFx) {
               // 公式例は数 km 上空の high + shadows。歩行目線だと1フレームで GPU が止まる。
               cloudsFx = view.addEffect<CloudsEffectDesc>({
@@ -337,12 +354,12 @@ export const createFeatureKit = (deps: {
             }
           } else if (cloudsFx) {
             cloudsFx.visible = false;
+            setCloudSky(false);
           }
           return true;
         }
         case "precipitation": {
           if (on) {
-            ensureAerialPerspective();
             if (!rainMesh) {
               rainMesh = view.addMesh<RainMeshDesc>({
                 rain: { followCamera: true, particleCount: 4000 },
@@ -365,7 +382,6 @@ export const createFeatureKit = (deps: {
         }
         case "fog": {
           if (on) {
-            ensureAerialPerspective();
             const alt = await groundHeight(TOKYO.lng, TOKYO.lat, 6);
             const lamps = [
               [0.0004, 0],
