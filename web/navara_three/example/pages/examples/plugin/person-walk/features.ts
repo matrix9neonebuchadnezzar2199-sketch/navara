@@ -11,10 +11,12 @@ import ThreeView, {
   type Source,
 } from "@navaramap/three";
 import type {
+  AerialPerspectiveEffectDesc,
   CloudsEffectDesc,
   DepthOfFieldEffectDesc,
   FogLightEffectDesc,
   GLTFModelDesc,
+  RainDropEffectDesc,
   RainMeshDesc,
   SelectiveBloomEffectDesc,
   SplatMeshDesc,
@@ -101,8 +103,10 @@ export const createFeatureKit = (deps: {
   let osmSource: Source | undefined;
   let osmLayer: Layer | undefined;
   let heatmapLayer: Layer | undefined;
+  let aerialFx: Effectish | undefined;
   let cloudsFx: Effectish | undefined;
   let rainMesh: Meshish | undefined;
+  let rainDropFx: Effectish | undefined;
   let fogFx: Effectish | undefined;
   let bloomFx: (Effectish & { id: string }) | undefined;
   let bloomGlow: Layer | undefined;
@@ -132,6 +136,22 @@ export const createFeatureKit = (deps: {
       { lat, lng },
     ]);
     return (sampled?.height ?? 40) + extra;
+  };
+
+  /**
+   * 雲は aerialPerspective の後ろに差し込む。公式天気デモは
+   * addDefaultPhotorealScene() で先に足している。歩行デモは太陽を既に
+   * 置いているので、空の合成に必要なパスだけ後付けする。
+   */
+  const ensureAerialPerspective = () => {
+    if (aerialFx) return;
+    aerialFx = view.addEffect<AerialPerspectiveEffectDesc>({
+      aerialPerspective: {
+        sun: true,
+        sky: true,
+        irradiance: true,
+      },
+    });
   };
 
   const setPlateauShow = (show: boolean) => {
@@ -299,15 +319,17 @@ export const createFeatureKit = (deps: {
         }
         case "clouds": {
           if (on) {
+            ensureAerialPerspective();
             if (!cloudsFx) {
+              // 公式例は数 km 上空の high + shadows。歩行目線だと1フレームで GPU が止まる。
               cloudsFx = view.addEffect<CloudsEffectDesc>({
                 clouds: {
-                  qualityPreset: "high",
+                  qualityPreset: "low",
                   localWeatherVelocity: new Vector2(0.001, 0),
-                  lightShafts: true,
-                  shadows: true,
+                  lightShafts: false,
+                  shadows: false,
                   haze: true,
-                  coverage: 0.4,
+                  coverage: 0.5,
                 },
               });
             } else {
@@ -320,18 +342,30 @@ export const createFeatureKit = (deps: {
         }
         case "precipitation": {
           if (on) {
+            ensureAerialPerspective();
             if (!rainMesh) {
-              rainMesh = view.addMesh<RainMeshDesc>({ rain: {} });
+              rainMesh = view.addMesh<RainMeshDesc>({
+                rain: { followCamera: true, particleCount: 4000 },
+              });
             } else {
               rainMesh.visible = true;
             }
-          } else if (rainMesh) {
-            rainMesh.visible = false;
+            if (!rainDropFx) {
+              rainDropFx = view.addEffect<RainDropEffectDesc>({
+                rainDrop: { dropLayers: 2 },
+              });
+            } else {
+              rainDropFx.visible = true;
+            }
+          } else {
+            if (rainMesh) rainMesh.visible = false;
+            if (rainDropFx) rainDropFx.visible = false;
           }
           return true;
         }
         case "fog": {
           if (on) {
+            ensureAerialPerspective();
             const alt = await groundHeight(TOKYO.lng, TOKYO.lat, 6);
             const lamps = [
               [0.0004, 0],
@@ -348,15 +382,18 @@ export const createFeatureKit = (deps: {
                 position: { x, y, z },
                 color: 0xffb45c,
                 intensity: 1,
-                radius: 80,
+                radius: 220,
               };
             });
             if (!fogFx) {
+              // 未指定だと maxFar = camera.far（地球スケール）になり街歩きで凍る。
               fogFx = view.addEffect<FogLightEffectDesc>({
                 fogLight: {
                   lights: lamps,
-                  fogDensity: 1.4,
+                  fogDensity: 1.2,
                   useSurfaceLighting: true,
+                  maxFar: 220,
+                  downsample: 4,
                 },
               });
             } else {
