@@ -3,8 +3,9 @@ import {
   DefaultPlugin,
   type DefaultDescriptions,
 } from "@navaramap/three-default-plugin";
-import { PersonViewPlugin, TileJsonPlugin } from "@navaramap/three-plugins";
+import { PersonViewPlugin } from "@navaramap/three-plugins";
 
+import { TILE_DATASETS } from "../../../../helpers/constants";
 import { initializeExample } from "../../../../helpers/initialize";
 
 import { createHud, type LocationPreset } from "./hud";
@@ -26,8 +27,6 @@ const view = new ThreeView<DefaultDescriptions>({
 
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
-const tilejson = new TileJsonPlugin();
-view.addPlugin(tilejson);
 
 const personView = new PersonViewPlugin({
   character: {
@@ -55,6 +54,8 @@ const personView = new PersonViewPlugin({
   fpvHeightOffset: 1.6,
   fpvPitch: 2.9,
   initialView: "tpv",
+  // 左ドラッグで視点を回す（Alt 不要）。エンジン側は MouseButton::Left。
+  allowCameraControl: true,
   startLng: START.lng,
   startLat: START.lat,
   startHeading: START.heading,
@@ -99,11 +100,17 @@ view.addLayer({
   terrain: { castShadow: true, receiveShadow: true },
 });
 
-const basemap = await tilejson.addSource({
+const basemap = view.addSource({
   type: "raster-tile",
-  url: "https://papers.reearth.land/styles/papers-light/tilejson.json",
+  url: TILE_DATASETS.gsiSeamlessphoto.url,
+  minZoom: 2,
+  maxZoom: 18,
 });
-view.addLayer({ type: "raster", source: basemap });
+view.addLayer({
+  type: "raster",
+  source: basemap,
+  raster: { color: new Color().setStyle("#ffffff") },
+});
 
 // 歩行中はキャラクター操作、Esc で解放されたマップモードではクリックが
 // ワープ先指定になる、というモード状態。
@@ -164,6 +171,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 view.attribution?.add([
+  TILE_DATASETS.gsiSeamlessphoto,
   {
     attribution: "Re:Earth Terrain",
     attributionUrl: "https://terrain.reearth.land/",

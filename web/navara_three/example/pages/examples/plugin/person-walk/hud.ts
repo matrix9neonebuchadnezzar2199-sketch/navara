@@ -161,7 +161,7 @@ export const createHud = (options: {
   const help = document.createElement("div");
   help.className = "pwhud__help";
   help.textContent =
-    "WASD 移動 / Shift ダッシュ / V 視点 / Esc マップ⇄歩行 / マップをクリックでワープ";
+    "WASD 移動 / Shift ダッシュ / V 視点 / 左ドラッグで視点 / Esc マップ⇄歩行 / マップをクリックでワープ";
 
   card.append(locationsRow, grid, help);
   root.appendChild(card);
