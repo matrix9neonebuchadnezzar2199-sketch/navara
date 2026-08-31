@@ -116,7 +116,7 @@ view.addLayer({
 });
 
 // 東京駅は千代田区（丸の内）と中央区（八重洲）の境。LOD2・テクスチャ無し。
-// height は公式 weather 例と同じく、地形面へ沈める補正。
+// Re:Earth ellipsoid 地形と揃える。GSI DEM 向けの height: -50 は建物を地下に埋める。
 const chiyoda = view.addSource({
   type: "3d-tiles",
   url: TILES_3D_DATASETS.plateauChiyoda.url,
@@ -131,7 +131,6 @@ view.addLayer({
     roughness: 1,
     castShadow: true,
     receiveShadow: true,
-    height: -50,
   },
 });
 
@@ -149,7 +148,6 @@ view.addLayer({
     roughness: 1,
     castShadow: true,
     receiveShadow: true,
-    height: -50,
   },
 });
 
