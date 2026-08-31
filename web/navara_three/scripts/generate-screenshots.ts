@@ -152,6 +152,9 @@ const PAGE_CONFIGS: Record<string, PageConfig> = {
   "plugin/person-view": {
     waitTime: 15000,
   },
+  "plugin/person-walk": {
+    waitTime: 15000,
+  },
   "effect/selective-bloom": {
     waitTime: 8000,
   },
