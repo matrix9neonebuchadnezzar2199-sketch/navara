@@ -5,7 +5,10 @@ import {
 } from "@navaramap/three-default-plugin";
 import { PersonViewPlugin } from "@navaramap/three-plugins";
 
-import { TILE_DATASETS } from "../../../../helpers/constants";
+import {
+  TILE_DATASETS,
+  TILES_3D_DATASETS,
+} from "../../../../helpers/constants";
 import { initializeExample } from "../../../../helpers/initialize";
 
 import { createHud, type LocationPreset } from "./hud";
@@ -112,6 +115,44 @@ view.addLayer({
   raster: { color: new Color().setStyle("#ffffff") },
 });
 
+// 東京駅は千代田区（丸の内）と中央区（八重洲）の境。LOD2・テクスチャ無し。
+// height は公式 weather 例と同じく、地形面へ沈める補正。
+const chiyoda = view.addSource({
+  type: "3d-tiles",
+  url: TILES_3D_DATASETS.plateauChiyoda.url,
+});
+view.addLayer({
+  type: "3d-tiles",
+  source: chiyoda,
+  model: {
+    show: true,
+    color: new Color().setStyle("#ffffff"),
+    metalness: 0,
+    roughness: 1,
+    castShadow: true,
+    receiveShadow: true,
+    height: -50,
+  },
+});
+
+const chuo = view.addSource({
+  type: "3d-tiles",
+  url: TILES_3D_DATASETS.plateauChuo.url,
+});
+view.addLayer({
+  type: "3d-tiles",
+  source: chuo,
+  model: {
+    show: true,
+    color: new Color().setStyle("#ffffff"),
+    metalness: 0,
+    roughness: 1,
+    castShadow: true,
+    receiveShadow: true,
+    height: -50,
+  },
+});
+
 // 歩行中はキャラクター操作、Esc で解放されたマップモードではクリックが
 // ワープ先指定になる、というモード状態。
 let walking = true;
@@ -172,6 +213,8 @@ window.addEventListener("keydown", (e) => {
 
 view.attribution?.add([
   TILE_DATASETS.gsiSeamlessphoto,
+  TILES_3D_DATASETS.plateauChiyoda,
+  TILES_3D_DATASETS.plateauChuo,
   {
     attribution: "Re:Earth Terrain",
     attributionUrl: "https://terrain.reearth.land/",
