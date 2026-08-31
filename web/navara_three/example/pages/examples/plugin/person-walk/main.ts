@@ -3,7 +3,7 @@ import {
   DefaultPlugin,
   type DefaultDescriptions,
 } from "@navaramap/three-default-plugin";
-import { PersonViewPlugin } from "@navaramap/three-plugins";
+import { OverlayPlugin, PersonViewPlugin } from "@navaramap/three-plugins";
 
 import {
   TILE_DATASETS,
@@ -11,7 +11,9 @@ import {
 } from "../../../../helpers/constants";
 import { initializeExample } from "../../../../helpers/initialize";
 
+import { createFeatureKit } from "./features";
 import { createHud, type LocationPreset } from "./hud";
+import { createSidebar } from "./sidebar";
 
 const ASSETS = import.meta.env.BASE_URL; // "/examples/" on navara.world
 
@@ -25,11 +27,15 @@ const START = LOCATIONS.tokyo;
 
 const view = new ThreeView<DefaultDescriptions>({
   shadow: true,
+  animation: true,
   backgroundColor: new Color().setStyle("#cccccc"),
 });
 
 const defaultPlugin = new DefaultPlugin();
 view.addPlugin(defaultPlugin);
+// OverlayPlugin は init 前に登録する必要がある。スイッチは後から入れる。
+const overlay = new OverlayPlugin();
+view.addPlugin(overlay);
 
 const personView = new PersonViewPlugin({
   character: {
@@ -96,8 +102,9 @@ const terrain = view.addSource({
   maxZoom: 18,
   minZoom: 2,
   requestVertexNormals: true,
+  requestWaterMask: true,
 });
-view.addLayer({
+const terrainLayer = view.addLayer({
   type: "terrain",
   source: terrain,
   terrain: { castShadow: true, receiveShadow: true },
@@ -109,7 +116,7 @@ const basemap = view.addSource({
   minZoom: 2,
   maxZoom: 18,
 });
-view.addLayer({
+const aerialLayer = view.addLayer({
   type: "raster",
   source: basemap,
   raster: { color: new Color().setStyle("#ffffff") },
@@ -121,7 +128,7 @@ const chiyoda = view.addSource({
   type: "3d-tiles",
   url: TILES_3D_DATASETS.plateauChiyoda.url,
 });
-view.addLayer({
+const chiyodaLayer = view.addLayer({
   type: "3d-tiles",
   source: chiyoda,
   model: {
@@ -138,7 +145,7 @@ const chuo = view.addSource({
   type: "3d-tiles",
   url: TILES_3D_DATASETS.plateauChuo.url,
 });
-view.addLayer({
+const chuoLayer = view.addLayer({
   type: "3d-tiles",
   source: chuo,
   model: {
@@ -154,6 +161,27 @@ view.addLayer({
 // 歩行中はキャラクター操作、Esc で解放されたマップモードではクリックが
 // ワープ先指定になる、というモード状態。
 let walking = true;
+
+const features = createFeatureKit({
+  view,
+  overlay,
+  assetsBase: ASSETS,
+  terrainSource: terrain,
+  terrainLayer,
+  aerialSource: basemap,
+  aerialLayer,
+  plateau: [
+    { source: chiyoda, layer: chiyodaLayer },
+    { source: chuo, layer: chuoLayer },
+  ],
+});
+
+createSidebar({
+  initialOn: { aerial: true },
+  initialHourJst: 9.5,
+  onToggle: (id, on) => features.setEnabled(id, on),
+  onHourJst: (hours) => features.setSolarHourJst(hours),
+});
 
 const hud = createHud({
   locations: LOCATIONS,
@@ -171,9 +199,10 @@ const hud = createHud({
 const warpTo = async (lng: number, lat: number, heading?: number) => {
   hud.setWarpPending(true);
   try {
-    const [ground] = await view.sampleTerrainMostDetailed(terrain, [
-      { lat, lng },
-    ]);
+    const [ground] = await view.sampleTerrainMostDetailed(
+      features.collisionSource(),
+      [{ lat, lng }],
+    );
     const alt = ground?.height ?? personView.getState().alt;
     personView.teleport({ lng, lat, alt, heading });
     if (!walking) {

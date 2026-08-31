@@ -15,7 +15,7 @@ export type LocationPreset = {
 const HUD_CSS = `
 .pwhud {
   position: fixed;
-  left: 12px;
+  right: 12px;
   bottom: 12px;
   z-index: 20;
   font-family: system-ui, sans-serif;
